@@ -6,7 +6,6 @@
 #include "gl3w.h"
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
 
 
 const int WIDTH = 1280, HEIGHT = 720;
@@ -18,10 +17,10 @@ int main(int argc, char *argv[]) {
     printf("SDL_Init failed: %s\n", SDL_GetError());
     return 1;
   }
-  const char* glsl_version = "#version 330";
+  const char* glsl_version = "#version 430";
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,  SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
