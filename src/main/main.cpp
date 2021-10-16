@@ -10,8 +10,6 @@
 
 const int WIDTH = 1280, HEIGHT = 720;
 
-
-
 int main(int argc, char *argv[]) {
   if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
     printf("SDL_Init failed: %s\n", SDL_GetError());
@@ -71,11 +69,7 @@ int main(int argc, char *argv[]) {
         ImGui::Render();
         }
         
-      
-
-
         // Rendering
-        
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -88,10 +82,8 @@ int main(int argc, char *argv[]) {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
     SDL_Quit();
-
   return 0;
 }
