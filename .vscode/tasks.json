@@ -1,0 +1,43 @@
+{
+	"version": "2.0.0",
+	"windows": {
+		"command": "C:\\msys64\\usr\\bin\\bash.exe",
+		"args": ["-lc", "([ -f builddir/build.ninja ] || meson build) && ninja -C builddir | cat"]
+	},
+	"linux": {
+		"args": ["-lc", "cd \"\"${workspaceRoot}\"\" && ([ -f build/build.ninja ] || meson build) && ninja -C builddir && cd build && $@"],
+		"command": "/bin/bash"
+	},
+	"options": {
+		"env": {
+			"LANG": "C.UTF-8",
+			"PYTHONUNBUFFERD": "1",
+			"MSYSTEM": "MINGW64",
+			"CHERE_INVOKING": "1"
+		}
+	},
+	"tasks": [
+		{
+			"label": "build",
+			"problemMatcher": {
+				"owner": "cpp",
+				"fileLocation": [
+					"relative",
+					"${workspaceRoot}/builddir"
+				],
+				"pattern": {
+					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error|fatal error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+	]
+}

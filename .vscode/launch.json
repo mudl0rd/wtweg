@@ -5,7 +5,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch",
+            "preLaunchTask": "build",
+            "name": "Compile/Debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/builddir/demo.exe",
