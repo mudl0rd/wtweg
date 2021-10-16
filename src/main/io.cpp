@@ -36,6 +36,7 @@ struct fifo_buffer {
 
 struct audio_ctx {
     fifo_buffer* _fifo;
+    SDL_AudioSpec shit;
     unsigned client_rate;
     double system_rate;
     void* resample;
@@ -132,6 +133,18 @@ __forceinline void s16tof(float* dst, const int16_t* src, unsigned int count)
         dst[i] = (float)src[i] * fgain;
 }
 
+void func_callback(void* userdata, Uint8* stream, int len)
+{
+    audio_ctx* context = (audio_ctx*)userdata;
+    int num_bytes = len;
+    size_t amount = fifo_read_avail(context->_fifo);
+    amount = (num_bytes >= amount) ? amount : num_bytes;
+    fifo_read(context->_fifo, (uint8_t*)stream, amount);
+    int remain = len-amount;
+    memset((Uint8*)stream+amount,0,remain);
+    scond_signal(context->condz);
+}
+
 void audio_mix(const int16_t* samples, size_t size) {
     struct resampler_data src_data = { 0 };
     size_t written = 0;
@@ -166,6 +179,54 @@ void audio_mix(const int16_t* samples, size_t size) {
             slock_lock(audio_ctx_s.cond_lock);
             scond_wait(audio_ctx_s.condz, audio_ctx_s.cond_lock);
         }
+    }
+}
+
+
+bool audio_init(double refreshra, float input_srate, float fps) {
+    audio_ctx_s.cond_lock = slock_new();
+    audio_ctx_s.condz = scond_new();
+    audio_ctx_s.system_rate = input_srate;
+    double system_fps = fps;
+    if (fabs(1.0f - system_fps / refreshra) <= 0.05)
+        audio_ctx_s.system_rate *= (refreshra / system_fps);
+
+    audio_ctx_s.shit.freq = 44100;
+    audio_ctx_s.shit.format = AUDIO_F32;
+    audio_ctx_s.shit.samples = FRAME_COUNT;
+    audio_ctx_s.shit.callback= func_callback;
+    audio_ctx_s.shit.userdata= (audio_ctx*)&audio_ctx_s;
+    audio_ctx_s.shit.channels = 2;
+    audio_ctx_s.client_rate = audio_ctx_s.shit.freq;
+    audio_ctx_s.resample = resampler_sinc_init();
+    // allow for tons of space in the tank
+    size_t outsamples_max = (FRAME_COUNT * 4 * sizeof(float));
+    size_t sampsize = (FRAME_COUNT * (2 * sizeof(float)));
+    audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
+    audio_ctx_s.output_float =
+        new float[outsamples_max]; // spare space for resampler
+    audio_ctx_s.input_float = new float[outsamples_max];
+
+    uint8_t* tmp = (uint8_t*)calloc(1, sampsize);
+    if (tmp) {
+        fifo_write(audio_ctx_s._fifo, tmp, sampsize);
+        free(tmp);
+    }
+
+    SDL_OpenAudio(&audio_ctx_s.shit, NULL);
+    SDL_PauseAudio(0);
+    return true;
+}
+void audio_destroy() {
+    {
+        SDL_PauseAudio(0);
+        SDL_CloseAudio();
+        fifo_free(audio_ctx_s._fifo);
+        scond_free(audio_ctx_s.condz);
+        slock_free(audio_ctx_s.cond_lock);
+        delete[] audio_ctx_s.input_float;
+        delete[] audio_ctx_s.output_float;
+        resampler_sinc_free(audio_ctx_s.resample);
     }
 }
 
