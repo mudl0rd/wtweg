@@ -8,6 +8,8 @@ inc_stb = include_directories('src/deps/stb')
 glob = run_command('python', 'src_batch.py')
 src = glob.stdout().strip().split('\n')
 
-executable('demo', include_directories : [inc,inc_imgui,inc_deps,inc_stb],sources : [src],dependencies : sdl2dep)
+executable('demo', include_directories : [inc,inc_imgui,inc_deps,inc_stb],sources : [src],dependencies : sdl2dep,
+override_options : ['c_std=c11', 'cpp_std=c++17']
+)
 
 

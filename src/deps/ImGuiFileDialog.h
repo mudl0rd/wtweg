@@ -684,12 +684,12 @@ namespace IGFD
 		static void AppendToBuffer(char* vBuffer, size_t vBufferLen, const std::string& vStr);
 		static void ResetBuffer(char* vBuffer);
 		static void SetBuffer(char* vBuffer, size_t vBufferLen, const std::string& vStr);
-#ifdef WIN32
+
 		static bool WReplaceString(std::wstring& str, const std::wstring& oldStr, const std::wstring& newStr);
 		static std::vector<std::wstring> WSplitStringToVector(const std::wstring& text, char delimiter, bool pushEmpty);
 		static std::string wstring_to_string(const std::wstring& wstr);
 		static std::wstring string_to_wstring(const std::string& mbstr);
-#endif
+
 		static std::vector<std::string> SplitStringToVector(const std::string& text, char delimiter, bool pushEmpty);
 		static std::vector<std::string> GetDrivesList();
 	};

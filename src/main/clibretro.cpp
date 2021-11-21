@@ -7,7 +7,13 @@
 #endif
 using namespace std;
 
-void* openlib(char *path)
+#ifdef _WIN32
+static std::string_view SHLIB_EXTENSION = ".dll";
+#else
+static std::string_view SHLIB_EXTENSION = ".so";
+#endif
+
+void* openlib(const char *path)
 {
 #ifdef _WIN32
   HMODULE handle =LoadLibrary(path);
@@ -36,7 +42,9 @@ void freelib(void *handle)
 #endif
 }
 
-static CLibretro* get_classinstance(void* window)
+
+
+CLibretro *CLibretro::get_classinstance(void* window)
 {
   static thread_local CLibretro* instance = new CLibretro(window);
   return instance;
@@ -44,14 +52,22 @@ static CLibretro* get_classinstance(void* window)
 
 CLibretro::CLibretro(void *window)
 {
-  string path = std::filesystem::current_path().string();
-  path += "//cores";
-  cores = get_cores(path.c_str());
+  
+  cores = get_cores();
+}
+
+void CLibretro::core_run()
+{
+  int i=0;
+  i+= 3;
+  i-= 3;
+  return;
+
 }
 
 
 
- void addplugin(char *path,std::vector<core_info> cores) {
+ void addplugin(const char *path,std::vector<core_info> cores) {
     typedef void (*retro_get_system_info)(struct retro_system_info * info);
     retro_get_system_info getinfo;
     struct retro_system_info system = {0};
@@ -70,15 +86,16 @@ CLibretro::CLibretro(void *window)
       freelib(hDLL);
   }
 
-std::vector<core_info> get_cores(const char* path)
+std::vector<core_info> get_cores()
 {
     std::vector<core_info> core_dat;
     core_dat.clear();
-
-    for (const auto & entry : std::filesystem::directory_iterator(path))
+    std::filesystem::path path =std::filesystem::current_path() / "cores";
+    for (auto & entry : std::filesystem::directory_iterator(path))
     {
-      std::cout << entry.path() << std::endl;
-
+      string str = entry.path().string();
+      if(entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
+          addplugin(entry.path().string().c_str(),core_dat);
     }
     return core_dat;
 }

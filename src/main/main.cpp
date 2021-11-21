@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
   ImGui_ImplOpenGL3_Init(glsl_version);
   ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
+  CLibretro* instance = CLibretro::get_classinstance(window);
+
     // Main loop
     bool show_menu = true;
     bool done = false;
@@ -69,6 +71,8 @@ int main(int argc, char *argv[]) {
         sdlggerat_menu();
         ImGui::Render();
         }
+
+        instance->core_run();
         
         // Rendering
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);

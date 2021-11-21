@@ -25,7 +25,7 @@
         float fps;
     };
 
-std::vector<core_info> get_cores(const char* path);
+std::vector<core_info> get_cores();
 
 class CLibretro
 {
@@ -65,6 +65,8 @@ class CLibretro
     void core_unload();
     void core_run();
     void set_inputdevice(int device);
+
+	
 
     std::vector<core_configvars> core_variables;
 	std::vector<core_info> cores;

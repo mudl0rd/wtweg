@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "ImGuiFileDialog.h"
 #include "ImGuiFileDialogConfig.h"
+#include "clibretro.h"
 
 ImGuiFileDialog romloader;
 const char* ss_filters = "Savestates (*.state){.state}";
@@ -11,8 +12,12 @@ static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_Default;
 enum {digi_pad,ana_pad,mousie};
 int controller_type = digi_pad;
 
+
+
 void sdlggerat_menu()
 {
+  CLibretro* instance= CLibretro::get_classinstance();
+   instance->core_run();
   if (ImGui::BeginMainMenuBar())
 	    {
 		if (ImGui::BeginMenu("File"))
