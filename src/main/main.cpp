@@ -72,18 +72,26 @@ int main(int argc, char *argv[]) {
         ImGui::Render();
         }
 
-        instance->core_run();
+
+        
         
         // Rendering
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
+        
+
+        if(instance->core_isrunning())
+        instance->core_run();
+
         if(show_menu)
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         
         SDL_GL_SwapWindow(window);
     }
+
+    delete instance;
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

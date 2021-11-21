@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <filesystem>
+#include "io.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -52,17 +53,28 @@ CLibretro *CLibretro::get_classinstance(void* window)
 
 CLibretro::CLibretro(void *window)
 {
-  
   cores = get_cores();
+  render = create_gl_render(window);
+}
+
+CLibretro::~CLibretro()
+{
+  delete render;
+}
+
+bool CLibretro::core_isrunning()
+{
+  return lr_isrunning;
 }
 
 void CLibretro::core_run()
 {
+  if(lr_isrunning)
+  {
   int i=0;
   i+= 3;
   i-= 3;
-  return;
-
+  }
 }
 
 
@@ -77,7 +89,7 @@ void CLibretro::core_run()
       getinfo = (retro_get_system_info)getfunc(hDLL,"retro_get_system_info");
       if (getinfo) {
         getinfo(&system);
-        core_info entry = {0};
+        core_info entry;
         entry.core_name = system.library_name;
         entry.core_extensions = system.valid_extensions;
         entry.core_path = path;

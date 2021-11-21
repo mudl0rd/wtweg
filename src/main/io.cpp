@@ -245,6 +245,8 @@ private:
 		GLint u_mvp;
 	} g_shader;
 
+
+    void *sdl_context;
 	int rend_width;
 	int rend_height;
 
@@ -457,7 +459,7 @@ public:
 		return fbo_id;
 	}
 
-	gl_render() {
+	gl_render(void *context) {
 		g_video = { 0 };
 		g_shader = { 0 };
 		g_video.hw.version_major = 4;
@@ -467,6 +469,7 @@ public:
 		g_video.hw.context_destroy = NULL;
 		g_video.software_rast = true;
 		fbo_id = 0;
+		sdl_context = context;
 	}
 	~gl_render() {
 		deinit();
@@ -478,7 +481,7 @@ public:
 		g_video.software_rast = false;
 	}
 
-	bool init(void *window,const struct retro_game_geometry* geom, retro_pixel_format fmt, float& refreshrate)
+	bool init(const struct retro_game_geometry* geom, retro_pixel_format fmt, float& refreshrate)
 	{
 		int width = 0, height = 0;
 
@@ -533,9 +536,9 @@ public:
 		double factor = x < y ? x : y;
 		int int_factor = unsigned(factor);
 		int nominal = int_factor;
-		SDL_SetWindowSize((SDL_Window*)window, g_video.base_w * nominal,
+		SDL_SetWindowSize((SDL_Window*)sdl_context, g_video.base_w * nominal,
 			g_video.base_h * nominal);
-        SDL_SetWindowPosition((SDL_Window*)window,SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED);
+        SDL_SetWindowPosition((SDL_Window*)sdl_context,SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED);
 		return true;
 	}
 
@@ -623,7 +626,7 @@ public:
 
 };
 
-libretro_render* create_gl_render()
+libretro_render* create_gl_render(void *context)
 {
-	return new gl_render;
+	return new gl_render(context);
 }
