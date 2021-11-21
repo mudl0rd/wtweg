@@ -6,6 +6,7 @@
 #include "gl3w.h"
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include "clibretro.h"
 
 
 const int WIDTH = 1280, HEIGHT = 720;
@@ -37,7 +38,7 @@ int main(int argc, char *argv[]) {
   ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
     // Main loop
-    bool show_menu = false;
+    bool show_menu = true;
     bool done = false;
     while (!done)
     {
@@ -75,6 +76,8 @@ int main(int argc, char *argv[]) {
         glClear(GL_COLOR_BUFFER_BIT);
         if(show_menu)
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        
         SDL_GL_SwapWindow(window);
     }
 

@@ -3,7 +3,11 @@
         {
             "name": "Win32",
             "includePath": [
-                "${default}"
+                "${default}",
+                "${workspaceRoot}/src/deps",
+                "${workspaceRoot}/src/deps/imgui",
+                "${workspaceRoot}/src/deps/stb"
+
             ],
             "windowsSdkVersion": "10.0.19041.0",
             "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
