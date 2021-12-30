@@ -136,12 +136,10 @@ __forceinline void s16tof(float* dst, const int16_t* src, unsigned int count)
 void func_callback(void* userdata, Uint8* stream, int len)
 {
     audio_ctx* context = (audio_ctx*)userdata;
-    int num_bytes = len;
     size_t amount = fifo_read_avail(context->_fifo);
-    amount = (num_bytes >= amount) ? amount : num_bytes;
+    amount = (len >= amount) ? amount : len;
     fifo_read(context->_fifo, (uint8_t*)stream, amount);
-    int remain = len-amount;
-    memset((Uint8*)stream+amount,0,remain);
+    memset(stream + amount, 0, len - amount);
     scond_signal(context->condz);
 }
 

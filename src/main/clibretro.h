@@ -19,23 +19,13 @@
         std::string core_extensions;
 		std::string core_ext_filter;
         std::string core_name;
-        std::string core_path;
-        float aspect_ratio;
+       std::string core_path;
+       float aspect_ratio;
         float samplerate;
         float fps;
     };
 
-std::vector<core_info> get_cores();
-
-class CLibretro
-{
-    private:	
-	static	CLibretro* instance;
-    libretro_render* render;
-    bool lr_isrunning;
-
-
-    struct {
+struct retro_core{
 		void* handle;
 		bool initialized;
 		void(*retro_init)(void);
@@ -53,28 +43,35 @@ class CLibretro
 		void* (*retro_get_memory_data)(unsigned id);
 		size_t(*retro_get_memory_size)(unsigned id);
 		void(*retro_unload_game)(void);
-	} retro_core;
+	};
 
+
+std::vector<core_info> get_cores();
+
+class CLibretro
+{
+    private:	
+    libretro_render* render;
+    bool lr_isrunning;
+    retro_core retro;
+	
+		
     public:
     CLibretro(void *window);
 	~CLibretro();
     static CLibretro* get_classinstance(void* window = NULL);
 
     bool core_isrunning();
-    bool core_load(core_info* core, char* ROM, bool game_specific_settings);
+    bool core_load(char* ROM, bool game_specific_settings);
     void core_unload();
     void core_run();
     void set_inputdevice(int device);
+	void get_cores();
 
 	
 
     std::vector<core_configvars> core_variables;
 	std::vector<core_info> cores;
-    
-
-   
-
-
 };
 
 #endif

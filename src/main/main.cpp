@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
     // Main loop
     bool show_menu = true;
     bool done = false;
+    instance->core_load("test.sfc",false);
     while (!done)
     {
         // Poll and handle events (inputs, window resize, etc.)
@@ -52,25 +53,25 @@ int main(int argc, char *argv[]) {
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            ImGui_ImplSDL2_ProcessEvent(&event);
+           // ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
                 done = true;
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
                 done = true;
-            if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
+          /*  if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
             {
               show_menu = !show_menu;
               break;
-            }
+            }*/
         }
-        if(show_menu)
+      /*  if(show_menu)
         {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         sdlggerat_menu();
         ImGui::Render();
-        }
+        }*/
 
 
         
@@ -84,8 +85,8 @@ int main(int argc, char *argv[]) {
         if(instance->core_isrunning())
         instance->core_run();
 
-        if(show_menu)
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+      //  if(show_menu)
+      //  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         
         SDL_GL_SwapWindow(window);
