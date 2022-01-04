@@ -6,6 +6,7 @@
 #include "gl3w.h"
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <filesystem>
 #include "clibretro.h"
 
 
@@ -16,14 +17,16 @@ int main(int argc, char *argv[]) {
     printf("SDL_Init failed: %s\n", SDL_GetError());
     return 1;
   }
-  const char* glsl_version = "#version 430";
+  int res = SDL_GL_LoadLibrary(NULL);
+  const char* glsl_version = "#version 330";
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,  SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
   SDL_Window* window = SDL_CreateWindow("SDLggerat", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
@@ -35,14 +38,18 @@ int main(int argc, char *argv[]) {
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
-  ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
-
+ //gl3wInit();
   CLibretro* instance = CLibretro::get_classinstance(window);
 
     // Main loop
     bool show_menu = true;
     bool done = false;
-    instance->core_load("test.sfc",false);
+
+std::filesystem::path path =std::filesystem::current_path() / "test.sfc";
+
+
+  instance->core_load((char*)path.string().c_str(),false);
+
     while (!done)
     {
         // Poll and handle events (inputs, window resize, etc.)
@@ -64,41 +71,32 @@ int main(int argc, char *argv[]) {
               break;
             }*/
         }
-      /*  if(show_menu)
+        if(show_menu)
         {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         sdlggerat_menu();
         ImGui::Render();
-        }*/
+        }
 
-
-        
-        
-        // Rendering
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-        
-
-        if(instance->core_isrunning())
+       if(instance->core_isrunning())
         instance->core_run();
+        if(show_menu)
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+      SDL_GL_SwapWindow(window);
 
-      //  if(show_menu)
-      //  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        
-        SDL_GL_SwapWindow(window);
+      
     }
 
-    delete instance;
+    delete []instance;
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
     SDL_GL_DeleteContext(gl_context);
+    SDL_GL_UnloadLibrary();
     SDL_DestroyWindow(window);
     SDL_Quit();
   return 0;

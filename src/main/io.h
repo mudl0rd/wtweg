@@ -2,22 +2,18 @@
 #define io_h_
 
 #include <libretro.h>
+#include <SDL2/SDL.h>
 
-
-class libretro_render
-{
-public:
-	virtual ~libretro_render() {};
-
-	virtual bool init(const struct retro_game_geometry* geom, retro_pixel_format fmt, float & refreshrate) = 0;
-	virtual void refresh(const void* data, unsigned width, unsigned height, unsigned pitch) = 0;
-	virtual void set_hwcontext(retro_hw_render_callback* hw) = 0;
-	virtual void resize(int rend_width, int rend_height) = 0;
-	virtual void deinit() = 0;
-	virtual void buf_clear() = 0;
-	virtual uintptr_t get_fb() = 0;
-};
-
-libretro_render* create_gl_render(void* context);
+void audio_mix(const int16_t* samples, size_t size);
+bool audio_init(double refreshra, float input_srate, float fps);
+void audio_destroy();
+void video_test(SDL_Window *window);
+void video_test2();
+bool video_init(const struct retro_game_geometry* geom,float & refreshrate, SDL_Window *window);
+void video_refresh(const void* data, unsigned width, unsigned height, unsigned pitch);
+void video_destroy();
+void video_buf_clear();
+uintptr_t video_get_fb();
+bool video_set_pixelformat(retro_pixel_format fmt);
 
 #endif

@@ -5,6 +5,7 @@
 #include <mutex>
 #include <vector>
 #include "io.h"
+#include <SDL2/SDL.h>
 
     struct core_configvars
 	{
@@ -43,6 +44,13 @@ struct retro_core{
 		void* (*retro_get_memory_data)(unsigned id);
 		size_t(*retro_get_memory_size)(unsigned id);
 		void(*retro_unload_game)(void);
+
+		 void (*retro_set_environment)(retro_environment_t);
+  void (*retro_set_video_refresh)(retro_video_refresh_t);
+  void (*retro_set_input_poll)(retro_input_poll_t);
+  void (*retro_set_input_state)(retro_input_state_t);
+  void (*retro_set_audio_sample)(retro_audio_sample_t);
+  void (*retro_set_audio_sample_batch)(retro_audio_sample_batch_t);
 	};
 
 
@@ -51,15 +59,16 @@ std::vector<core_info> get_cores();
 class CLibretro
 {
     private:	
-    libretro_render* render;
+   
     bool lr_isrunning;
     retro_core retro;
-	
-		
+	struct retro_game_info info;
+	void load_envsymb(void* handle);
+	SDL_Window * sdl_window;
     public:
-    CLibretro(void *window);
+    CLibretro(SDL_Window *window);
 	~CLibretro();
-    static CLibretro* get_classinstance(void* window = NULL);
+    static CLibretro* get_classinstance(SDL_Window* window = NULL);
 
     bool core_isrunning();
     bool core_load(char* ROM, bool game_specific_settings);
@@ -67,6 +76,7 @@ class CLibretro
     void core_run();
     void set_inputdevice(int device);
 	void get_cores();
+	
 
 	
 
