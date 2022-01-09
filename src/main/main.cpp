@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     bool show_menu = true;
     bool done = false;
 
-std::filesystem::path path =std::filesystem::current_path() / "test.sfc";
+std::filesystem::path path =std::filesystem::current_path() / "test.z64";
 
 
   instance->core_load((char*)path.string().c_str(),false);
@@ -65,11 +65,11 @@ std::filesystem::path path =std::filesystem::current_path() / "test.sfc";
                 done = true;
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
                 done = true;
-          /*  if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
+            if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
             {
               show_menu = !show_menu;
               break;
-            }*/
+            }
         }
         if(show_menu)
         {
@@ -82,14 +82,16 @@ std::filesystem::path path =std::filesystem::current_path() / "test.sfc";
 
        if(instance->core_isrunning())
         instance->core_run();
+
         if(show_menu)
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
       SDL_GL_SwapWindow(window);
 
       
     }
 
-    delete []instance;
+    delete instance;
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

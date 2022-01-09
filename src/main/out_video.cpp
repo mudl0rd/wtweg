@@ -62,6 +62,7 @@ struct {
 
     
 bool video_set_pixelformat(retro_pixel_format fmt) {
+	    memset(&g_video.hw,0,sizeof(struct retro_hw_render_callback));
 		switch (fmt) {
 		case RETRO_PIXEL_FORMAT_0RGB1555:
 			g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_5_5_5_1;
@@ -149,7 +150,10 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
     
 
     float m[4][4]={0};
-    ortho2d(m, -1, 1, -1, 1);
+    if (g_video.hw.bottom_left_origin)
+		ortho2d(m, -1, 1, 1, -1);
+	else
+		ortho2d(m, -1, 1, -1, 1);
 
     glUniformMatrix4fv(g_video.g_shader.u_mvp, 1, GL_FALSE, (float*)m);
 
@@ -198,11 +202,48 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
 		return g_video.fbo_id;
 	}
 
+	bool video_sethw(struct retro_hw_render_callback *hw)
+	{
+	hw->get_current_framebuffer = video_get_fb;
+    hw->get_proc_address = (retro_hw_get_proc_address_t)SDL_GL_GetProcAddress;
+    g_video.hw = *hw;
+	return true;
+	}
+
+	void init_framebuffer(int width, int height) {
+	if (g_video.fbo_id)
+		glDeleteFramebuffers(1, &g_video.fbo_id);
+	if (g_video.rbo_id)
+		glDeleteRenderbuffers(1, &g_video.rbo_id);
+
+	glGenFramebuffers(1, &g_video.fbo_id);
+	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+		g_video.tex_id, 0);
+	if (g_video.hw.depth) {
+		glGenRenderbuffers(1, &g_video.rbo_id);
+		glBindRenderbuffer(GL_RENDERBUFFER, g_video.rbo_id);
+		glRenderbufferStorage(GL_RENDERBUFFER,
+			g_video.hw.stencil ? GL_DEPTH24_STENCIL8
+			: GL_DEPTH_COMPONENT24,
+			width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+			g_video.hw.stencil ? GL_DEPTH_STENCIL_ATTACHMENT
+			: GL_DEPTH_ATTACHMENT,
+			GL_RENDERBUFFER, g_video.rbo_id);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	}
+	glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 	bool video_init(const struct retro_game_geometry* geom, float& refreshrate, SDL_Window* context)
 	{
         g_video.g_shader = {0};
-        memset(&g_video.hw,0,sizeof(struct retro_hw_render_callback));
-		g_video.software_rast = true;
+        
+		g_video.software_rast = !g_video.hw.context_reset;
 		g_video.sdl_context = context;
 		init_shaders();
 
@@ -229,6 +270,8 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 
+		init_framebuffer(geom->max_width, geom->max_height);
+
 		g_video.tex_w = geom->max_width;
 		g_video.tex_h = geom->max_height;
 		g_video.base_w = geom->base_width;
@@ -236,8 +279,8 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
 		g_video.aspect = geom->aspect_ratio;
 
 		refresh_vertex_data();
-	//	if (g_video.hw.context_reset)
-		//	g_video.hw.context_reset();
+		if (g_video.hw.context_reset)
+			g_video.hw.context_reset();
 
         SDL_DisplayMode dm;
         SDL_GetDesktopDisplayMode(0, &dm);
@@ -275,9 +318,6 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
 
 	void video_refresh(const void* data, unsigned width, unsigned height, unsigned pitch)
     {
-        // Rendering
-        
-
 
 		if (data == NULL)
 			return;
@@ -287,7 +327,7 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
 
 			refresh_vertex_data();
 		}
-	//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
 		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
@@ -352,10 +392,9 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
 	void video_buf_clear()
 	{
 		if (!g_video.software_rast) {
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			
-			glClearColor(1., 0., 0., 1.0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
-	//	else
-	//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	        glClearColor(0., 0., 0., 1.0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}

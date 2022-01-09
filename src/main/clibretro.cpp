@@ -87,8 +87,25 @@ static bool core_environment(unsigned cmd, void *data) {
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY: {
       struct retro_core_option_display* cb = (struct retro_core_option_display*)data;
+      for (int i = 0; i < retro->core_variables.size(); i++)
+      {
+          if (strcmp(retro->core_variables[i].name.c_str(), cb->key) == 0)
+          {
+              retro->core_variables[i].config_visible = cb->visible;
+              return true;
+          }
+         
+      }
       return false;
       break;
+  }
+
+  case RETRO_ENVIRONMENT_SET_HW_RENDER: {
+    struct retro_hw_render_callback *hw =
+        (struct retro_hw_render_callback *)data;
+    if (hw->context_type == RETRO_HW_CONTEXT_VULKAN)
+      return false;
+    return video_sethw(hw);
   }
 
   case RETRO_ENVIRONMENT_GET_FASTFORWARDING: {
@@ -124,18 +141,22 @@ static bool core_environment(unsigned cmd, void *data) {
   break;
 
   case RETRO_ENVIRONMENT_SET_VARIABLES: {
-    struct retro_variable *var = (struct retro_variable *)data;
-    return false;
-  } break;
+        const struct retro_variable *vars = (const struct retro_variable *)data;
+        return retro->init_configvars((retro_variable*)vars);
+    } break;
 
   case RETRO_ENVIRONMENT_GET_VARIABLE: {
-    struct retro_variable *variable = (struct retro_variable *)data;
-    return false;
-  } break;
+        struct retro_variable *var = (struct retro_variable *)data;
 
-  case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE: {
-    return false;
-  } break;
+        var->value = retro->load_corevars(var);
+
+        return true;
+    }break;
+    case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE: {
+        bool *bval = (bool*)data;
+		*bval = false;
+        return true;
+    }break;
 
   case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO: {
       return false;
@@ -150,9 +171,6 @@ static bool core_environment(unsigned cmd, void *data) {
     enum retro_pixel_format *fmt = (enum retro_pixel_format *)data;
     return video_set_pixelformat(*fmt);
   }
-  case RETRO_ENVIRONMENT_SET_HW_RENDER: {
-      return false;
-  }
   default:
     core_log(RETRO_LOG_DEBUG, "Unhandled env #%u", cmd);
     return false;
@@ -164,7 +182,11 @@ static void core_video_refresh(const void *data, unsigned width,
                                unsigned height, size_t pitch) {
     CLibretro* retro = CLibretro::get_classinstance();
     if (retro->core_isrunning())
-    video_refresh(data, width, height, pitch);
+    {
+       video_buf_clear();
+       video_refresh(data, width, height, pitch);
+    }
+    
 }
 
 static void core_input_poll(void) {
@@ -180,8 +202,50 @@ static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
 
 CLibretro *CLibretro::get_classinstance(SDL_Window* window)
 {
-  static CLibretro* instance = new CLibretro(window);
+  static thread_local CLibretro* instance = new CLibretro(window);
   return instance;
+}
+
+const char * CLibretro::load_corevars(retro_variable *var) {
+  for (int i = 0; i < core_variables.size(); i++) {
+    if (strcmp(core_variables[i].name.c_str(), var->key) == 0)
+      return core_variables[i].var.c_str();
+  }
+  return NULL;
+}
+
+bool CLibretro::init_configvars(retro_variable *var)
+{
+   size_t num_vars = 0;
+
+   core_variables.clear();
+
+        for (const struct retro_variable *v = var; v->key; ++v) {
+            num_vars++;
+        }
+        for (unsigned i = 0; i < num_vars; ++i) {
+            core_configvars vars_struct;
+            const struct retro_variable *invar = &var[i];
+
+      vars_struct.name = invar->key;
+      vars_struct.config_visible = true;
+      std::string str1 = invar->value;
+      std::string::size_type pos = str1.find(';');
+      vars_struct.description = str1.substr(0, pos);
+       // skip ; and space to first variable
+      pos = str1.find(' ',pos)+1;
+      //get all variables
+      str1 =str1.substr(pos, string::npos);
+      vars_struct.usevars =str1;
+      pos = str1.find('|');
+      //get first variable as default/current
+      if (pos != std::string::npos)
+      str1 = str1.substr(0, pos);
+      vars_struct.var = str1;
+      core_variables.push_back(vars_struct);
+        }
+     return true;
+
 }
 
 CLibretro::CLibretro(SDL_Window *window)
@@ -304,7 +368,7 @@ void CLibretro::core_run()
 {
   if(lr_isrunning)
   {
-  video_buf_clear();
+ 
   retro.retro_run();
   }
 }

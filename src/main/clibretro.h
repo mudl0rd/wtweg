@@ -76,6 +76,9 @@ class CLibretro
     void core_run();
     void set_inputdevice(int device);
 	void get_cores();
+
+	bool init_configvars(retro_variable *var);
+	const char* load_corevars(retro_variable *var);
 	
 
 	
