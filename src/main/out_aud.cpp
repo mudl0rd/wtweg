@@ -95,7 +95,7 @@ void fifo_read(fifo_buffer_t* buffer, void* in_buf, size_t size) {
 
 __forceinline void s16tof(float* dst, const int16_t* src, unsigned int count)
 {
-    int i = 0;
+    unsigned int i = 0;
     float fgain = 1.0 / UINT32_C(0x80000000);
     __m128 factor = _mm_set1_ps(fgain);
     for (i = 0; i + 8 <= count; i += 8, src += 8, dst += 8)
@@ -118,7 +118,7 @@ __forceinline void s16tof(float* dst, const int16_t* src, unsigned int count)
 void func_callback(void* userdata, Uint8* stream, int len)
 {
     audio_ctx* context = (audio_ctx*)userdata;
-    size_t amount = fifo_read_avail(context->_fifo);
+    int amount = fifo_read_avail(context->_fifo);
     amount = (len >= amount) ? amount : len;
     fifo_read(context->_fifo, (uint8_t*)stream, amount);
     memset(stream + amount, 0, len - amount);
@@ -145,7 +145,7 @@ void audio_mix(const int16_t* samples, size_t size) {
     src_data.data_in = audio_ctx_s.input_float;
     src_data.data_out = audio_ctx_s.output_float;
     resampler_sinc_process(audio_ctx_s.resample, &src_data);
-    int out_len = src_data.output_frames * 2 * sizeof(float);
+    size_t out_len = src_data.output_frames * 2 * sizeof(float);
     while (written < out_len) {
         size_t avail = fifo_write_avail(audio_ctx_s._fifo);
         if (avail) {

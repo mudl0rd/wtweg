@@ -296,8 +296,8 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
 	}
 
 	void resize_cb() {
-		int rend_width = 0, rend_height = 0;
-       	SDL_GL_GetDrawableSize((SDL_Window*)g_video.sdl_context, &rend_width, &rend_height);
+		unsigned rend_width = 0, rend_height = 0;
+       	SDL_GL_GetDrawableSize((SDL_Window*)g_video.sdl_context, (int*)&rend_width, (int*)&rend_height);
 		int pad_x = 0, pad_y = 0;
 		if (!rend_width || !rend_height)
 			return;
