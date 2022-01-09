@@ -2,10 +2,10 @@
 	"version": "2.0.0",
 	"windows": {
 		"command": "C:\\msys64\\usr\\bin\\bash.exe",
-		"args": ["-lc", "([ -f builddir/build.ninja ] || CC=gcc CXX=g++ CC_LD=g++ meson setup builddir && meson builddir) && ninja -C builddir | cat"]
+		"args": ["-lc", "rm -r builddir &&([ -f builddir/build.ninja ] || CC=gcc CXX=g++ CC_LD=g++ meson setup builddir && meson builddir) && ninja -C builddir | cat"]
 	},
 	"linux": {
-		"args": ["-lc", "cd \"\"${workspaceRoot}\"\" && ([ -f build/build.ninja ] || meson build) && ninja -C builddir && cd build && $@"],
+		"args": ["-lc", "cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f build/build.ninja ] || meson build) && ninja -C builddir && cd build && $@"],
 		"command": "/bin/bash"
 	},
 	"options": {

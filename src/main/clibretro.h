@@ -44,13 +44,6 @@ struct retro_core{
 		void* (*retro_get_memory_data)(unsigned id);
 		size_t(*retro_get_memory_size)(unsigned id);
 		void(*retro_unload_game)(void);
-
-		 void (*retro_set_environment)(retro_environment_t);
-  void (*retro_set_video_refresh)(retro_video_refresh_t);
-  void (*retro_set_input_poll)(retro_input_poll_t);
-  void (*retro_set_input_state)(retro_input_state_t);
-  void (*retro_set_audio_sample)(retro_audio_sample_t);
-  void (*retro_set_audio_sample_batch)(retro_audio_sample_batch_t);
 	};
 
 
@@ -84,6 +77,7 @@ class CLibretro
 	
 
     std::vector<core_configvars> core_variables;
+	bool variables_changed;
 	std::vector<core_info> cores;
 };
 

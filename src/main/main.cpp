@@ -38,7 +38,6 @@ int main(int argc, char *argv[]) {
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
- //gl3wInit();
   CLibretro* instance = CLibretro::get_classinstance(window);
 
     // Main loop

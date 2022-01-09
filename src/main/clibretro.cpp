@@ -3,6 +3,9 @@
 #include <iostream>
 #include <filesystem>
 #include "io.h"
+#include "utils.h"
+#define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
+#include "ini.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -13,192 +16,6 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 #else
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
-
-void* openlib(const char *path)
-{
-#ifdef _WIN32
-  HMODULE handle =LoadLibrary(path);
-  if (!handle) { return NULL;}
-  return handle;
-# else
-void *handle = dlopen(path, RTLD_LAZY);
-if (!handle) { return NULL; }
-return handle;
-#endif
-}
-void* getfunc(void *handle,char* funcname)
-{
-#ifdef _WIN32
-    return (void*)GetProcAddress((HMODULE)handle,funcname);
-#else 
-    return dlsym(handle,funcname);
-#endif
-}
-void freelib(void *handle)
-{
-#ifdef _WIN32
-    FreeLibrary((HMODULE)handle);
-#else 
-    return dlclose(handle);
-#endif
-}
-
-
-static void core_audio_sample(int16_t left, int16_t right) {
-  CLibretro *lib = CLibretro::get_classinstance();
-  if (lib->core_isrunning()) {
-    int16_t buf[2] = {left, right};
-    audio_mix(buf, 1);
-  }
-}
-static size_t core_audio_sample_batch(const int16_t *data, size_t frames) {
-  CLibretro *lib = CLibretro::get_classinstance();
-  if (lib->core_isrunning()) {
-    audio_mix(data, frames);
-  }
-  return frames;
-}
-
-static void core_log(enum retro_log_level level, const char *fmt, ...) {
-  char buffer[4096] = {0};
-  static const char *levelstr[] = {"dbg", "inf", "wrn", "err"};
-  va_list va;
-  va_start(va, fmt);
-  vsnprintf(buffer, sizeof(buffer), fmt, va);
-  va_end(va);
-  if (level == 0)
-    return;
-  fprintf(stdout, "[%s] %s", levelstr[level], buffer);
-}
-
-static bool core_environment(unsigned cmd, void *data) {
-  bool *bval;
-  CLibretro *retro = CLibretro::get_classinstance();
-  switch (cmd) {
-  case RETRO_ENVIRONMENT_SET_MESSAGE: {
-    struct retro_message *cb = (struct retro_message *)data;
-    return true;
-  }
-  case RETRO_ENVIRONMENT_GET_LOG_INTERFACE: {
-    struct retro_log_callback *cb = (struct retro_log_callback *)data;
-    cb->log = core_log;
-    return true;
-  }
-
-  case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY: {
-      struct retro_core_option_display* cb = (struct retro_core_option_display*)data;
-      for (int i = 0; i < retro->core_variables.size(); i++)
-      {
-          if (strcmp(retro->core_variables[i].name.c_str(), cb->key) == 0)
-          {
-              retro->core_variables[i].config_visible = cb->visible;
-              return true;
-          }
-         
-      }
-      return false;
-      break;
-  }
-
-  case RETRO_ENVIRONMENT_SET_HW_RENDER: {
-    struct retro_hw_render_callback *hw =
-        (struct retro_hw_render_callback *)data;
-    if (hw->context_type == RETRO_HW_CONTEXT_VULKAN)
-      return false;
-    return video_sethw(hw);
-  }
-
-  case RETRO_ENVIRONMENT_GET_FASTFORWARDING: {
-    *(bool *)data = false;
-    return true;
-  } break;
-
-  case RETRO_ENVIRONMENT_GET_CAN_DUPE:
-    bval = (bool *)data;
-    *bval = true;
-    return true;
-  case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
-  case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
-  {
-    static char *sys_path = NULL;
-    if (!sys_path) {
-      std::filesystem::path path =std::filesystem::current_path() / "system";
-      sys_path = strdup(path.string().c_str());
-    }
-    char **ppDir = (char **)data;
-    *ppDir = sys_path;
-    return true;
-    break;
-  }
-
-  case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 31
-  {
-      struct retro_input_descriptor* var =
-          (struct retro_input_descriptor*)data;
-    return true;
-  }
-
-  break;
-
-  case RETRO_ENVIRONMENT_SET_VARIABLES: {
-        const struct retro_variable *vars = (const struct retro_variable *)data;
-        return retro->init_configvars((retro_variable*)vars);
-    } break;
-
-  case RETRO_ENVIRONMENT_GET_VARIABLE: {
-        struct retro_variable *var = (struct retro_variable *)data;
-
-        var->value = retro->load_corevars(var);
-
-        return true;
-    }break;
-    case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE: {
-        bool *bval = (bool*)data;
-		*bval = false;
-        return true;
-    }break;
-
-  case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO: {
-      return false;
-      break;
-  }
-
-  case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION: {
-      return false;
-  }
-
-  case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT: {
-    enum retro_pixel_format *fmt = (enum retro_pixel_format *)data;
-    return video_set_pixelformat(*fmt);
-  }
-  default:
-    core_log(RETRO_LOG_DEBUG, "Unhandled env #%u", cmd);
-    return false;
-  }
-  return false;
-}
-
-static void core_video_refresh(const void *data, unsigned width,
-                               unsigned height, size_t pitch) {
-    CLibretro* retro = CLibretro::get_classinstance();
-    if (retro->core_isrunning())
-    {
-       video_buf_clear();
-       video_refresh(data, width, height, pitch);
-    }
-    
-}
-
-static void core_input_poll(void) {
-}
-
-static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
-                                unsigned id) {
-  return 0;
-}
-
-
-
 
 CLibretro *CLibretro::get_classinstance(SDL_Window* window)
 {
@@ -218,7 +35,9 @@ bool CLibretro::init_configvars(retro_variable *var)
 {
    size_t num_vars = 0;
 
-   core_variables.clear();
+   std::vector<core_configvars>variables;
+   variables.clear();
+   variables_changed = false;
 
         for (const struct retro_variable *v = var; v->key; ++v) {
             num_vars++;
@@ -242,8 +61,10 @@ bool CLibretro::init_configvars(retro_variable *var)
       if (pos != std::string::npos)
       str1 = str1.substr(0, pos);
       vars_struct.var = str1;
-      core_variables.push_back(vars_struct);
-        }
+      variables.push_back(vars_struct);
+    }
+
+     core_variables = variables;
      return true;
 
 }
@@ -261,24 +82,6 @@ CLibretro::~CLibretro()
   core_unload();
  
 }
-
-static unsigned get_filesize(FILE* fp)
-	{
-		unsigned size = 0;
-		unsigned pos = ftell(fp);
-		fseek(fp, 0, SEEK_END);
-		size = ftell(fp);
-		fseek(fp, pos, SEEK_SET);
-		return size;
-	}
-
-static unsigned get_filesize(const char *path)
-	{
-		auto input = unique_ptr<FILE, int(*)(FILE*)>(fopen(path, "rb"), &fclose);
-		if (!input)return NULL;
-		unsigned size = get_filesize(input.get());
-		return size;
-	}
 
 bool CLibretro::core_load(char* ROM, bool game_specific_settings)
 {
@@ -306,18 +109,7 @@ bool CLibretro::core_load(char* ROM, bool game_specific_settings)
   load_retro_sym(retro_serialize_size);
   load_retro_sym(retro_get_memory_size);
   load_retro_sym(retro_get_memory_data);
-  load_retro_sym(retro_set_environment);
-  load_retro_sym(retro_set_video_refresh);
-  load_retro_sym(retro_set_input_poll);
-  load_retro_sym(retro_set_input_state);
-  load_retro_sym(retro_set_audio_sample);
-  load_retro_sym(retro_set_audio_sample_batch);
-  retro.retro_set_environment(core_environment);
-  retro.retro_set_video_refresh(core_video_refresh);
-  retro.retro_set_input_poll(core_input_poll);
-  retro.retro_set_input_state(core_input_state);
-  retro.retro_set_audio_sample(core_audio_sample);
-  retro.retro_set_audio_sample_batch(core_audio_sample_batch);
+  load_envsymb(retro.handle);
   retro.retro_init();
   retro.initialized = true;
 
