@@ -5,7 +5,7 @@ inc_imgui = include_directories('src/deps/imgui')
 inc_deps = include_directories('src/deps')
 inc_stb = include_directories('src/deps/stb')
 
-glob = run_command('python', 'src_batch.py')
+glob = run_command('python3', 'src_batch.py')
 src = glob.stdout().strip().split('\n')
 
 executable('demo', include_directories : [inc,inc_imgui,inc_deps,inc_stb],sources : [src],dependencies : sdl2dep,
