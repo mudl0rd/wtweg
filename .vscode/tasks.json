@@ -5,7 +5,7 @@
 		"args": ["-lc", "rm -r builddir &&([ -f builddir/build.ninja ] || CC=gcc CXX=g++ CC_LD=g++ meson setup builddir && meson builddir) && ninja -C builddir | cat"]
 	},
 	"linux": {
-		"args": ["-lc", "cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f build/build.ninja ] || meson build) && ninja -C builddir && cd build && $@"],
+		"args": ["-lc", "cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f builddir/build.ninja ] || meson builddir) && ninja -C builddir && cd builddir && $@"],
 		"command": "/bin/bash"
 	},
 	"options": {

@@ -184,14 +184,22 @@ void scond_signal(scond_t *cond);
 #ifdef THREADS_IMPLEMENTATION
 #undef THREADS_IMPLEMENTATION
 
-
+#ifdef _WIN32
 /* with RETRO_WIN32_USE_PTHREADS, pthreads can be used even on win32. Maybe only supported in MSVC>=2005  */
 #define WIN32_LEAN_AND_MEAN
+
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0500 /*_WIN32_WINNT_WIN2K */
 #endif
+
 #include <windows.h>
 #include <mmsystem.h>
+#else
+#include <pthread.h>
+#include <time.h>
+#endif
+
+
 
 struct thread_data
 {
@@ -201,12 +209,20 @@ struct thread_data
 
 struct sthread
 {
+    #ifdef _WIN32
     HANDLE thread;
+    #else
+    pthread_t id;
+    #endif
 };
 
 struct slock
 {
+    #ifdef _WIN32
     CRITICAL_SECTION lock;
+    #else
+   pthread_mutex_t lock;
+   #endif
 };
 
 /* The syntax we'll use is mind-bending unless we use a struct. Plus, we might want to store more info later */
@@ -218,6 +234,7 @@ struct QueueEntry
 
 struct scond
 {
+    #ifdef _WIN32
     /* With this implementation of scond, we don't have any way of waking
      * (or even identifying) specific threads
      * But we need to wake them in the order indicated by the queue.
@@ -242,9 +259,16 @@ struct scond
 
     /* used to control access to this scond, in case the user fails */
     CRITICAL_SECTION cs;
+    #else
+    pthread_cond_t cond;
+    #endif
 };
 
+#ifdef _WIN32
 static DWORD CALLBACK thread_wrap(void *data_)
+#else
+static void *thread_wrap(void *data_)
+#endif
 {
     struct thread_data *data = (struct thread_data*)data_;
     if (!data)
@@ -280,9 +304,13 @@ sthread_t *sthread_create(void(*thread_func)(void*), void *userdata)
     data->func = thread_func;
     data->userdata = userdata;
 
+#ifdef _WIN32
     thread->thread = CreateThread(NULL, 0, thread_wrap, data, 0, NULL);
     thread_created = !!thread->thread;
-
+#else
+    thread->id = 0;
+    thread_created = pthread_create(&thread->id, NULL, thread_wrap, data) == 0;
+#endif
     if (!thread_created)
         goto error;
 
@@ -308,9 +336,16 @@ error:
  */
 int sthread_detach(sthread_t *thread)
 {
+    #ifdef _WIN32
     CloseHandle(thread->thread);
     free(thread);
     return 0;
+    #else
+     int ret = pthread_detach(thread->id);
+   free(thread);
+   return ret;
+   #endif
+    
 }
 
 /**
@@ -326,8 +361,12 @@ int sthread_detach(sthread_t *thread)
  */
 void sthread_join(sthread_t *thread)
 {
+    #ifdef _WIN32
     WaitForSingleObject(thread->thread, INFINITE);
     CloseHandle(thread->thread);
+    #else
+     pthread_join(thread->id, NULL);
+     #endif
     free(thread);
 }
 
@@ -341,7 +380,11 @@ bool sthread_isself(sthread_t *thread)
 {
     /* This thread can't possibly be a null thread */
     if (!thread) return false;
+    #ifdef _WIN32
     return GetCurrentThread() == thread->thread;
+    #else
+    return pthread_equal(pthread_self(),thread->id);
+    #endif
 }
 
 /**
@@ -358,8 +401,13 @@ slock_t *slock_new(void)
     slock_t      *lock = (slock_t*)calloc(1, sizeof(*lock));
     if (!lock)
         return NULL;
+    #ifdef _WIN32
     InitializeCriticalSection(&lock->lock);
     mutex_created = true;
+    #else
+     mutex_created             = (pthread_mutex_init(&lock->lock, NULL) == 0);
+     #endif
+    
 
     if (!mutex_created)
         goto error;
@@ -379,9 +427,14 @@ error:
  **/
 void slock_free(slock_t *lock)
 {
+
     if (!lock)
         return;
+    #ifdef _WIN32
     DeleteCriticalSection(&lock->lock);
+    #else
+    pthread_mutex_destroy(&lock->lock);
+    #endif
     free(lock);
 }
 
@@ -397,7 +450,11 @@ void slock_lock(slock_t *lock)
 {
     if (!lock)
         return;
+    #ifdef _WIN32
     EnterCriticalSection(&lock->lock);
+    #else
+    pthread_mutex_lock(&lock->lock);
+    #endif
 }
 
 /**
@@ -410,7 +467,11 @@ void slock_unlock(slock_t *lock)
 {
     if (!lock)
         return;
+    #ifdef _WIN32
     LeaveCriticalSection(&lock->lock);
+    #else
+    pthread_mutex_unlock(&lock->lock);
+    #endif
 }
 
 /**
@@ -428,6 +489,8 @@ scond_t *scond_new(void)
 
     if (!cond)
         return NULL;
+
+    #ifdef _WIN32
     /* This is very complex because recreating condition variable semantics
      * with Win32 parts is not easy.
      *
@@ -467,6 +530,11 @@ scond_t *scond_new(void)
     cond->head = NULL;
 
     return cond;
+    #else
+    if (pthread_cond_init(&cond->cond, NULL) != 0)
+    goto error;
+    return cond;
+    #endif
 
 error:
     free(cond);
@@ -483,12 +551,17 @@ void scond_free(scond_t *cond)
 {
     if (!cond)
         return;
+    #ifdef _WIN32
     CloseHandle(cond->event);
     CloseHandle(cond->hot_potato);
     DeleteCriticalSection(&cond->cs);
+    #else
+    pthread_cond_destroy(&cond->cond);
+    #endif
     free(cond);
 }
 
+#ifdef _WIN32
 static bool _scond_wait_win32(scond_t *cond, slock_t *lock, DWORD dwMilliseconds)
 {
     struct QueueEntry myentry;
@@ -695,7 +768,7 @@ static bool _scond_wait_win32(scond_t *cond, slock_t *lock, DWORD dwMilliseconds
     LeaveCriticalSection(&cond->cs);
     return true;
 }
-
+#endif
 
 /**
  * scond_wait:
@@ -706,7 +779,11 @@ static bool _scond_wait_win32(scond_t *cond, slock_t *lock, DWORD dwMilliseconds
  **/
 void scond_wait(scond_t *cond, slock_t *lock)
 {
+    #ifdef _WIN32
     _scond_wait_win32(cond, lock, INFINITE);
+    #else
+    pthread_cond_wait(&cond->cond, &lock->lock);
+    #endif
 }
 
 /**
@@ -718,6 +795,7 @@ void scond_wait(scond_t *cond, slock_t *lock)
  **/
 int scond_broadcast(scond_t *cond)
 {
+    #ifdef _WIN32
     /* remember: we currently have mutex */
     if (cond->waiters == 0)
         return 0;
@@ -731,6 +809,9 @@ int scond_broadcast(scond_t *cond)
     SetEvent(cond->hot_potato);
 
     return 0;
+    #else
+    return pthread_cond_broadcast(&cond->cond);
+    #endif
 }
 
 /**
@@ -742,6 +823,7 @@ int scond_broadcast(scond_t *cond)
  **/
 void scond_signal(scond_t *cond)
 {
+    #ifdef _WIN32
     /* Unfortunately, pthread_cond_signal does not require that the
      * lock be held in advance */
      /* To avoid stomping on the condvar from other threads, we need
@@ -771,6 +853,9 @@ void scond_signal(scond_t *cond)
 
     /* Since there is now at least one pending waken, the potato must be in play */
     SetEvent(cond->hot_potato);
+    #else
+    pthread_cond_signal(&cond->cond);
+    #endif
 }
 
 /**
@@ -787,6 +872,7 @@ void scond_signal(scond_t *cond)
  **/
 bool scond_wait_timeout(scond_t *cond, slock_t *lock, int64_t timeout_us)
 {
+    #ifdef _WIN32
     /* How to convert a microsecond (us) timeout to millisecond (ms)?
      *
      * Someone asking for a 0 timeout clearly wants immediate timeout.
@@ -810,6 +896,25 @@ bool scond_wait_timeout(scond_t *cond, slock_t *lock, int64_t timeout_us)
         dwMilliseconds = 1;
 
     return _scond_wait_win32(cond, lock, dwMilliseconds);
+    #else
+    int ret;
+   int64_t seconds, remainder;
+   struct timespec now = {0};
+     seconds      = timeout_us / INT64_C(1000000);
+   remainder    = timeout_us % INT64_C(1000000);
+
+   now.tv_sec  += seconds;
+   now.tv_nsec += remainder * INT64_C(1000);
+
+   if (now.tv_nsec > 1000000000)
+   {
+      now.tv_nsec -= 1000000000;
+      now.tv_sec += 1;
+   }
+
+   ret = pthread_cond_timedwait(&cond->cond, &lock->lock, &now);
+    return (ret == 0);
+   #endif
 }
 
 #endif

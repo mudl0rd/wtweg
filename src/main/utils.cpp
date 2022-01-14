@@ -7,11 +7,12 @@
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
 #ifdef _WIN32
-#include <windows.h>
+
 #endif
 using namespace std;
 
 #ifdef _WIN32
+#include <windows.h>
 static std::string_view SHLIB_EXTENSION = ".dll";
 #else
 static std::string_view SHLIB_EXTENSION = ".so";
