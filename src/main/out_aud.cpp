@@ -2,7 +2,9 @@
 #define RESAMPLER_IMPLEMENTATION
 #include <SDL2/SDL.h>
 #include "resampler.h"
-#include "rthreads.h"
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #include "libretro.h"
 #include "io.h"
 
@@ -23,8 +25,9 @@ struct audio_ctx {
     void* resample;
     float* input_float;
     float* output_float;
-    slock_t* cond_lock;
-    scond_t* condz;
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool processed;
 } audio_ctx_s;
 
 
@@ -118,11 +121,14 @@ __forceinline void s16tof(float* dst, const int16_t* src, unsigned int count)
 void func_callback(void* userdata, Uint8* stream, int len)
 {
     audio_ctx* context = (audio_ctx*)userdata;
+    std::unique_lock<std::mutex> lk(context->mutex);
     int amount = fifo_read_avail(context->_fifo);
     amount = (len >= amount) ? amount : len;
     fifo_read(context->_fifo, (uint8_t*)stream, amount);
     memset(stream + amount, 0, len - amount);
-    scond_signal(context->condz);
+    context->processed=true;
+    lk.unlock();
+    context->cv.notify_one();
 }
 
 void audio_mix(const int16_t* samples, size_t size) {
@@ -146,6 +152,7 @@ void audio_mix(const int16_t* samples, size_t size) {
     src_data.data_out = audio_ctx_s.output_float;
     resampler_sinc_process(audio_ctx_s.resample, &src_data);
     size_t out_len = src_data.output_frames * 2 * sizeof(float);
+    audio_ctx_s.processed = false;
     while (written < out_len) {
         size_t avail = fifo_write_avail(audio_ctx_s._fifo);
         if (avail) {
@@ -156,17 +163,15 @@ void audio_mix(const int16_t* samples, size_t size) {
             written += write_amt;
         }
         else {
-            slock_lock(audio_ctx_s.cond_lock);
-            scond_wait(audio_ctx_s.condz, audio_ctx_s.cond_lock);
+            std::unique_lock<std::mutex> lk(audio_ctx_s.mutex);
+            audio_ctx_s.cv.wait(lk, []{return audio_ctx_s.processed;});
         }
     }
 }
 
 
 bool audio_init(double refreshra, float input_srate, float fps) {
-    audio_ctx_s ={0};
-    audio_ctx_s.cond_lock = slock_new();
-    audio_ctx_s.condz = scond_new();
+    audio_ctx_s.processed = true;
     audio_ctx_s.system_rate = input_srate;
     double system_fps = fps;
     if (fabs(1.0f - system_fps / refreshra) <= 0.05)
@@ -203,11 +208,8 @@ void audio_destroy() {
         SDL_PauseAudio(0);
         SDL_CloseAudio();
         fifo_free(audio_ctx_s._fifo);
-        scond_free(audio_ctx_s.condz);
-        slock_free(audio_ctx_s.cond_lock);
         delete[] audio_ctx_s.input_float;
         delete[] audio_ctx_s.output_float;
         resampler_sinc_free(audio_ctx_s.resample);
     }
-    audio_ctx_s = {0};
 }
