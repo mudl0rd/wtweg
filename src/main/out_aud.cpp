@@ -193,11 +193,9 @@ bool audio_init(double refreshra, float input_srate, float fps) {
         new float[outsamples_max]; // spare space for resampler
     audio_ctx_s.input_float = new float[outsamples_max];
 
-    uint8_t* tmp = (uint8_t*)calloc(1, sampsize);
-    if (tmp) {
-        fifo_write(audio_ctx_s._fifo, tmp, sampsize);
-        free(tmp);
-    }
+
+    auto tmp = std::make_unique<uint8_t[]>(sampsize);
+    fifo_write(audio_ctx_s._fifo, tmp.get(), sampsize);
 
     SDL_OpenAudio(&audio_ctx_s.shit, NULL);
     SDL_PauseAudio(0);
