@@ -138,10 +138,12 @@ void sdlggerat_menu()
             }
           }
 
-          ImGui::PushItemWidth(200);
+          std::string hidden = "##" + descript;
           if (checkbox_made)
           {
-            if (ImGui::Checkbox(descript.c_str(), &checkbox_enabled))
+            
+            int total_w = descript.length(); ImGui::Text(descript.c_str()); ImGui::SameLine(450); ImGui::SetNextItemWidth(total_w); 
+            if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
             {
               instance->core_variables[i].sel_idx ^= 1;
               std::string change = instance->core_variables[i].config_vals[instance->core_variables[i].sel_idx];
@@ -152,8 +154,8 @@ void sdlggerat_menu()
           }
           else
           {
-
-            if (ImGui::BeginCombo(descript.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
+             int total_w = 200; ImGui::Text(descript.c_str()); ImGui::SameLine(650-200); ImGui::SetNextItemWidth(total_w); 
+            if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
             {
               for (int n = 0; n < instance->core_variables[i].config_vals.size(); n++)
               {
