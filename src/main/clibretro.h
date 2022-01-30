@@ -7,12 +7,14 @@
 #include "io.h"
 #include <SDL2/SDL.h>
 
-    struct core_configvars
+    struct loadedcore_configvars
 	{
 		std::string name;
 		std::string var;
 		std::string description;
 		std::string usevars;
+		std::vector<std::string>config_vals;
+		int sel_idx;
 		bool config_visible;
 	};
 
@@ -76,7 +78,7 @@ class CLibretro
 
 	
 
-    std::vector<core_configvars> core_variables;
+    std::vector<loadedcore_configvars> core_variables;
 	bool variables_changed;
 	std::vector<core_info> cores;
 };

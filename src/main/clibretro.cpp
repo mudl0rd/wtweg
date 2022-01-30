@@ -27,6 +27,7 @@ const char *CLibretro::load_corevars(retro_variable *var)
 {
   for (size_t i = 0; i < core_variables.size(); i++)
   {
+
     if (strcmp(core_variables[i].name.c_str(), var->key) == 0)
       return core_variables[i].var.c_str();
   }
@@ -37,7 +38,7 @@ bool CLibretro::init_configvars(retro_variable *var)
 {
   size_t num_vars = 0;
 
-  std::vector<core_configvars> variables;
+  std::vector<loadedcore_configvars> variables;
   variables.clear();
   variables_changed = false;
 
@@ -46,7 +47,7 @@ bool CLibretro::init_configvars(retro_variable *var)
 
   for (unsigned i = 0; i < num_vars; ++i)
   {
-    core_configvars vars_struct;
+    loadedcore_configvars vars_struct;
     const struct retro_variable *invar = &var[i];
 
     vars_struct.name = invar->key;
@@ -59,6 +60,15 @@ bool CLibretro::init_configvars(retro_variable *var)
     // get all variables
     str1 = str1.substr(pos, string::npos);
     vars_struct.usevars = str1;
+
+    std::stringstream test(str1);
+    std::string segment;
+    std::vector<std::string> seglist;
+    while (std::getline(test, segment, '|'))
+      vars_struct.config_vals.push_back(segment);
+
+    vars_struct.sel_idx = 0;
+
     pos = str1.find('|');
     // get first variable as default/current
     if (pos != std::string::npos)
@@ -92,7 +102,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings)
   {
     return false;
   }
-  
+
 #define libload(name) getfunc(hDLL, name)
 #define load_sym(V, name)                         \
   if (!(*(void **)(&V) = (void *)libload(#name))) \

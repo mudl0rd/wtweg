@@ -23,8 +23,6 @@ struct audio_ctx {
     unsigned client_rate;
     double system_rate;
     void* resample;
-    float* input_float;
-    float* output_float;
     std::mutex mutex;
     std::condition_variable cv;
     bool processed;
@@ -145,11 +143,16 @@ void audio_mix(const int16_t* samples, size_t size) {
         ((1.0 - maxdelta) + 2.0 * (double)bufferlevel() * maxdelta) *
         audio_ctx_s.system_rate;
     float drc_ratio = (float)audio_ctx_s.client_rate / (float)newInputFrequency;
-    s16tof(audio_ctx_s.input_float, samples, in_len);
+
+
+    auto input_float = std::make_unique<float[]>(in_len);
+    auto output_float = std::make_unique<float[]>(in_len * 4);
+
+    s16tof(input_float.get(), samples, in_len);
     src_data.input_frames = size;
     src_data.ratio = drc_ratio;
-    src_data.data_in = audio_ctx_s.input_float;
-    src_data.data_out = audio_ctx_s.output_float;
+    src_data.data_in = input_float.get();
+    src_data.data_out = output_float.get();
     resampler_sinc_process(audio_ctx_s.resample, &src_data);
     size_t out_len = src_data.output_frames * 2 * sizeof(float);
     audio_ctx_s.processed = false;
@@ -159,7 +162,7 @@ void audio_mix(const int16_t* samples, size_t size) {
         
             size_t write_amt = out_len - written > avail ? avail : out_len - written;
             fifo_write(audio_ctx_s._fifo,
-                (const char*)audio_ctx_s.output_float + written, write_amt);
+                (const char*)output_float.get() + written, write_amt);
             written += write_amt;
         }
         else {
@@ -176,7 +179,6 @@ bool audio_init(double refreshra, float input_srate, float fps) {
     double system_fps = fps;
     if (fabs(1.0f - system_fps / refreshra) <= 0.05)
         audio_ctx_s.system_rate *= (refreshra / system_fps);
-
     audio_ctx_s.shit.freq = 44100;
     audio_ctx_s.shit.format = AUDIO_F32;
     audio_ctx_s.shit.samples = FRAME_COUNT;
@@ -186,17 +188,10 @@ bool audio_init(double refreshra, float input_srate, float fps) {
     audio_ctx_s.client_rate = audio_ctx_s.shit.freq;
     audio_ctx_s.resample = resampler_sinc_init();
     // allow for tons of space in the tank
-    size_t outsamples_max = (FRAME_COUNT * 4 * sizeof(float));
     size_t sampsize = (FRAME_COUNT * (2 * sizeof(float)));
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
-    audio_ctx_s.output_float =
-        new float[outsamples_max]; // spare space for resampler
-    audio_ctx_s.input_float = new float[outsamples_max];
-
-
     auto tmp = std::make_unique<uint8_t[]>(sampsize);
     fifo_write(audio_ctx_s._fifo, tmp.get(), sampsize);
-
     SDL_OpenAudio(&audio_ctx_s.shit, NULL);
     SDL_PauseAudio(0);
     return true;
@@ -206,8 +201,6 @@ void audio_destroy() {
         SDL_PauseAudio(0);
         SDL_CloseAudio();
         fifo_free(audio_ctx_s._fifo);
-        delete[] audio_ctx_s.input_float;
-        delete[] audio_ctx_s.output_float;
         resampler_sinc_free(audio_ctx_s.resample);
     }
 }
