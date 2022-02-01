@@ -110,7 +110,7 @@ void sdlggerat_menu()
   if (coresettings)
   {
     ImGui::PushItemWidth(200);
-    ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Core Settings"))
     {
       for (int i = 0; i < instance->core_variables.size(); i++)

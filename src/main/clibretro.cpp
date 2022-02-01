@@ -23,6 +23,88 @@ CLibretro *CLibretro::get_classinstance(SDL_Window *window)
   return instance;
 }
 
+void CLibretro::poll()
+{
+keyboard_binds = SDL_GetKeyboardState(NULL);
+}
+
+int CLibretro::getbind(unsigned port, unsigned device, unsigned index,
+                                unsigned id)
+{
+   if (port != 0)
+    return 0;
+
+  
+
+  if (device == RETRO_DEVICE_JOYPAD) {
+    for (unsigned int i = 0; i < core_inputbinds.size(); i++) {
+      if(core_inputbinds[i].retroarch_id == id)
+      {
+      int16_t value =  keyboard_binds[core_inputbinds[i].sdl_id];
+      value = abs(value);
+      return value;
+      }
+
+    }
+    }
+  return 0;
+
+}
+struct s9x_keys{
+  int retro_id;
+  int sdl_id;
+};
+s9x_keys snes9xbinds[] = {
+ RETRO_DEVICE_ID_JOYPAD_B,SDL_SCANCODE_C,
+RETRO_DEVICE_ID_JOYPAD_Y,		SDL_SCANCODE_X,
+RETRO_DEVICE_ID_JOYPAD_SELECT ,	SDL_SCANCODE_SPACE,
+RETRO_DEVICE_ID_JOYPAD_START   ,		SDL_SCANCODE_RETURN,
+RETRO_DEVICE_ID_JOYPAD_UP, SDL_SCANCODE_UP,
+RETRO_DEVICE_ID_JOYPAD_DOWN,  SDL_SCANCODE_DOWN,
+RETRO_DEVICE_ID_JOYPAD_LEFT, SDL_SCANCODE_LEFT,
+RETRO_DEVICE_ID_JOYPAD_RIGHT, SDL_SCANCODE_RIGHT,
+RETRO_DEVICE_ID_JOYPAD_A,		SDL_SCANCODE_D,
+RETRO_DEVICE_ID_JOYPAD_X,		SDL_SCANCODE_S,
+RETRO_DEVICE_ID_JOYPAD_L,	 SDL_SCANCODE_A,
+RETRO_DEVICE_ID_JOYPAD_R,		SDL_SCANCODE_Z,
+RETRO_DEVICE_ID_JOYPAD_L2,  0,
+RETRO_DEVICE_ID_JOYPAD_R2,    0,
+RETRO_DEVICE_ID_JOYPAD_L3 ,   0,
+RETRO_DEVICE_ID_JOYPAD_R3 ,  0,
+};
+
+bool CLibretro::init_inputvars(retro_input_descriptor* var)
+{
+  core_inputbinds.clear();
+  
+  while (var->description != NULL && var->port == 0) {
+    coreinput_bind binds = {};
+          binds.description= var->description;
+
+          if (var->device == RETRO_DEVICE_ANALOG ||(var->device == RETRO_DEVICE_JOYPAD)) {
+            if (var->device == RETRO_DEVICE_ANALOG) {
+                  //bit tortuous but here we go. Basically we do this to enable each RetroArch joypad axis its own button
+                  //this comes in handy when using joypads for digital input movements. Or for other controllers.
+                  int retro_id =(var->index == RETRO_DEVICE_INDEX_ANALOG_LEFT)? (var->id == RETRO_DEVICE_ID_ANALOG_X ?
+                  joypad_analogx_l: joypad_analogx_r): 
+                  (var->id == RETRO_DEVICE_ID_ANALOG_X ? joypad_analogy_l : joypad_analogy_r);
+                  binds.retroarch_id = retro_id;
+                  core_inputbinds.push_back(binds);
+              }
+              else {
+                  binds.retroarch_id = var->id;
+                  binds.sdl_id =  snes9xbinds[var->id].sdl_id;
+                  binds.isanalog = false;
+                 core_inputbinds.push_back(binds);
+              }
+               var++;
+
+     }
+
+}
+return true;
+}
+
 const char *CLibretro::load_corevars(retro_variable *var)
 {
   for (size_t i = 0; i < core_variables.size(); i++)
@@ -137,6 +219,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings)
   info.meta = "";
 
   retro.retro_get_system_info(&system);
+   retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   if (!system.need_fullpath)
   {
     FILE *inputfile = fopen(ROM, "rb");
@@ -159,8 +242,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings)
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
     return false;
   }
+  retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   retro.retro_get_system_av_info(&av);
-  retro.retro_set_controller_port_device(0, 0);
   float refreshr = 60;
   audio_init(refreshr, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, refreshr, sdl_window);

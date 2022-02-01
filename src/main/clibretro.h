@@ -48,6 +48,36 @@ struct retro_core{
 		void(*retro_unload_game)(void);
 	};
 
+	struct coreinput_bind {
+         std::string description;
+          unsigned retroarch_id;
+		  unsigned sdl_id;
+		  int16_t val;
+		  bool isanalog;
+      };
+
+enum libretro_padbinds{
+	joypad_b,
+    joypad_y,
+	joypad_select,
+	joypad_start,
+	joypad_up,
+	joypad_down,
+	joypad_left,
+	joypad_right,
+	joypad_a,
+	joypad_x,
+	joypad_l,
+	joypad_r,
+	joypad_l2,
+	joypad_r2,
+	joypad_l3,
+	joypad_r3,
+	joypad_analogx_l,
+	joypad_analogx_r,
+	joypad_analogy_l,
+	joypad_analogy_r
+};
 
 std::vector<core_info> get_cores();
 
@@ -65,6 +95,9 @@ class CLibretro
 	~CLibretro();
     static CLibretro* get_classinstance(SDL_Window* window = NULL);
 
+
+
+    const Uint8* keyboard_binds;
     bool core_isrunning();
     bool core_load(char* ROM, bool game_specific_settings);
     void core_unload();
@@ -73,11 +106,15 @@ class CLibretro
 	void get_cores();
 
 	bool init_configvars(retro_variable *var);
+	bool init_inputvars(retro_input_descriptor* var);
+	int getbind(unsigned port, unsigned device, unsigned index,
+                                unsigned id);
+    void poll();
 	const char* load_corevars(retro_variable *var);
 	
 
 	
-
+    std::vector<coreinput_bind>core_inputbinds;
     std::vector<loadedcore_configvars> core_variables;
 	bool variables_changed;
 	std::vector<core_info> cores;
