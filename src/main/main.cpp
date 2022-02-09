@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
       ImGui_ImplOpenGL3_NewFrame();
       ImGui_ImplSDL2_NewFrame();
       ImGui::NewFrame();
-      sdlggerat_menu();
+      sdlggerat_menu(instance);
       ImGui::Render();
     }
 

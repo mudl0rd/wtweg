@@ -50,10 +50,14 @@ struct retro_core{
 
 	struct coreinput_bind {
          std::string description;
-          unsigned retroarch_id;
 		  unsigned sdl_id;
-		  int16_t val;
+		  SDL_JoystickGUID joystic_guid;
+	      std::string joystick_name;
+          bool isjoystick;
 		  bool isanalog;
+		  bool ishat;
+		  int axises;
+		  int val;
       };
 
 enum libretro_padbinds{
@@ -85,19 +89,23 @@ class CLibretro
 {
     private:	
    
-    bool lr_isrunning;
     retro_core retro;
 	struct retro_game_info info;
 	void load_envsymb(void* handle);
 	SDL_Window * sdl_window;
     public:
+	 SDL_Joystick* joystick;
+	
+	const Uint8* keyboard_binds;
+
+    bool lr_isrunning;
     CLibretro(SDL_Window *window);
 	~CLibretro();
     static CLibretro* get_classinstance(SDL_Window* window = NULL);
 
 
 
-    const Uint8* keyboard_binds;
+    
     bool core_isrunning();
     bool core_load(char* ROM, bool game_specific_settings);
     void core_unload();
@@ -119,5 +127,8 @@ class CLibretro
 	bool variables_changed;
 	std::vector<core_info> cores;
 };
+
+
+void sdlggerat_menu(CLibretro *instance);
 
 #endif

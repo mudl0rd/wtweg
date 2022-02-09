@@ -34,22 +34,18 @@ int CLibretro::getbind(unsigned port, unsigned device, unsigned index,
    if (port != 0)
     return 0;
 
+   std::string str =SDL_JoystickNameForIndex(0);
+
   
 
   if (device == RETRO_DEVICE_JOYPAD) {
-    for (unsigned int i = 0; i < core_inputbinds.size(); i++) {
-      if(core_inputbinds[i].retroarch_id == id)
-      {
-      int16_t value =  keyboard_binds[core_inputbinds[i].sdl_id];
+      int16_t value =  keyboard_binds[core_inputbinds[id].sdl_id];
       value = abs(value);
       return value;
       }
-
-    }
-    }
   return 0;
-
 }
+
 struct s9x_keys{
   int retro_id;
   int sdl_id;
@@ -73,13 +69,29 @@ RETRO_DEVICE_ID_JOYPAD_L3 ,   0,
 RETRO_DEVICE_ID_JOYPAD_R3 ,  0,
 };
 
+
+
 bool CLibretro::init_inputvars(retro_input_descriptor* var)
 {
   core_inputbinds.clear();
+  core_inputbinds.resize(16);
+
+
+  int num_joy = SDL_NumJoysticks();
+  if(num_joy)
+  joystick = SDL_JoystickOpen(0);
+
+ 
   
   while (var->description != NULL && var->port == 0) {
-    coreinput_bind binds = {};
-          binds.description= var->description;
+          core_inputbinds[var->id].description= var->description;
+            core_inputbinds[var->id].joystic_guid = SDL_JoystickGetGUID(joystick);
+            core_inputbinds[var->id].joystick_name =SDL_JoystickName(joystick);
+
+   
+
+
+
 
           if (var->device == RETRO_DEVICE_ANALOG ||(var->device == RETRO_DEVICE_JOYPAD)) {
             if (var->device == RETRO_DEVICE_ANALOG) {
@@ -88,19 +100,16 @@ bool CLibretro::init_inputvars(retro_input_descriptor* var)
                   int retro_id =(var->index == RETRO_DEVICE_INDEX_ANALOG_LEFT)? (var->id == RETRO_DEVICE_ID_ANALOG_X ?
                   joypad_analogx_l: joypad_analogx_r): 
                   (var->id == RETRO_DEVICE_ID_ANALOG_X ? joypad_analogy_l : joypad_analogy_r);
-                  binds.retroarch_id = retro_id;
-                  core_inputbinds.push_back(binds);
+                  core_inputbinds[var->id].isanalog = true;
+
               }
-              else {
-                  binds.retroarch_id = var->id;
-                  binds.sdl_id =  snes9xbinds[var->id].sdl_id;
-                  binds.isanalog = false;
-                 core_inputbinds.push_back(binds);
+              else if (var->device == RETRO_DEVICE_JOYPAD){
+                  core_inputbinds[var->id].sdl_id =  snes9xbinds[var->id].sdl_id;
+                  core_inputbinds[var->id].isanalog = false;
               }
                var++;
 
      }
-
 }
 return true;
 }
