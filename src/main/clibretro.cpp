@@ -25,49 +25,17 @@ CLibretro *CLibretro::get_classinstance(SDL_Window *window)
 
 void CLibretro::poll()
 {
-keyboard_binds = SDL_GetKeyboardState(NULL);
+  poll_inp();
+
 }
 
-int CLibretro::getbind(unsigned port, unsigned device, unsigned index,
-                                unsigned id)
-{
-   if (port != 0)
-    return 0;
 
-   std::string str =SDL_JoystickNameForIndex(0);
 
+void save_coresettings(CLibretro *retro) {
   
-
-  if (device == RETRO_DEVICE_JOYPAD) {
-      int16_t value =  keyboard_binds[core_inputbinds[id].sdl_id];
-      value = abs(value);
-      return value;
-      }
-  return 0;
 }
 
-struct s9x_keys{
-  int retro_id;
-  int sdl_id;
-};
-s9x_keys snes9xbinds[] = {
- RETRO_DEVICE_ID_JOYPAD_B,SDL_SCANCODE_C,
-RETRO_DEVICE_ID_JOYPAD_Y,		SDL_SCANCODE_X,
-RETRO_DEVICE_ID_JOYPAD_SELECT ,	SDL_SCANCODE_SPACE,
-RETRO_DEVICE_ID_JOYPAD_START   ,		SDL_SCANCODE_RETURN,
-RETRO_DEVICE_ID_JOYPAD_UP, SDL_SCANCODE_UP,
-RETRO_DEVICE_ID_JOYPAD_DOWN,  SDL_SCANCODE_DOWN,
-RETRO_DEVICE_ID_JOYPAD_LEFT, SDL_SCANCODE_LEFT,
-RETRO_DEVICE_ID_JOYPAD_RIGHT, SDL_SCANCODE_RIGHT,
-RETRO_DEVICE_ID_JOYPAD_A,		SDL_SCANCODE_D,
-RETRO_DEVICE_ID_JOYPAD_X,		SDL_SCANCODE_S,
-RETRO_DEVICE_ID_JOYPAD_L,	 SDL_SCANCODE_A,
-RETRO_DEVICE_ID_JOYPAD_R,		SDL_SCANCODE_Z,
-RETRO_DEVICE_ID_JOYPAD_L2,  0,
-RETRO_DEVICE_ID_JOYPAD_R2,    0,
-RETRO_DEVICE_ID_JOYPAD_L3 ,   0,
-RETRO_DEVICE_ID_JOYPAD_R3 ,  0,
-};
+
 
 
 
@@ -77,16 +45,12 @@ bool CLibretro::init_inputvars(retro_input_descriptor* var)
   core_inputbinds.resize(16);
 
 
-  int num_joy = SDL_NumJoysticks();
-  if(num_joy)
-  joystick = SDL_JoystickOpen(0);
+  
 
  
   
   while (var->description != NULL && var->port == 0) {
           core_inputbinds[var->id].description= var->description;
-            core_inputbinds[var->id].joystic_guid = SDL_JoystickGetGUID(joystick);
-            core_inputbinds[var->id].joystick_name =SDL_JoystickName(joystick);
 
    
 
@@ -95,16 +59,11 @@ bool CLibretro::init_inputvars(retro_input_descriptor* var)
 
           if (var->device == RETRO_DEVICE_ANALOG ||(var->device == RETRO_DEVICE_JOYPAD)) {
             if (var->device == RETRO_DEVICE_ANALOG) {
-                  //bit tortuous but here we go. Basically we do this to enable each RetroArch joypad axis its own button
-                  //this comes in handy when using joypads for digital input movements. Or for other controllers.
-                  int retro_id =(var->index == RETRO_DEVICE_INDEX_ANALOG_LEFT)? (var->id == RETRO_DEVICE_ID_ANALOG_X ?
-                  joypad_analogx_l: joypad_analogx_r): 
-                  (var->id == RETRO_DEVICE_ID_ANALOG_X ? joypad_analogy_l : joypad_analogy_r);
                   core_inputbinds[var->id].isanalog = true;
-
               }
               else if (var->device == RETRO_DEVICE_JOYPAD){
-                  core_inputbinds[var->id].sdl_id =  snes9xbinds[var->id].sdl_id;
+                  core_inputbinds[var->id].sdl_id =  s_inps(var->id);
+                  core_inputbinds[var->id].joytype = joytype::keyboard;
                   core_inputbinds[var->id].isanalog = false;
               }
                var++;

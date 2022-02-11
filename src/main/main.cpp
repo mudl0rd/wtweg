@@ -49,7 +49,8 @@ int main(int argc, char *argv[])
   std::filesystem::path path = std::filesystem::current_path() / "test.sfc";
 
   instance->core_load((char *)path.string().c_str(), false);
-
+  int selected_inp=0;
+  bool isselected_inp=false;
   while (!done)
   {
     // Poll and handle events (inputs, window resize, etc.)
@@ -58,9 +59,15 @@ int main(int argc, char *argv[])
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
     // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
     SDL_Event event;
+
+    
+    std::string window_name;
+    
     while (SDL_PollEvent(&event))
     {
       // ImGui_ImplSDL2_ProcessEvent(&event);
+
+      
       if (event.type == SDL_QUIT)
         done = true;
       if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
@@ -70,13 +77,73 @@ int main(int argc, char *argv[])
         show_menu = !show_menu;
         break;
       }
+
+      if(event.type == SDL_JOYDEVICEADDED)
+      {
+        init_inp();
+      }
+
+      if(event.type == SDL_JOYDEVICEREMOVED)
+      {
+        close_inp();
+      }
+
     }
+    
+    
+
+    if(isselected_inp)
+       {
+         poll_inp();
+         SDL_JoystickUpdate();
+         std::string button_name;
+        bool rightstick=false;
+       bool sticks=false;
+       bool analogue_axis=false;
+       int joytype1 = 0;
+       bool pressed=false;
+      
+        int axe = axismaskval(&pressed,&rightstick,analogue_axis,&button_name);
+        if(axe && pressed)
+        {
+          sticks=true;
+          instance->core_inputbinds[selected_inp].joykey_desc = button_name;
+          instance->core_inputbinds[selected_inp].joytype = joytype::joystick_;
+           instance->core_inputbinds[selected_inp].sdl_id=axe;
+          isselected_inp = false;
+          ImGui::SetWindowFocus(NULL);
+        }
+
+         int hat =hatmaskval(&button_name);
+          if(hat)
+          {
+            instance->core_inputbinds[selected_inp].joytype = joytype::hat;
+            instance->core_inputbinds[selected_inp].joykey_desc = button_name;
+            instance->core_inputbinds[selected_inp].sdl_id=hat;
+            isselected_inp = false;
+            ImGui::SetWindowFocus(NULL);
+          }
+          
+          bool button_pressed=false;
+          int b =buttonpressedval(&button_pressed,&button_name);
+          if(button_pressed)
+          {
+             instance->core_inputbinds[selected_inp].joytype = joytype::button;
+             instance->core_inputbinds[selected_inp].joykey_desc = button_name;
+             instance->core_inputbinds[selected_inp].sdl_id = b;
+             isselected_inp = false;
+             ImGui::SetWindowFocus(NULL);
+          }
+          }
+
+
+
     if (show_menu)
     {
       ImGui_ImplOpenGL3_NewFrame();
       ImGui_ImplSDL2_NewFrame();
       ImGui::NewFrame();
-      sdlggerat_menu(instance);
+      sdlggerat_menu(instance,&window_name,&selected_inp,&isselected_inp);
       ImGui::Render();
     }
 
@@ -98,6 +165,7 @@ int main(int argc, char *argv[])
   SDL_GL_DeleteContext(gl_context);
   SDL_GL_UnloadLibrary();
   SDL_DestroyWindow(window);
+  close_inp();
   SDL_Quit();
   return 0;
 }

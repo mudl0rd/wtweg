@@ -5,7 +5,6 @@
 #include <mutex>
 #include <vector>
 #include "io.h"
-#include <SDL2/SDL.h>
 
     struct loadedcore_configvars
 	{
@@ -48,16 +47,24 @@ struct retro_core{
 		void(*retro_unload_game)(void);
 	};
 
+	enum joytype{
+		joystick_,
+		button,
+		keyboard,
+		hat
+	};
+
 	struct coreinput_bind {
          std::string description;
+		 std::string joykey_desc;
 		  unsigned sdl_id;
 		  SDL_JoystickGUID joystic_guid;
 	      std::string joystick_name;
-          bool isjoystick;
 		  bool isanalog;
-		  bool ishat;
 		  int axises;
 		  int val;
+		  joytype joytype;
+		  
       };
 
 enum libretro_padbinds{
@@ -94,10 +101,6 @@ class CLibretro
 	void load_envsymb(void* handle);
 	SDL_Window * sdl_window;
     public:
-	 SDL_Joystick* joystick;
-	
-	const Uint8* keyboard_binds;
-
     bool lr_isrunning;
     CLibretro(SDL_Window *window);
 	~CLibretro();
@@ -115,8 +118,6 @@ class CLibretro
 
 	bool init_configvars(retro_variable *var);
 	bool init_inputvars(retro_input_descriptor* var);
-	int getbind(unsigned port, unsigned device, unsigned index,
-                                unsigned id);
     void poll();
 	const char* load_corevars(retro_variable *var);
 	
@@ -129,6 +130,8 @@ class CLibretro
 };
 
 
-void sdlggerat_menu(CLibretro *instance);
+void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp);
+
+
 
 #endif

@@ -3,6 +3,9 @@
 
 #include <libretro.h>
 #include <SDL2/SDL.h>
+#include <string>
+#include <iostream>
+#include <filesystem>
 
 void audio_mix(const int16_t* samples, size_t size);
 bool audio_init(double refreshra, float input_srate, float fps);
@@ -16,5 +19,20 @@ void video_destroy();
 void video_buf_clear();
 uintptr_t video_get_fb();
 bool video_set_pixelformat(retro_pixel_format fmt);
+
+int s_inps(int i);
+void init_inp();
+void close_inp();
+void poll_inp();
+int getbind(unsigned port, unsigned device, unsigned index,
+                                unsigned id);
+
+int axismaskval(bool * pressed,bool * rightstick, bool analog, std::string * name);
+int hatmaskval(std::string * name);
+int buttonpressedval(bool * pressed, std::string * name);
+int s_inps(int i);
+int isattached();
+
+
 
 #endif

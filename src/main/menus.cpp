@@ -5,6 +5,7 @@
 #include "clibretro.h"
 #include <sstream>
 #include "utils.h"
+#include <unistd.h>
 
 ImGuiFileDialog romloader;
 const char *ss_filters = "Savestates (*.state){.state}";
@@ -24,51 +25,9 @@ const char *checkbox_allowable[] = {"enabled|disabled", "disabled|enabled", "Tru
 const char *true_vals[] = {"enabled", "true", "on"};
 static bool inputsettings = false;
 
-int axismaskval(SDL_Joystick* joystick,bool * rightstick, bool analog)
-	{
-		int numaxis = SDL_JoystickNumAxes(joystick);
 
-		for (int a = 0; a < numaxis; a++)
-		{
-			int axis = SDL_JoystickGetAxis(joystick, a);
 
-			if (axis)
-			{
-        switch (a)
-        {
-          case 0:
-          *rightstick = false;
-          if(analog)return axis;
-          if (axis > 16384) return SDL_HAT_RIGHT;
-					else if(axis < -16384) return SDL_HAT_LEFT;
-          break;
-          case 1:
-          *rightstick = false;
-          if(analog)return axis;
-          if (axis > 16384) return SDL_HAT_DOWN;
-					else if (axis < -16384) return SDL_HAT_UP;
-          break;
-          case 2:
-          *rightstick = true;
-           if(analog)return axis;
-           if (axis > 16384) return SDL_HAT_RIGHT;
-					 else if(axis < -16384) return SDL_HAT_LEFT;
-          break;
-          case 3:
-          *rightstick = true;
-          if(analog)return axis;
-          if (axis > 16384) return SDL_HAT_DOWN;
-					else if (axis < -16384) return SDL_HAT_UP;
-          break;
-        }
-        
-			}
-		}
-
-		return 0;
-	}
-
-void sdlggerat_menu(CLibretro *instance)
+void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp)
 {
   if (ImGui::BeginMainMenuBar())
   {
@@ -158,91 +117,43 @@ void sdlggerat_menu(CLibretro *instance)
     ImGui::PushItemWidth(200);
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
 
+
     if(ImGui::Begin("Input Settings"))
     {
 
-
-    for (int i=0;i<instance->core_inputbinds.size();i++)
-    {
+    std::string str2;
+     poll_inp();
+    for (int i=0;i<instance->core_inputbinds.size();i++){
       if(instance->core_inputbinds[i].description == "")continue;
-       int total_w = 200; ImGui::Text(instance->core_inputbinds[i].description.c_str());ImGui::SameLine(450);ImGui::SetNextItemWidth(total_w); 
-        std::string script = "##" + instance->core_inputbinds[i].description;
-        std::string str =SDL_GetScancodeName((SDL_Scancode)instance->core_inputbinds[i].sdl_id);
-        ImGui::InputText(script.c_str(), (char*)str.c_str(), ImGuiInputTextFlags_ReadOnly, NULL, NULL);
 
+       int total_w = 300; ImGui::Text(instance->core_inputbinds[i].description.c_str());
+       std::string script = "##" + instance->core_inputbinds[i].description;
+        char* button_str= NULL;
 
-     
+       if(instance->core_inputbinds[i].joytype == joytype::keyboard)
+        button_str =(char*)SDL_GetScancodeName((SDL_Scancode)instance->core_inputbinds[i].sdl_id);
+       else if(instance->core_inputbinds[i].joytype == joytype::joystick_ ||joytype::hat|| joytype::button)
+       button_str = (char*)instance->core_inputbinds[i].joykey_desc.c_str();
 
+       ImGui::SameLine(350);ImGui::SetNextItemWidth(total_w); 
+       ImGui::InputText(script.c_str(),button_str, NULL, NULL, NULL);
+       if (ImGui::IsItemClicked()) {
+      *selected_in = i;
+      *isselected_inp=true;
+       }
 
+       
 
-
-
-
+      }
+      
     }
-
-        const int hat_masks[] = { SDL_HAT_UP, SDL_HAT_RIGHT, SDL_HAT_DOWN, SDL_HAT_LEFT };
-			  const char* direction_names[] = { "Up", "Right", "Down", "Left" };
-        std::string button_name;
-        if(SDL_JoystickGetAttached(instance->joystick))
-        {
-       SDL_JoystickUpdate();
-       int numaxis= SDL_JoystickNumAxes(instance->joystick);
-       bool rightstick;
-       bool sticks=false;
-        int axe = axismaskval(instance->joystick,&rightstick,false);
-        if(axe)
-        {
-          sticks=true;
-          for (int i = 0; i < sizeof_array(hat_masks); i++){
-					if (axe== hat_masks[i]){
-						button_name=rightstick?"Right Stick ":"Left Stick ";
-            button_name+= direction_names[i];
-						break;
-					}
-          }
-				}
-        
-          int hat =0;
-          int numhats = SDL_JoystickNumHats(instance->joystick);
-          if(numhats )
-          {
-            for (int h = 0; h < numhats; h++)
-					{
-						int hat = SDL_JoystickGetHat(instance->joystick, h);
-             for (int i = 0; i < sizeof_array(hat_masks); i++){
-             if (hat & hat_masks[i])
-             {
-              button_name =  "Hat ";
-              button_name += direction_names[hat];
-              break;
-
-             }
-					}
-          }
-
-          int numbuttons = SDL_JoystickNumButtons(instance->joystick);
-					for (int b= 0; b < numbuttons; b++)
-					{
-						int btn = SDL_JoystickGetButton(instance->joystick, b);
-						if (btn)
-						{
-              button_name = "Button " + std::to_string(b);
-							break;
-						}
-					}
-
-        	
-				std::string str2 = button_name;
-        std::string teststr = sticks?rightstick?"Right Stick ":"Left Stick ":"";
-        ImGui::InputText(teststr.c_str(), (char*)str2.c_str(), ImGuiInputTextFlags_ReadOnly, NULL, NULL);
-        }
      
        if (ImGui::Button("OK"))
-        inputsettings = false;
-
-      ImGui::End();
-
-    }
+       {
+         inputsettings = false;
+         *isselected_inp = false;
+       }
+    ImGui::End();
   }
 
   if (coresettings)
