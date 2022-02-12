@@ -212,6 +212,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
                 if (ImGui::Selectable(instance->core_variables[i].config_vals[n].c_str(), is_selected))
                 {
                   instance->core_variables[i].sel_idx = n;
+                   std::string change = instance->core_variables[i].config_vals[instance->core_variables[i].sel_idx];
+                   instance->core_variables[i].var = change;
+                   instance->variables_changed = true;
                 }
                   
 
@@ -226,7 +229,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
 
       // click ok when finished adjusting
       if (ImGui::Button("OK"))
+      {
         coresettings = false;
+        instance->save_coresettings();
+      }
+        
 
       ImGui::End();
     }

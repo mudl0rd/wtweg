@@ -107,7 +107,7 @@ class CLibretro
     static CLibretro* get_classinstance(SDL_Window* window = NULL);
 
 
-
+    void poll();
     
     bool core_isrunning();
     bool core_load(char* ROM, bool game_specific_settings);
@@ -115,10 +115,13 @@ class CLibretro
     void core_run();
     void set_inputdevice(int device);
 	void get_cores();
+	
 
 	bool init_configvars(retro_variable *var);
 	bool init_inputvars(retro_input_descriptor* var);
-    void poll();
+	bool load_coresettings();
+	void save_coresettings();
+    
 	const char* load_corevars(retro_variable *var);
 	
 
@@ -127,6 +130,9 @@ class CLibretro
     std::vector<loadedcore_configvars> core_variables;
 	bool variables_changed;
 	std::vector<core_info> cores;
+	std::string romsavesstatespath;
+	std::string corespath;
+	std::string core_path;
 };
 
 

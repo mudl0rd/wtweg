@@ -4,6 +4,7 @@
 #include <filesystem>
 #include "io.h"
 #include "utils.h"
+#define INI_IMPLEMENTATION
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
 #ifdef _WIN32
@@ -30,9 +31,116 @@ void CLibretro::poll()
 }
 
 
+bool CLibretro::load_coresettings(){
+   size_t lastindex = core_path.find_last_of("."); 
+  std::string core_config = core_path.substr(0, lastindex)+".corecfg"; 
+  int size_ = get_filesize(core_config.c_str());
+  ini_t *ini = NULL;
+  if (!size_) {
+      
+    // create a new file with defaults
+    //create cache of core options
+    redo:
+    ini = ini_create(NULL);
+    int section =
+        ini_section_add(ini, "Core Settings", strlen("Core Settings"));
+    for (int i = 0; i < core_variables.size(); i++) {
+      ini_property_add(ini, section, (char *)core_variables[i].name.c_str(),
+                       core_variables[i].name.length(),
+                       (char *)core_variables[i].var.c_str(),
+                      core_variables[i].var.length());
 
-void save_coresettings(CLibretro *retro) {
-  
+
+    for(int j=0;j<core_variables[i].config_vals.size();j++)
+      {
+        if(core_variables[i].config_vals[j] == core_variables[i].var)
+        {
+          core_variables[i].sel_idx =j;
+          break;
+        }
+      }
+      
+    }
+    std::string numvars = std::to_string(core_variables.size());
+    ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"),numvars.c_str(), numvars.length());
+    int size = ini_save(ini, NULL, 0); // Find the size needed
+    auto ini_data = std::make_unique<char[]>(size);
+    size = ini_save(ini, ini_data.get(), size); // Actually save the file
+    save_data((unsigned char*)ini_data.get(), size, core_config.c_str());
+    ini_destroy(ini);
+    return false;
+  }
+  else
+  {
+    std::vector<uint8_t> data = load_data(core_config.c_str(), (unsigned int*)&size_);
+    ini_t *ini = ini_load((char*)data.data(), NULL);
+    int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
+    int idx = ini_find_property(ini, section, "usedvars_num",strlen("usedvars_num"));
+    const char* numvars = ini_property_value(ini, section, idx);
+    int vars_infile =atoi(numvars);
+    if (core_variables.size() != vars_infile)
+     {
+        //rebuild cache.
+        ini_destroy(ini);
+        goto redo;
+    }
+
+
+    for (int i = 0; i < vars_infile; i++) {
+      std::string name=  ini_property_name(ini, section, i);
+      std::string value = ini_property_value(ini, section, i);
+      core_variables[i].name = name;
+      core_variables[i].var = value;
+
+      for(int j=0;j<core_variables[i].config_vals.size();j++)
+      {
+        if(core_variables[i].config_vals[j] == core_variables[i].var)
+        {
+          core_variables[i].sel_idx =j;
+          break;
+        }
+          
+        
+      }
+    }
+    ini_destroy(ini);
+    return true;
+  }
+  return false;
+}
+
+
+
+void CLibretro::save_coresettings() {
+  size_t lastindex = core_path.find_last_of("."); 
+  std::string core_config = core_path.substr(0, lastindex)+".corecfg"; 
+
+  unsigned sz_coreconfig = get_filesize(core_config.c_str());
+  if(sz_coreconfig)
+  {
+    unsigned size_;
+    std::vector<uint8_t> data = load_data((const char*)core_config.c_str(),&size_);
+    ini_t *ini = ini_load((char*)data.data(), NULL);
+    int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
+    for(int i=0;i<core_variables.size();i++)
+    {
+      int idx = ini_find_property(ini, section,
+                                  core_variables[i].name.c_str(),
+                                  core_variables[i].name.length());
+      ini_property_value_set(ini, section, idx, core_variables[i].var.c_str(),
+                             core_variables[i].var.length());
+    }
+    std::string numvars = std::to_string(core_variables.size());
+    int idx = ini_find_property(ini, section,
+                                  "usedvars_num", strlen("usedvars_num"));
+    ini_property_value_set(ini, section, idx, numvars.c_str(),
+                             numvars.length());
+    int size = ini_save(ini, NULL, 0); // Find the size needed
+    auto ini_data = std::make_unique<char[]>(size);
+    size = ini_save(ini, ini_data.get(), size); // Actually save the file
+    save_data((unsigned char*)ini_data.get(), size, core_config.c_str());
+    ini_destroy(ini);
+  }
 }
 
 
@@ -115,19 +223,23 @@ bool CLibretro::init_configvars(retro_variable *var)
     std::string segment;
     std::vector<std::string> seglist;
     while (std::getline(test, segment, '|'))
-      vars_struct.config_vals.push_back(segment);
-
-    vars_struct.sel_idx = 0;
-
+     vars_struct.config_vals.push_back(segment);
+      
     pos = str1.find('|');
     // get first variable as default/current
     if (pos != std::string::npos)
       str1 = str1.substr(0, pos);
     vars_struct.var = str1;
+
+     vars_struct.sel_idx=0;
     variables.push_back(vars_struct);
   }
 
   core_variables = variables;
+
+  load_coresettings();
+
+
   return true;
 }
 
@@ -147,6 +259,7 @@ CLibretro::~CLibretro()
 bool CLibretro::core_load(char *ROM, bool game_specific_settings)
 {
   const char *str = cores.at(0).core_path.c_str();
+  core_path = str;
   void *hDLL = openlib((const char *)str);
   if (!hDLL)
   {
@@ -284,6 +397,8 @@ void addplugin(const char *path, std::vector<core_info> *cores)
 void CLibretro::get_cores()
 {
   std::filesystem::path path = std::filesystem::current_path() / "cores";
+  romsavesstatespath = path.generic_string();
+
   for (auto &entry : std::filesystem::directory_iterator(path))
   {
     string str = entry.path().string();
