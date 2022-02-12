@@ -122,19 +122,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     {
 
     std::string str2;
-     poll_inp();
     for (int i=0;i<instance->core_inputbinds.size();i++){
       if(instance->core_inputbinds[i].description == "")continue;
 
        int total_w = 300; ImGui::Text(instance->core_inputbinds[i].description.c_str());
        std::string script = "##" + instance->core_inputbinds[i].description;
-        char* button_str= NULL;
-
-       if(instance->core_inputbinds[i].joytype == joytype::keyboard)
-        button_str =(char*)SDL_GetScancodeName((SDL_Scancode)instance->core_inputbinds[i].sdl_id);
-       else if(instance->core_inputbinds[i].joytype == joytype::joystick_ ||joytype::hat|| joytype::button)
-       button_str = (char*)instance->core_inputbinds[i].joykey_desc.c_str();
-
+        char* button_str= (char*)instance->core_inputbinds[i].joykey_desc.c_str();
        ImGui::SameLine(350);ImGui::SetNextItemWidth(total_w); 
        ImGui::InputText(script.c_str(),button_str, NULL, NULL, NULL);
        if (ImGui::IsItemClicked()) {

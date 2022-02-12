@@ -63,7 +63,7 @@ struct retro_core{
 		  bool isanalog;
 		  int axises;
 		  int val;
-		  joytype joytype;
+		  int joytype;
 		  
       };
 
@@ -121,6 +121,9 @@ class CLibretro
 	bool init_inputvars(retro_input_descriptor* var);
 	bool load_coresettings();
 	void save_coresettings();
+	bool load_inputcfg();
+	bool save_inputcfg();
+
     
 	const char* load_corevars(retro_variable *var);
 	

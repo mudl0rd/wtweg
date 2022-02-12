@@ -30,6 +30,16 @@ void CLibretro::poll()
 
 }
 
+bool CLibretro::load_inputcfg()
+{
+  
+
+}
+
+bool CLibretro::save_inputcfg()
+{
+
+}
 
 bool CLibretro::load_coresettings(){
    size_t lastindex = core_path.find_last_of("."); 
@@ -173,11 +183,13 @@ bool CLibretro::init_inputvars(retro_input_descriptor* var)
                   core_inputbinds[var->id].sdl_id =  s_inps(var->id);
                   core_inputbinds[var->id].joytype = joytype::keyboard;
                   core_inputbinds[var->id].isanalog = false;
+                  core_inputbinds[var->id].joykey_desc = (char*)SDL_GetScancodeName((SDL_Scancode)s_inps(var->id));
               }
                var++;
 
      }
 }
+::load_inpcfg();
 return true;
 }
 

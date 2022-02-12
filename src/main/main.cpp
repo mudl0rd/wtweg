@@ -66,8 +66,6 @@ int main(int argc, char *argv[])
     while (SDL_PollEvent(&event))
     {
       // ImGui_ImplSDL2_ProcessEvent(&event);
-
-      
       if (event.type == SDL_QUIT)
         done = true;
       if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
@@ -89,57 +87,10 @@ int main(int argc, char *argv[])
       }
 
     }
-    
-    
-
-    if(isselected_inp)
-       {
-         poll_inp();
-         SDL_JoystickUpdate();
-         std::string button_name;
-        bool rightstick=false;
-       bool sticks=false;
-       bool analogue_axis=false;
-       int joytype1 = 0;
-       bool pressed=false;
-      
-        int axe = axismaskval(&pressed,&rightstick,analogue_axis,&button_name);
-        if(axe && pressed)
-        {
-          sticks=true;
-          instance->core_inputbinds[selected_inp].joykey_desc = button_name;
-          instance->core_inputbinds[selected_inp].joytype = joytype::joystick_;
-           instance->core_inputbinds[selected_inp].sdl_id=axe;
-          isselected_inp = false;
-          ImGui::SetWindowFocus(NULL);
-        }
-
-         int hat =hatmaskval(&button_name);
-          if(hat)
-          {
-            instance->core_inputbinds[selected_inp].joytype = joytype::hat;
-            instance->core_inputbinds[selected_inp].joykey_desc = button_name;
-            instance->core_inputbinds[selected_inp].sdl_id=hat;
-            isselected_inp = false;
-            ImGui::SetWindowFocus(NULL);
-          }
-          
-          bool button_pressed=false;
-          int b =buttonpressedval(&button_pressed,&button_name);
-          if(button_pressed)
-          {
-             instance->core_inputbinds[selected_inp].joytype = joytype::button;
-             instance->core_inputbinds[selected_inp].joykey_desc = button_name;
-             instance->core_inputbinds[selected_inp].sdl_id = b;
-             isselected_inp = false;
-             ImGui::SetWindowFocus(NULL);
-          }
-          }
-
-
 
     if (show_menu)
     {
+      process_inptcfg(&isselected_inp,selected_inp);
       ImGui_ImplOpenGL3_NewFrame();
       ImGui_ImplSDL2_NewFrame();
       ImGui::NewFrame();

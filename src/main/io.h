@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <filesystem>
+#include "clibretro.h"
 
 void audio_mix(const int16_t* samples, size_t size);
 bool audio_init(double refreshra, float input_srate, float fps);
@@ -32,6 +33,9 @@ int hatmaskval(std::string * name);
 int buttonpressedval(bool * pressed, std::string * name);
 int s_inps(int i);
 int isattached();
+bool load_inpcfg();
+bool save_inpcfg();
+void process_inptcfg(bool * isselected_inp,int selected_inp);
 
 
 
