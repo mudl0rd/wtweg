@@ -47,7 +47,7 @@ struct retro_core{
 		void(*retro_unload_game)(void);
 	};
 
-	enum joytype{
+	enum joytype_{
 		joystick_,
 		button,
 		keyboard,
@@ -61,9 +61,11 @@ struct retro_core{
 		  SDL_JoystickGUID joystic_guid;
 	      std::string joystick_name;
 		  bool isanalog;
-		  int axises;
+		  bool isyaxis;
+		  bool rightstick;
 		  int val;
-		  int joytype;
+		  joytype_ joytype;
+		  int retro_id;
 		  
       };
 
@@ -83,11 +85,25 @@ enum libretro_padbinds{
 	joypad_l2,
 	joypad_r2,
 	joypad_l3,
-	joypad_r3,
-	joypad_analogx_l,
-	joypad_analogx_r,
+	joypad_r3
+};
+
+enum libretro_stickbinds{
+	joypad_analogx_l=16,
 	joypad_analogy_l,
+	joypad_analogx_r,
 	joypad_analogy_r
+};
+
+enum libretro_stickdirs{
+	joypad_analogupl = 0x7C4,
+	joypad_analogleftl,
+	joypad_analogrightr,
+	joypad_analogdownl,
+	joypad_analogupr,
+	joypad_analogleftr,
+	joypad_analogrightl,
+	joypad_analogdownr
 };
 
 std::vector<core_info> get_cores();

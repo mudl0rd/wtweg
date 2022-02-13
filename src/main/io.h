@@ -28,7 +28,7 @@ void poll_inp();
 int getbind(unsigned port, unsigned device, unsigned index,
                                 unsigned id);
 
-int axismaskval(bool * pressed,bool * rightstick, bool analog, std::string * name);
+int axismaskval(bool * pressed,bool * rightstick, bool analog, std::string * name, int *axisval,int axistocheck);
 int hatmaskval(std::string * name);
 int buttonpressedval(bool * pressed, std::string * name);
 int s_inps(int i);

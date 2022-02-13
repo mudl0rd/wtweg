@@ -160,31 +160,63 @@ void CLibretro::save_coresettings() {
 bool CLibretro::init_inputvars(retro_input_descriptor* var)
 {
   core_inputbinds.clear();
-  core_inputbinds.resize(16);
+ 
 
 
   
+
+ int numvars=0,i=0;
 
  
-  
+
   while (var->description != NULL && var->port == 0) {
-          core_inputbinds[var->id].description= var->description;
+          
 
    
-
+  
 
 
 
           if (var->device == RETRO_DEVICE_ANALOG ||(var->device == RETRO_DEVICE_JOYPAD)) {
+
+           coreinput_bind bind;
+
+           bind.description= var->description;
+
+
+
+              
             if (var->device == RETRO_DEVICE_ANALOG) {
-                  core_inputbinds[var->id].isanalog = true;
+              int var_index = var->index;
+              int axistocheck= var->id;
+              if((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+              axistocheck = joypad_analogx_l;
+              else if((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+              axistocheck = joypad_analogy_l;
+              else if((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+              axistocheck = joypad_analogx_r;
+              else if((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+              axistocheck = joypad_analogy_r;
+
+                   bind.retro_id = axistocheck;
+                  bind.isanalog = true;
+                   bind.sdl_id =0;
+                   bind.joytype = joytype_::keyboard;
+                    bind.joykey_desc ="None";
+                    bind.isyaxis = (var->id == RETRO_DEVICE_ID_ANALOG_Y);
+                    bind.rightstick = (var->index == RETRO_DEVICE_INDEX_ANALOG_RIGHT);
+
+
+
               }
               else if (var->device == RETRO_DEVICE_JOYPAD){
-                  core_inputbinds[var->id].sdl_id =  s_inps(var->id);
-                  core_inputbinds[var->id].joytype = joytype::keyboard;
-                  core_inputbinds[var->id].isanalog = false;
-                  core_inputbinds[var->id].joykey_desc = (char*)SDL_GetScancodeName((SDL_Scancode)s_inps(var->id));
+                 bind.retro_id=var->id;
+                  bind.sdl_id =  0;
+                  bind.joytype = joytype_::keyboard;
+                  bind.isanalog = false;
+                  bind.joykey_desc = "None";
               }
+              core_inputbinds.push_back(bind);
                var++;
 
      }

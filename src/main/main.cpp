@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
   bool show_menu = true;
   bool done = false;
 
-  std::filesystem::path path = std::filesystem::current_path() / "test.sfc";
+  std::filesystem::path path = std::filesystem::current_path() / "test.z64";
 
   instance->core_load((char *)path.string().c_str(), false);
   int selected_inp=0;
