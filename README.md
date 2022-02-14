@@ -2,10 +2,9 @@
 
 ## End-user support/pull requests will be ignored.
 
-
 Requires Meson, MSYS2 (on Windows)+ G++, Visual Studio Code
 
-Emulator code playset for anything above Intel Haswell-level CPUs.
+Personal/private emulator code playset for anything above Intel Haswell-level CPUs.
 
 Aiming to support:
 * SNES
