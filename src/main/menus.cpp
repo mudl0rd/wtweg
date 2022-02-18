@@ -9,7 +9,7 @@
 
 ImGuiFileDialog romloader;
 const char *ss_filters = "Savestates (*.state){.state}";
-const char *filters = "Source files (*.cpp *.h *.hpp){.cpp,.h,.hpp},Image files (*.png *.gif *.jpg *.jpeg){.png,.gif,.jpg,.jpeg},.md";
+const char *filters = "SNES (*.sfc){.sfc},N64 (*.n64 *.v64 *.z64){.n64,.v64,.z64},PSX (*.chd){.chd}";
 static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_Default;
 
 enum
