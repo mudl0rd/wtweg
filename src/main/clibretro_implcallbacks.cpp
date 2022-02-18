@@ -47,6 +47,7 @@ static bool core_environment(unsigned cmd, void *data)
 {
   bool *bval;
   CLibretro *retro = CLibretro::get_classinstance();
+  
   switch (cmd)
   {
   case RETRO_ENVIRONMENT_SET_MESSAGE:

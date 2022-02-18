@@ -10,6 +10,7 @@
 #include "clibretro.h"
 
 const int WIDTH = 1280, HEIGHT = 720;
+CLibretro *instance = NULL;
 
 int main(int argc, char *argv[])
 {
@@ -29,7 +30,7 @@ int main(int argc, char *argv[])
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-  SDL_Window *window = SDL_CreateWindow("SDLggerat", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+  SDL_Window *window = SDL_CreateWindow("WTFggerat", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
   SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -40,7 +41,7 @@ int main(int argc, char *argv[])
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
-  CLibretro *instance = CLibretro::get_classinstance(window);
+  instance = CLibretro::get_classinstance(window);
 
   // Main loop
   bool show_menu = true;
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
 
   std::filesystem::path path = std::filesystem::current_path() / "test.z64";
 
-  instance->core_load((char *)path.string().c_str(), false);
+  
   int selected_inp=0;
   bool isselected_inp=false;
   while (!done)

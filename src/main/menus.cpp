@@ -9,8 +9,8 @@
 
 ImGuiFileDialog romloader;
 const char *ss_filters = "Savestates (*.state){.state}";
-const char *filters = "SNES (*.sfc){.sfc},N64 (*.n64 *.v64 *.z64){.n64,.v64,.z64},PSX (*.chd){.chd}";
-static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_Default;
+const char *filters = "ROMs/ISOs {.sfc,.n64,.v64,.z64,.chd}";
+static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_None;
 
 enum
 {
@@ -82,6 +82,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     {
       std::string filePathName = romloader.GetFilePathName();
       std::string filePath = romloader.GetCurrentPath();
+      instance->core_load((char *)filePathName.c_str(), false);
       // action
     }
     // close
@@ -114,12 +115,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     romloader.Close();
   }
 
-   if(inputsettings)
+   if(inputsettings && instance->core_isrunning())
    {
      ImGui::PushItemWidth(200);
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
      ImGui::OpenPopup("Input Settings");
-   }
   
     if(ImGui::BeginPopupModal("Input Settings",&inputsettings))
     {
@@ -147,21 +147,16 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
          *isselected_inp = false;
        }
     ImGui::EndPopup();
-      
-    }
+      }
+   }
 
 
-if(coresettings)
+if(coresettings && instance->core_isrunning())
 {
   ImGui::PushItemWidth(200);
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
     ImGui::OpenPopup("Core Settings");
-}
 
-
-
-  if (coresettings)
-  {
     if (ImGui::BeginPopupModal("Core Settings",&coresettings))
     {
       for (int i = 0; i < instance->core_variables.size(); i++)

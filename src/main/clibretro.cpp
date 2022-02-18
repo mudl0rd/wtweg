@@ -20,8 +20,8 @@ static std::string_view SHLIB_EXTENSION = ".so";
 
 CLibretro *CLibretro::get_classinstance(SDL_Window *window)
 {
-  static thread_local CLibretro *instance = new CLibretro(window);
-  return instance;
+  static thread_local CLibretro *instance2 = new CLibretro(window);
+  return instance2;
 }
 
 void CLibretro::poll()
@@ -293,6 +293,8 @@ CLibretro::CLibretro(SDL_Window *window)
   cores.clear();
   get_cores();
   sdl_window = window;
+  lr_isrunning = false;
+  info = {0};
 }
 
 CLibretro::~CLibretro()
@@ -302,6 +304,13 @@ CLibretro::~CLibretro()
 
 bool CLibretro::core_load(char *ROM, bool game_specific_settings)
 {
+  if(lr_isrunning)
+  {
+   lr_isrunning = false;
+   core_unload();
+  }
+  
+
   const char *str = cores.at(0).core_path.c_str();
   core_path = str;
   void *hDLL = openlib((const char *)str);
@@ -406,8 +415,8 @@ void CLibretro::core_unload()
   if (info.data)
     free((void *)info.data);
   audio_destroy();
+  video_deinit();
 
-  cores.clear();
 }
 
 void addplugin(const char *path, std::vector<core_info> *cores)
