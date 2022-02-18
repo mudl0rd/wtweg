@@ -23,12 +23,13 @@ int controller_type = digi_pad;
 static bool coresettings = false;
 const char *checkbox_allowable[] = {"enabled|disabled", "disabled|enabled", "True|False", "False|True", "On|Off", "Off|On"};
 const char *true_vals[] = {"enabled", "true", "on"};
-static bool inputsettings = false;
+bool inputsettings = false;
 
 
 
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp)
 {
+  
   if (ImGui::BeginMainMenuBar())
   {
     if (ImGui::BeginMenu("File"))
@@ -50,8 +51,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     {
       if (ImGui::MenuItem("Core Settings..."))
         coresettings = true;
-      if (ImGui::MenuItem("Input Settings..."))
+      if (ImGui::MenuItem("Input Settings...")) 
         inputsettings = true;
+        
 
       ImGui::Separator();
       if (ImGui::BeginMenu("Input device"))
@@ -112,13 +114,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     romloader.Close();
   }
 
-  if(inputsettings)
-  {
-    ImGui::PushItemWidth(200);
+   if(inputsettings)
+   {
+     ImGui::PushItemWidth(200);
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
-
-
-    if(ImGui::Begin("Input Settings"))
+     ImGui::OpenPopup("Input Settings");
+   }
+  
+    if(ImGui::BeginPopupModal("Input Settings",&inputsettings))
     {
 
     std::string str2;
@@ -138,22 +141,28 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
        
 
       }
-      
-    }
-     
        if (ImGui::Button("OK"))
        {
          inputsettings = false;
          *isselected_inp = false;
        }
-    ImGui::End();
-  }
+    ImGui::EndPopup();
+      
+    }
+
+
+if(coresettings)
+{
+  ImGui::PushItemWidth(200);
+    ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
+    ImGui::OpenPopup("Core Settings");
+}
+
+
 
   if (coresettings)
   {
-    ImGui::PushItemWidth(200);
-    ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Core Settings"))
+    if (ImGui::BeginPopupModal("Core Settings",&coresettings))
     {
       for (int i = 0; i < instance->core_variables.size(); i++)
       {
@@ -228,7 +237,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
       }
         
 
-      ImGui::End();
+      ImGui::EndPopup();
     }
-  }
+}
 }
