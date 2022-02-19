@@ -309,11 +309,29 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings)
    lr_isrunning = false;
    core_unload();
   }
-  
 
-  const char *str = cores.at(0).core_path.c_str();
-  core_path = str;
-  void *hDLL = openlib((const char *)str);
+  
+  std::string c;
+  for(int i=0;cores.size();i++)
+  {
+    c = cores.at(i).core_path;
+    std::string ext=ROM;ext=ext.substr(ext.find_last_of(".") + 1);
+    if(ext=="sfc")
+    if(c.find("snes9x_libretro") != std::string::npos)
+    break;
+    
+    if(ext=="n64"||ext=="z64"||ext=="v64")
+    if(c.find("mupen64plus_next_libretro")!= std::string::npos)
+    break;
+
+    if(ext=="chd")
+    if(c.find("mednafen_psx_hw_libretro")!= std::string::npos)
+    break;
+  } 
+
+  
+  core_path = c;
+  void *hDLL = openlib((const char *)c.c_str());
   if (!hDLL)
   {
     return false;

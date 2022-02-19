@@ -356,6 +356,10 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
         }
 		glBindVertexArray(0);
 		glUseProgram(0);
+		
+
+		extern void rendermenu();
+		rendermenu();
 	}
 
 	
