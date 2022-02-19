@@ -175,6 +175,8 @@ static void core_video_refresh(const void *data, unsigned width,
   {
     video_buf_clear();
     video_refresh(data, width, height, pitch);
+    extern void rendermenu();
+		rendermenu();
   }
 }
 

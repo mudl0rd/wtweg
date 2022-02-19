@@ -318,9 +318,7 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
 
 	void video_refresh(const void* data, unsigned width, unsigned height, unsigned pitch)
     {
-
-		if (data == NULL)
-			return;
+			
 		if (g_video.base_w != width || g_video.base_h != height) {
 			g_video.base_h = height;
 			g_video.base_w = width;
@@ -356,10 +354,6 @@ bool video_set_pixelformat(retro_pixel_format fmt) {
         }
 		glBindVertexArray(0);
 		glUseProgram(0);
-		
-
-		extern void rendermenu();
-		rendermenu();
 	}
 
 	
