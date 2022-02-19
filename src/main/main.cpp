@@ -14,9 +14,12 @@ CLibretro *instance = NULL;
   int selected_inp=0;
   bool isselected_inp=false;
   SDL_Window *window = NULL;
+    bool show_menu = true;
 
 void rendermenu(){
-      std::string window_name;
+  if(show_menu)
+  {
+ std::string window_name;
       process_inptcfg(&isselected_inp,selected_inp);
       ImGui_ImplOpenGL3_NewFrame();
       ImGui_ImplSDL2_NewFrame();
@@ -24,6 +27,8 @@ void rendermenu(){
       sdlggerat_menu(instance,&window_name,&selected_inp,&isselected_inp);
       ImGui::Render();
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  }
+     
       SDL_GL_SwapWindow(window);
 }
 
@@ -59,7 +64,7 @@ int main(int argc, char *argv[])
   instance = CLibretro::get_classinstance(window);
 
   // Main loop
-  bool show_menu = true;
+
   bool done = false;
 
   std::filesystem::path path = std::filesystem::current_path() / "test.z64";
