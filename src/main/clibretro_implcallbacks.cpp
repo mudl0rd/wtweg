@@ -50,10 +50,6 @@ static bool core_environment(unsigned cmd, void *data)
   
   switch (cmd)
   {
-  case RETRO_ENVIRONMENT_SET_MESSAGE:
-  {
-    return true;
-  }
   case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
   {
     struct retro_log_callback *cb = (struct retro_log_callback *)data;
@@ -85,13 +81,6 @@ static bool core_environment(unsigned cmd, void *data)
     return video_sethw(hw);
   }
 
-  case RETRO_ENVIRONMENT_GET_FASTFORWARDING:
-  {
-    *(bool *)data = false;
-    return true;
-  }
-  break;
-
   case RETRO_ENVIRONMENT_GET_CAN_DUPE:
     bval = (bool *)data;
     *bval = true;
@@ -99,12 +88,8 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
-    static char *sys_path = NULL;
-    if (!sys_path)
-    {
-      std::filesystem::path path = std::filesystem::current_path() / "system";
-      sys_path = strdup(path.string().c_str());
-    }
+    std::filesystem::path path = std::filesystem::current_path() / "system";
+    static char *sys_path = (char*)path.c_str();
     char **ppDir = (char **)data;
     *ppDir = sys_path;
     return true;
@@ -143,17 +128,6 @@ static bool core_environment(unsigned cmd, void *data)
     return true;
   }
   break;
-
-  case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
-  {
-    return false;
-    break;
-  }
-
-  case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
-  {
-    return false;
-  }
 
   case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
   {

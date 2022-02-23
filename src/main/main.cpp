@@ -114,11 +114,12 @@ int main(int argc, char *argv[])
     if (instance->core_isrunning())
       instance->core_run();
     else
-    rendermenu();
-      
-
-
-
+    {
+      glClearColor(0., 0., 0., 1.0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      rendermenu();
+    }
+    
   }
 
   delete instance;

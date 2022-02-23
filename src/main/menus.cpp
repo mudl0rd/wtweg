@@ -5,7 +5,6 @@
 #include "clibretro.h"
 #include <sstream>
 #include "utils.h"
-#include <unistd.h>
 
 ImGuiFileDialog romloader;
 const char *ss_filters = "Savestates (*.state){.state}";
