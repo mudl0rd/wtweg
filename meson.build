@@ -9,7 +9,7 @@ glob = run_command('python3', 'src_batch.py')
 src = glob.stdout().strip().split('\n')
 
 executable('demo', include_directories : [inc,inc_imgui,inc_deps,inc_stb],sources : [src],dependencies : sdl2dep,
-override_options : ['c_std=c11', 'cpp_std=c++17']
+override_options : ['c_std=c11', 'cpp_std=c++17','buildtype=debugoptimized']
 )
 
 
