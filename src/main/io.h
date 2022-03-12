@@ -21,21 +21,17 @@ void video_buf_clear();
 uintptr_t video_get_fb();
 bool video_set_pixelformat(retro_pixel_format fmt);
 
-int s_inps(int i);
 void init_inp();
 void close_inp();
-void poll_inp();
+void poll_inp(SDL_Event * event,int selected_inp,bool *isselected_inp);
 int getbind(unsigned port, unsigned device, unsigned index,
                                 unsigned id);
 
 int16_t axismaskval(bool * pressed,bool * rightstick, bool analog, std::string * name, int *axisval,int axistocheck);
 int hatmaskval(std::string * name);
-int buttonpressedval(bool * pressed, std::string * name);
-int s_inps(int i);
-int isattached();
+
 bool load_inpcfg();
 bool save_inpcfg();
-void process_inptcfg(bool * isselected_inp,int selected_inp);
 
 
 

@@ -24,11 +24,6 @@ const char *checkbox_allowable[] = {"enabled|disabled", "disabled|enabled", "Tru
 const char *true_vals[] = {"enabled", "true", "on"};
 bool inputsettings = false;
 
-
-
-
-
-
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp)
 {
   

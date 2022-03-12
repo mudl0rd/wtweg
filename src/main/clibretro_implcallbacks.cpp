@@ -157,19 +157,11 @@ static void core_video_refresh(const void *data, unsigned width,
 static void core_input_poll(void)
 {
   CLibretro *lib = CLibretro::get_classinstance();
-  if(lib->core_isrunning())
-  lib->poll();
 }
 
 static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
                                 unsigned id)
 {
-   CLibretro *retro = CLibretro::get_classinstance();
-  if (retro->core_isrunning())
-  {
-  
-  return ::getbind(port,device,index,id);
-  }
   return 0;
 }
 

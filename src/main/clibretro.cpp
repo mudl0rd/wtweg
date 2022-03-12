@@ -26,18 +26,6 @@ CLibretro *CLibretro::get_classinstance(SDL_Window *window)
 
 void CLibretro::poll()
 {
-  poll_inp();
-
-}
-
-bool CLibretro::load_inputcfg()
-{
-  
-
-}
-
-bool CLibretro::save_inputcfg()
-{
 
 }
 

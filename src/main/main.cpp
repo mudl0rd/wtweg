@@ -20,7 +20,6 @@ void rendermenu(){
   if(show_menu)
   {
  std::string window_name;
-      process_inptcfg(&isselected_inp,selected_inp);
       ImGui_ImplOpenGL3_NewFrame();
       ImGui_ImplSDL2_NewFrame();
       ImGui::NewFrame();
@@ -105,6 +104,8 @@ int main(int argc, char *argv[])
       {
         close_inp();
       }
+
+      poll_inp(&event,selected_inp,&isselected_inp);
 
     }
 
