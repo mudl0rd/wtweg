@@ -191,8 +191,6 @@ bool CLibretro::init_inputvars(retro_input_descriptor* var)
                    bind.sdl_id =0;
                    bind.joytype = joytype_::keyboard;
                     bind.joykey_desc ="None";
-                    bind.isyaxis = (var->id == RETRO_DEVICE_ID_ANALOG_Y);
-                    bind.rightstick = (var->index == RETRO_DEVICE_INDEX_ANALOG_RIGHT);
 
 
 

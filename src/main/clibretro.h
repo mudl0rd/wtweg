@@ -61,11 +61,11 @@ struct retro_core{
 		  SDL_JoystickGUID joystic_guid;
 	      std::string joystick_name;
 		  bool isanalog;
-		  bool isyaxis;
-		  bool rightstick;
+		  bool ispos;
 		  int val;
 		  joytype_ joytype;
 		  int retro_id;
+		 
       };
 
 enum libretro_padbinds{
@@ -102,7 +102,9 @@ enum libretro_stickdirs{
 	joypad_analogupr,
 	joypad_analogleftr,
 	joypad_analogrightl,
-	joypad_analogdownr
+	joypad_analogdownr,
+	joypad_ltrigger,
+    joypad_rtrigger
 };
 
 std::vector<core_info> get_cores();

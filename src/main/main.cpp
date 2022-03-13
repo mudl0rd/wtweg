@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
         close_inp();
       }
 
-      if(poll_inp(&event,selected_inp,&isselected_inp))
+      if(poll_inp(event,selected_inp,&isselected_inp))
       break;
 
     }
