@@ -23,7 +23,7 @@ bool video_set_pixelformat(retro_pixel_format fmt);
 
 void init_inp();
 void close_inp();
-void poll_inp(SDL_Event * event,int selected_inp,bool *isselected_inp);
+bool poll_inp(SDL_Event * event,int selected_inp,bool *isselected_inp);
 int getbind(unsigned port, unsigned device, unsigned index,
                                 unsigned id);
 

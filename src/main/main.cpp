@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
     SDL_Event event;
 
     
+     SDL_PumpEvents();
     
-    
-    while (SDL_PollEvent(&event))
+    while (SDL_PollEvent(&event) != 0)
     {
       // ImGui_ImplSDL2_ProcessEvent(&event);
       if (event.type == SDL_QUIT)
@@ -105,7 +105,8 @@ int main(int argc, char *argv[])
         close_inp();
       }
 
-      poll_inp(&event,selected_inp,&isselected_inp);
+      if(poll_inp(&event,selected_inp,&isselected_inp))
+      break;
 
     }
 
