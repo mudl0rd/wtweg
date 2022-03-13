@@ -156,13 +156,14 @@ static void core_video_refresh(const void *data, unsigned width,
 
 static void core_input_poll(void)
 {
-  CLibretro *lib = CLibretro::get_classinstance();
+
 }
 
 static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
                                 unsigned id)
 {
-  return 0;
+  return input_state(port, device, index,
+                                id);
 }
 
 void CLibretro::load_envsymb(void *handle)

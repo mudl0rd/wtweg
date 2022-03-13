@@ -79,8 +79,15 @@ int main(int argc, char *argv[])
     // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
     SDL_Event event;
 
-    
-     SDL_PumpEvents();
+    for(int j=0;j<instance->core_inputbinds.size();j++)
+    {
+      if(instance->core_inputbinds[j].pressed)
+      {
+      instance->core_inputbinds[j].val = 0;
+     // instance->core_inputbinds[j].pressed = false;
+      }
+      
+    }
     
     while (SDL_PollEvent(&event) != 0)
     {
@@ -105,8 +112,8 @@ int main(int argc, char *argv[])
         close_inp();
       }
 
-      if(poll_inp(event,selected_inp,&isselected_inp))
-      break;
+      if(poll_inp(event,selected_inp,&isselected_inp))break;
+    
 
     }
 

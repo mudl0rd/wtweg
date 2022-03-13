@@ -65,6 +65,7 @@ struct retro_core{
 		  int val;
 		  joytype_ joytype;
 		  int retro_id;
+		  bool pressed;
 		 
       };
 
