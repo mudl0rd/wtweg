@@ -156,9 +156,6 @@ static void core_video_refresh(const void *data, unsigned width,
 
 static void core_input_poll(void)
 {
-  extern bool isselected_inp;
-  if(!isselected_inp)
-  poll_lr();
 }
 
 static int16_t core_input_state(unsigned port, unsigned device, unsigned index,

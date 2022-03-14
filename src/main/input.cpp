@@ -250,7 +250,13 @@ return true;
 bool poll_inp(int selected_inp,bool *isselected_inp){
     CLibretro *lib = CLibretro::get_classinstance();
     
-    if(*isselected_inp) return checkbuttons_forui(selected_inp,isselected_inp);
+    if(*isselected_inp)
+    {
+        return checkbuttons_forui(selected_inp,isselected_inp);
+    }
+    else
+    {
+    SDL_JoystickUpdate();
     for (int i=0;i<lib->core_inputbinds.size();i++){
         if(lib->core_inputbinds[i].joytype == joytype_::joystick_){
             int axesCount = SDL_JoystickNumAxes(Joystick);
@@ -294,9 +300,8 @@ bool poll_inp(int selected_inp,bool *isselected_inp){
        for (int h = 0; h < hatsCount; h++)
 					{
 						int hat = SDL_JoystickGetHat(Joystick, h);
-                        if(lib->core_inputbinds[i].sdl_id == hat){
+                        if(hat & lib->core_inputbinds[i].sdl_id)
                         lib->core_inputbinds[i].pressed = true;
-                        }
                         else
                         lib->core_inputbinds[i].pressed = false;
                     }
@@ -316,6 +321,7 @@ if(lib->core_inputbinds[i].joytype == joytype_::button){
 }
 }
 }
+   }
 
 
 
