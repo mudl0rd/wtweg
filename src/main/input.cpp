@@ -113,17 +113,13 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                     {
                         lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[0];
                         lib->core_inputbinds[selected_inp].ispos = true;
-                        *isselected_inp = false;
-                        ImGui::SetWindowFocus(NULL);
-                        return true;
+                        goto thisisahack;
                     }
                     if (axis < -0x4000)
                     {
                         lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[1];
                         lib->core_inputbinds[selected_inp].ispos = false;
-                        *isselected_inp = false;
-                        ImGui::SetWindowFocus(NULL);
-                        return true;
+                        goto thisisahack;
                     }
                 }
 
@@ -133,17 +129,13 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                     {
                         lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[2];
                         lib->core_inputbinds[selected_inp].ispos = true;
-                        *isselected_inp = false;
-                        ImGui::SetWindowFocus(NULL);
-                        return true;
+                        goto thisisahack;
                     }
                     else if (axis <= -0x4000)
                     {
                         lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[3];
                         lib->core_inputbinds[selected_inp].ispos = false;
-                        *isselected_inp = false;
-                        ImGui::SetWindowFocus(NULL);
-                        return true;
+                        goto thisisahack;
                     }
                 }
 
@@ -223,6 +215,8 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
     }
 
     int hatsCount = SDL_JoystickNumHats(Joystick);
+     if (hatsCount != 1)
+                    return true;
 
     for (int h = 0; h < hatsCount; h++)
     {
@@ -233,7 +227,6 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
             {
                 name = "Hat ";
                 name += Names[i];
-
                 lib->core_inputbinds[selected_inp].joykey_desc = name;
                 lib->core_inputbinds[selected_inp].sdl_id = hat;
                 lib->core_inputbinds[selected_inp].joytype = joytype_::hat;
