@@ -26,79 +26,77 @@ CLibretro *CLibretro::get_classinstance(SDL_Window *window)
 
 void CLibretro::poll()
 {
-
 }
 
-bool CLibretro::load_coresettings(){
-   size_t lastindex = core_path.find_last_of("."); 
-  std::string core_config = core_path.substr(0, lastindex)+".corecfg"; 
+bool CLibretro::load_coresettings()
+{
+  size_t lastindex = core_path.find_last_of(".");
+  std::string core_config = core_path.substr(0, lastindex) + ".corecfg";
   int size_ = get_filesize(core_config.c_str());
   ini_t *ini = NULL;
-  if (!size_) {
-      
-    // create a new file with defaults
-    //create cache of core options
-    redo:
+  if (!size_)
+  {
+
+  // create a new file with defaults
+  // create cache of core options
+  redo:
     ini = ini_create(NULL);
     int section =
         ini_section_add(ini, "Core Settings", strlen("Core Settings"));
-    for (int i = 0; i < core_variables.size(); i++) {
+    for (int i = 0; i < core_variables.size(); i++)
+    {
       ini_property_add(ini, section, (char *)core_variables[i].name.c_str(),
                        core_variables[i].name.length(),
                        (char *)core_variables[i].var.c_str(),
-                      core_variables[i].var.length());
+                       core_variables[i].var.length());
 
-
-    for(int j=0;j<core_variables[i].config_vals.size();j++)
+      for (int j = 0; j < core_variables[i].config_vals.size(); j++)
       {
-        if(core_variables[i].config_vals[j] == core_variables[i].var)
+        if (core_variables[i].config_vals[j] == core_variables[i].var)
         {
-          core_variables[i].sel_idx =j;
+          core_variables[i].sel_idx = j;
           break;
         }
       }
-      
     }
     std::string numvars = std::to_string(core_variables.size());
-    ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"),numvars.c_str(), numvars.length());
+    ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
     int size = ini_save(ini, NULL, 0); // Find the size needed
     auto ini_data = std::make_unique<char[]>(size);
     size = ini_save(ini, ini_data.get(), size); // Actually save the file
-    save_data((unsigned char*)ini_data.get(), size, core_config.c_str());
+    save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
     ini_destroy(ini);
     return false;
   }
   else
   {
-    std::vector<uint8_t> data = load_data(core_config.c_str(), (unsigned int*)&size_);
-    ini_t *ini = ini_load((char*)data.data(), NULL);
+    std::vector<uint8_t> data = load_data(core_config.c_str(), (unsigned int *)&size_);
+    ini_t *ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
-    int idx = ini_find_property(ini, section, "usedvars_num",strlen("usedvars_num"));
-    const char* numvars = ini_property_value(ini, section, idx);
-    int vars_infile =atoi(numvars);
+    int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
+    const char *numvars = ini_property_value(ini, section, idx);
+    int vars_infile = atoi(numvars);
     if (core_variables.size() != vars_infile)
-     {
-        //rebuild cache.
-        ini_destroy(ini);
-        goto redo;
+    {
+      // rebuild cache.
+      ini_destroy(ini);
+      goto redo;
     }
 
-
-    for (int i = 0; i < vars_infile; i++) {
-      std::string name=  ini_property_name(ini, section, i);
+    for (int i = 0; i < vars_infile; i++)
+    {
+      std::string name = ini_property_name(ini, section, i);
       std::string value = ini_property_value(ini, section, i);
       core_variables[i].name = name;
       core_variables[i].var = value;
 
-      for(int j=0;j<core_variables[i].config_vals.size();j++)
+      for (int j = 0; j < core_variables[i].config_vals.size(); j++)
       {
-        if(core_variables[i].config_vals[j] == core_variables[i].var)
+        if (core_variables[i].config_vals[j] == core_variables[i].var)
         {
-          core_variables[i].sel_idx =j;
+          core_variables[i].sel_idx = j;
           break;
         }
-          
-        
       }
     }
     ini_destroy(ini);
@@ -107,20 +105,19 @@ bool CLibretro::load_coresettings(){
   return false;
 }
 
-
-
-void CLibretro::save_coresettings() {
-  size_t lastindex = core_path.find_last_of("."); 
-  std::string core_config = core_path.substr(0, lastindex)+".corecfg"; 
+void CLibretro::save_coresettings()
+{
+  size_t lastindex = core_path.find_last_of(".");
+  std::string core_config = core_path.substr(0, lastindex) + ".corecfg";
 
   unsigned sz_coreconfig = get_filesize(core_config.c_str());
-  if(sz_coreconfig)
+  if (sz_coreconfig)
   {
     unsigned size_;
-    std::vector<uint8_t> data = load_data((const char*)core_config.c_str(),&size_);
-    ini_t *ini = ini_load((char*)data.data(), NULL);
+    std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
+    ini_t *ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
-    for(int i=0;i<core_variables.size();i++)
+    for (int i = 0; i < core_variables.size(); i++)
     {
       int idx = ini_find_property(ini, section,
                                   core_variables[i].name.c_str(),
@@ -130,87 +127,68 @@ void CLibretro::save_coresettings() {
     }
     std::string numvars = std::to_string(core_variables.size());
     int idx = ini_find_property(ini, section,
-                                  "usedvars_num", strlen("usedvars_num"));
+                                "usedvars_num", strlen("usedvars_num"));
     ini_property_value_set(ini, section, idx, numvars.c_str(),
-                             numvars.length());
+                           numvars.length());
     int size = ini_save(ini, NULL, 0); // Find the size needed
     auto ini_data = std::make_unique<char[]>(size);
     size = ini_save(ini, ini_data.get(), size); // Actually save the file
-    save_data((unsigned char*)ini_data.get(), size, core_config.c_str());
+    save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
     ini_destroy(ini);
   }
 }
 
-
-
-
-
-bool CLibretro::init_inputvars(retro_input_descriptor* var)
+bool CLibretro::init_inputvars(retro_input_descriptor *var)
 {
   core_inputbinds.clear();
- 
 
+  int numvars = 0, i = 0;
 
-  
+  while (var->description != NULL && var->port == 0)
+  {
 
- int numvars=0,i=0;
+    if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD))
+    {
 
- 
+      coreinput_bind bind;
 
-  while (var->description != NULL && var->port == 0) {
-          
+      bind.description = var->description;
 
-   
-  
+      if (var->device == RETRO_DEVICE_ANALOG)
+      {
+        int var_index = var->index;
+        int axistocheck = var->id;
+        if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+          axistocheck = joypad_analogx_l;
+        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+          axistocheck = joypad_analogy_l;
+        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+          axistocheck = joypad_analogx_r;
+        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+          axistocheck = joypad_analogy_r;
 
-
-
-          if (var->device == RETRO_DEVICE_ANALOG ||(var->device == RETRO_DEVICE_JOYPAD)) {
-
-           coreinput_bind bind;
-
-           bind.description= var->description;
-
-
-
-              
-            if (var->device == RETRO_DEVICE_ANALOG) {
-              int var_index = var->index;
-              int axistocheck= var->id;
-              if((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-              axistocheck = joypad_analogx_l;
-              else if((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-              axistocheck = joypad_analogy_l;
-              else if((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-              axistocheck = joypad_analogx_r;
-              else if((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-              axistocheck = joypad_analogy_r;
-
-                   bind.retro_id = axistocheck;
-                  bind.isanalog = true;
-                   bind.sdl_id =0;
-                   bind.pressed = false;
-                   bind.joytype = joytype_::keyboard;
-                    bind.joykey_desc ="None";
-
-
-
-              }
-              else if (var->device == RETRO_DEVICE_JOYPAD){
-                 bind.retro_id=var->id;
-                  bind.sdl_id =  0;
-                  bind.pressed = false;
-                  bind.joytype = joytype_::keyboard;
-                  bind.isanalog = false;
-                  bind.joykey_desc = "None";
-              }
-              core_inputbinds.push_back(bind);
-               var++;
-
-     }
-}
-::load_inpcfg();
-return true;
+        bind.retro_id = axistocheck;
+        bind.isanalog = true;
+        bind.sdl_id = 0;
+        bind.pressed = false;
+        bind.joytype = joytype_::keyboard;
+        bind.joykey_desc = "None";
+      }
+      else if (var->device == RETRO_DEVICE_JOYPAD)
+      {
+        bind.retro_id = var->id;
+        bind.sdl_id = 0;
+        bind.pressed = false;
+        bind.joytype = joytype_::keyboard;
+        bind.isanalog = false;
+        bind.joykey_desc = "None";
+      }
+      core_inputbinds.push_back(bind);
+      var++;
+    }
+  }
+  ::load_inpcfg();
+  return true;
 }
 
 const char *CLibretro::load_corevars(retro_variable *var)
@@ -255,22 +233,21 @@ bool CLibretro::init_configvars(retro_variable *var)
     std::string segment;
     std::vector<std::string> seglist;
     while (std::getline(test, segment, '|'))
-     vars_struct.config_vals.push_back(segment);
-      
+      vars_struct.config_vals.push_back(segment);
+
     pos = str1.find('|');
     // get first variable as default/current
     if (pos != std::string::npos)
       str1 = str1.substr(0, pos);
     vars_struct.var = str1;
 
-     vars_struct.sel_idx=0;
+    vars_struct.sel_idx = 0;
     variables.push_back(vars_struct);
   }
 
   core_variables = variables;
 
   load_coresettings();
-
 
   return true;
 }
@@ -292,32 +269,31 @@ CLibretro::~CLibretro()
 
 bool CLibretro::core_load(char *ROM, bool game_specific_settings)
 {
-  if(lr_isrunning)
+  if (lr_isrunning)
   {
-   lr_isrunning = false;
-   core_unload();
+    lr_isrunning = false;
+    core_unload();
   }
 
-  
   std::string c;
-  for(int i=0;cores.size();i++)
+  for (int i = 0; cores.size(); i++)
   {
     c = cores.at(i).core_path;
-    std::string ext=ROM;ext=ext.substr(ext.find_last_of(".") + 1);
-    if(ext=="sfc")
-    if(c.find("snes9x_libretro") != std::string::npos)
-    break;
-    
-    if(ext=="n64"||ext=="z64"||ext=="v64")
-    if(c.find("mupen64plus_next_libretro")!= std::string::npos)
-    break;
+    std::string ext = ROM;
+    ext = ext.substr(ext.find_last_of(".") + 1);
+    if (ext == "sfc")
+      if (c.find("snes9x_libretro") != std::string::npos)
+        break;
 
-    if(ext=="chd")
-    if(c.find("mednafen_psx_hw_libretro")!= std::string::npos)
-    break;
-  } 
+    if (ext == "n64" || ext == "z64" || ext == "v64")
+      if (c.find("mupen64plus_next_libretro") != std::string::npos)
+        break;
 
-  
+    if (ext == "chd")
+      if (c.find("mednafen_psx_hw_libretro") != std::string::npos)
+        break;
+  }
+
   core_path = c;
   void *hDLL = openlib((const char *)c.c_str());
   if (!hDLL)
@@ -359,7 +335,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings)
   info.meta = "";
 
   retro.retro_get_system_info(&system);
-   retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
+  retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   if (!system.need_fullpath)
   {
     FILE *inputfile = fopen(ROM, "rb");
@@ -422,7 +398,6 @@ void CLibretro::core_unload()
     free((void *)info.data);
   audio_destroy();
   video_deinit();
-
 }
 
 void addplugin(const char *path, std::vector<core_info> *cores)

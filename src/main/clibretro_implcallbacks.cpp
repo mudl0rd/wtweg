@@ -47,7 +47,7 @@ static bool core_environment(unsigned cmd, void *data)
 {
   bool *bval;
   CLibretro *retro = CLibretro::get_classinstance();
-  
+
   switch (cmd)
   {
   case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
@@ -89,7 +89,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
     std::filesystem::path path = std::filesystem::current_path() / "system";
-    static char *sys_path = (char*)path.c_str();
+    static char *sys_path = (char *)path.c_str();
     char **ppDir = (char **)data;
     *ppDir = sys_path;
     return true;
@@ -98,7 +98,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 31
   {
-    struct retro_input_descriptor* var =(struct retro_input_descriptor*)data;
+    struct retro_input_descriptor *var = (struct retro_input_descriptor *)data;
     bool ret = retro->init_inputvars(var);
     return true;
   }
@@ -150,7 +150,7 @@ static void core_video_refresh(const void *data, unsigned width,
     video_buf_clear();
     video_refresh(data, width, height, pitch);
     extern void rendermenu();
-		rendermenu();
+    rendermenu();
   }
 }
 
@@ -162,7 +162,7 @@ static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
                                 unsigned id)
 {
   return input_state(port, device, index,
-                                id);
+                     id);
 }
 
 void CLibretro::load_envsymb(void *handle)

@@ -11,24 +11,25 @@
 
 const int WIDTH = 1280, HEIGHT = 720;
 CLibretro *instance = NULL;
-  int selected_inp=0;
-  bool isselected_inp=false;
-  SDL_Window *window = NULL;
-    bool show_menu = true;
+int selected_inp = 0;
+bool isselected_inp = false;
+SDL_Window *window = NULL;
+bool show_menu = true;
 
-void rendermenu(){
-  if(show_menu)
+void rendermenu()
+{
+  if (show_menu)
   {
- std::string window_name;
-      ImGui_ImplOpenGL3_NewFrame();
-      ImGui_ImplSDL2_NewFrame();
-      ImGui::NewFrame();
-      sdlggerat_menu(instance,&window_name,&selected_inp,&isselected_inp);
-      ImGui::Render();
-      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    std::string window_name;
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+    sdlggerat_menu(instance, &window_name, &selected_inp, &isselected_inp);
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
-     
-      SDL_GL_SwapWindow(window);
+
+  SDL_GL_SwapWindow(window);
 }
 
 int main(int argc, char *argv[])
@@ -68,8 +69,6 @@ int main(int argc, char *argv[])
 
   std::filesystem::path path = std::filesystem::current_path() / "test.z64";
 
-  
-
   while (!done)
   {
     // Poll and handle events (inputs, window resize, etc.)
@@ -78,7 +77,7 @@ int main(int argc, char *argv[])
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
     // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
     SDL_Event event;
-    
+
     while (SDL_PollEvent(&event) != 0)
     {
       // ImGui_ImplSDL2_ProcessEvent(&event);
@@ -92,31 +91,27 @@ int main(int argc, char *argv[])
         break;
       }
 
-      if(event.type == SDL_JOYDEVICEADDED)
+      if (event.type == SDL_JOYDEVICEADDED)
       {
         init_inp();
       }
 
-      if(event.type == SDL_JOYDEVICEREMOVED)
+      if (event.type == SDL_JOYDEVICEREMOVED)
       {
         close_inp();
       }
     }
 
-    poll_inp(selected_inp,&isselected_inp);
-
-  
-   
+    poll_inp(selected_inp, &isselected_inp);
 
     if (instance->core_isrunning())
       instance->core_run();
     else
     {
       glClearColor(0., 0., 0., 1.0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       rendermenu();
     }
-    
   }
 
   delete instance;
