@@ -4,7 +4,7 @@
 
 ## What?
 
-Personal/private emulator/UI code playset for anything above Intel Haswell-level CPUs.
+Personal/private emulator/UI code playset for anything above Intel Ivy Bridge-level CPUs.
 
 Aiming to support:
 * SNES
