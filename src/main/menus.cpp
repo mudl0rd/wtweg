@@ -23,6 +23,7 @@ static bool coresettings = false;
 const char *checkbox_allowable[] = {"enabled|disabled", "disabled|enabled", "True|False", "False|True", "On|Off", "Off|On"};
 const char *true_vals[] = {"enabled", "true", "on"};
 bool inputsettings = false;
+extern bool closed_dialog = false;
 
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp)
 {
@@ -120,6 +121,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
   
     if(ImGui::BeginPopupModal("Input Settings",&inputsettings))
     {
+      closed_dialog = false;
 
     std::string str2;
     for (int i=0;i<instance->core_inputbinds.size();i++){
@@ -142,6 +144,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
        {
          inputsettings = false;
          *isselected_inp = false;
+         closed_dialog = true;
        }
     ImGui::EndPopup();
       }

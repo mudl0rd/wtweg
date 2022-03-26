@@ -50,18 +50,24 @@ const char *axis_arr[] =
         "L Trigger",
         "R Trigger"};
 
-const char *axis_arr_digital[] =
-    {
-        "Left Stick Right",
-        "Left Stick Left",
-        "Left Stick Down",
-        "Left Stick Up",
-        "Right Stick Right",
-        "Right Stick Left",
-        "Right Stick Down",
-        "Right Stick Up",
-        "L Trigger",
-        "R Trigger"};
+
+struct axisarrdig {
+    char* name;
+    int axis;
+};
+
+axisarrdig arr_dig[] = {
+       { "Left Stick Right",0},
+       { "Left Stick Left",0},
+       { "Left Stick Down",1},
+       { "Left Stick Up",1},
+       { "Right Stick Right",2},
+       { "Right Stick Left",2},
+       {"Right Stick Down",3},
+       { "Right Stick Up",3},
+       { "L Trigger",4},
+       { "R Trigger",4}
+};
 
 const int Masks[] = {SDL_HAT_UP, SDL_HAT_RIGHT, SDL_HAT_DOWN, SDL_HAT_LEFT};
 const char *Names[] = {"Up", "Right", "Down", "Left"};
@@ -70,128 +76,60 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
 {
     CLibretro *lib = CLibretro::get_classinstance();
     std::string name;
-    SDL_JoystickUpdate();
+   
     int axesCount = SDL_JoystickNumAxes(Joystick);
+    auto &bind = lib->core_inputbinds[selected_inp];
     for (int a = 0; a < axesCount; a++)
     {
-        Sint16 axis = SDL_JoystickGetAxis(Joystick, a);
-        if (lib->core_inputbinds[selected_inp].isanalog)
+        
+        if (bind.isanalog)
         {
-
-            if (axis <= -0x8000 || (axis >= 0x8000))
+            Sint16 axis = 0;
+            if(a > 4)return false;
+            axis = SDL_JoystickGetAxis(Joystick, a);
+            const int JOYSTICK_DEAD_ZONE = 0x1000;
+            if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
             {
-
-                name = axis_arr[a];
                 if (a < 4)
                 {
-                    if (axis < -0x4000)
-                        name += "-";
-                    else if (axis > 0x4000)
-                        name += "+";
-                    else
-                        return false;
-                }
-                lib->core_inputbinds[selected_inp].joykey_desc = name;
-                lib->core_inputbinds[selected_inp].sdl_id = a;
-                lib->core_inputbinds[selected_inp].joytype = joytype_::joystick_;
+                name = axis_arr[a];
+                bind.joykey_desc = name;
+                bind.sdl_id = a;
+                bind.joytype = joytype_::joystick_;
                 *isselected_inp = false;
                 ImGui::SetWindowFocus(NULL);
                 return true;
+                }
+                
             }
         }
         else
         {
-
+            Sint16 axis = SDL_JoystickGetAxis(Joystick, a);
             const int JOYSTICK_DEAD_ZONE = 4000;
             if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
             {
-
-                if (a == 0)
+                for(int i=0;i<5;i++)
                 {
-
-                    if (axis > 0x4000)
+                    if(a==arr_dig[i].axis)
                     {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[0];
-                        lib->core_inputbinds[selected_inp].ispos = true;
-                        goto thisisahack;
-                    }
-                    if (axis < -0x4000)
-                    {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[1];
-                        lib->core_inputbinds[selected_inp].ispos = false;
-                        goto thisisahack;
-                    }
-                }
-
-                if (a == 1)
-                {
-                    if (axis >= 0x4000)
-                    {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[2];
-                        lib->core_inputbinds[selected_inp].ispos = true;
-                        goto thisisahack;
-                    }
-                    else if (axis <= -0x4000)
-                    {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[3];
-                        lib->core_inputbinds[selected_inp].ispos = false;
-                        goto thisisahack;
-                    }
-                }
-
-                if (a == 2)
-                {
-                    if (axis >= 0x4000)
-                    {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[4];
-                        lib->core_inputbinds[selected_inp].ispos = true;
-                        goto thisisahack;
-                    }
-                    else if (axis <= -0x4000)
-                    {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[5];
-                        lib->core_inputbinds[selected_inp].ispos = false;
-                        goto thisisahack;
-                    }
-                }
-                if (a == 3)
-                {
-                    if (axis >= 0x4000)
-                    {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[6];
-                        lib->core_inputbinds[selected_inp].ispos = true;
-                        goto thisisahack;
-                    }
-                    else if (axis <= -0x4000)
-                    {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[7];
-                        lib->core_inputbinds[selected_inp].ispos = false;
-                        goto thisisahack;
-                    }
-                }
-                if (a == 4)
-                {
-                    if (axis >= 0x4000)
-                    {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[8];
-                        lib->core_inputbinds[selected_inp].ispos = true;
-                        lib->core_inputbinds[selected_inp].joytype = joytype_::joystick_;
-                        goto thisisahack;
-                    }
-                }
-                if (a == 5)
-                {
-                    if (axis >= 0x4000)
-                    {
-                        lib->core_inputbinds[selected_inp].joykey_desc = axis_arr_digital[9];
-                        lib->core_inputbinds[selected_inp].ispos = true;
-                        lib->core_inputbinds[selected_inp].joytype = joytype_::joystick_;
-                    thisisahack:
+                        if(axis > JOYSTICK_DEAD_ZONE)
+                        {
+                         bind.ispos = true;
+                        bind.joykey_desc = arr_dig[i+1].name;
+                        }
+                        else
+                        {
+                        bind.ispos = false;
+                        bind.joykey_desc = arr_dig[i].name;
+                        }
+                        bind.sdl_id = a;
+                        bind.joytype = joytype_::joystick_;
                         *isselected_inp = false;
                         ImGui::SetWindowFocus(NULL);
                         return true;
                     }
-                }
+                }       
             }
         }
     }
@@ -205,9 +143,9 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         if (btn)
         {
             name += "Button " + std::to_string(b);
-            lib->core_inputbinds[selected_inp].joykey_desc = name;
-            lib->core_inputbinds[selected_inp].sdl_id = b;
-            lib->core_inputbinds[selected_inp].joytype = joytype_::button;
+            bind.joykey_desc = name;
+            bind.sdl_id = b;
+            bind.joytype = joytype_::button;
             *isselected_inp = false;
             ImGui::SetWindowFocus(NULL);
             return true;
@@ -227,9 +165,9 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
             {
                 name = "Hat ";
                 name += Names[i];
-                lib->core_inputbinds[selected_inp].joykey_desc = name;
-                lib->core_inputbinds[selected_inp].sdl_id = hat;
-                lib->core_inputbinds[selected_inp].joytype = joytype_::hat;
+                bind.joykey_desc = name;
+                bind.sdl_id = hat;
+                bind.joytype = joytype_::hat;
                 *isselected_inp = false;
                 ImGui::SetWindowFocus(NULL);
                 return true;
@@ -241,87 +179,67 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
 
 bool poll_inp(int selected_inp, bool *isselected_inp)
 {
-    CLibretro *lib = CLibretro::get_classinstance();
-
     if (*isselected_inp)
     {
+        SDL_JoystickUpdate();
         return checkbuttons_forui(selected_inp, isselected_inp);
     }
-    else
-    {
-        SDL_JoystickUpdate();
-        for (int i = 0; i < lib->core_inputbinds.size(); i++)
-        {
-            if (lib->core_inputbinds[i].joytype == joytype_::joystick_)
-            {
-                int axesCount = SDL_JoystickNumAxes(Joystick);
-                if (lib->core_inputbinds[i].isanalog)
-                {
-                    for (int a = 0; a < axesCount; a++)
-                    {
-                        int axis = SDL_JoystickGetAxis(Joystick, a);
-                        const int JOYSTICK_DEAD_ZONE = 4000;
-                        if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
-                        {
-                            if (lib->core_inputbinds[i].sdl_id == a)
-                            {
-                                lib->core_inputbinds[i].val = axis;
-                                lib->core_inputbinds[i].pressed = true;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    for (int a = 0; a < axesCount; a++)
-                    {
-                        int axis = SDL_JoystickGetAxis(Joystick, a);
-                        const int JOYSTICK_DEAD_ZONE = 4000;
-                        if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
-                        {
-                            if (lib->core_inputbinds[i].sdl_id == a)
-                            {
-                                bool ispos = axis > 0x4000;
-                                if (lib->core_inputbinds[i].ispos == ispos)
-                                    lib->core_inputbinds[i].pressed = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (lib->core_inputbinds[i].joytype == joytype_::hat)
-            {
-                int hatsCount = SDL_JoystickNumHats(Joystick);
-                if (hatsCount != 1)
-                    return true;
-                // get first hat.
-                int hat = SDL_JoystickGetHat(Joystick, 0);
-                lib->core_inputbinds[i].pressed = hat & lib->core_inputbinds[i].sdl_id;
-            }
-
-            if (lib->core_inputbinds[i].joytype == joytype_::button)
-            {
-                int buttonsCount = SDL_JoystickNumButtons(Joystick);
-                for (int b = 0; b < buttonsCount; b++)
-                {
-                    if (lib->core_inputbinds[i].sdl_id == b)
-                    {
-                        int btn = SDL_JoystickGetButton(Joystick, b);
-                        lib->core_inputbinds[i].pressed = btn;
-                    }
-                }
-            }
-        }
-    }
+    else return false;
 }
 
 void poll_lr()
 {
+    extern bool closed_dialog;
+    if (closed_dialog)
+    {
+    if(!SDL_JoystickGetAttached(Joystick))
+    {
+        close_inp();
+        init_inp();
+        SDL_JoystickUpdate();
+    }
+    
+    CLibretro *lib = CLibretro::get_classinstance();
+    SDL_LockJoysticks();
     SDL_JoystickUpdate();
+        for (int i = 0; i < lib->core_inputbinds.size(); i++)
+        {
+            auto &bind = lib->core_inputbinds[i];
+            
+            if (bind.joytype == joytype_::joystick_)
+            {
+                       
+                        Sint16 axis = SDL_JoystickGetAxis(Joystick, bind.sdl_id);
+                        const char* err = SDL_GetError();
+                             if (bind.isanalog){
+                                 bind.val = axis;
+                                 continue;
+                             }
+                             else
+                             continue;
+                           /*     const int JOYSTICK_DEAD_ZONE = 0x100;
+                                if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
+                                {
+                                 bool ispos = axis > JOYSTICK_DEAD_ZONE;
+                                 bind.val = ispos? 1:0;
+                                 continue;
+                                }
+                            }
+                            }*/
+                        
+                        
+            }
+            else if (bind.joytype == joytype_::hat)
+                bind.val = SDL_JoystickGetHat(Joystick, 0) & bind.sdl_id;
+            else if (bind.joytype == joytype_::button)
+                    bind.val = SDL_JoystickGetButton(Joystick, bind.sdl_id);
+             else if (bind.joytype == joytype_::keyboard) continue;
+        }
+    }
+     SDL_UnlockJoysticks();
 }
 
-int input_state(unsigned port, unsigned device, unsigned index,
+int16_t input_state(unsigned port, unsigned device, unsigned index,
                 unsigned id)
 {
     if (port != 0)
@@ -332,35 +250,34 @@ int input_state(unsigned port, unsigned device, unsigned index,
     {
         return 0;
     }
-
-    if (device == RETRO_DEVICE_ANALOG || device == RETRO_DEVICE_JOYPAD)
+    
+    if(device == RETRO_DEVICE_ANALOG)
     {
-        int var_index = index;
-        int axistocheck = id;
-        if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (id == RETRO_DEVICE_ID_ANALOG_X))
-            axistocheck = joypad_analogx_l;
+       int axistocheck = id;
+       int var_index = index;
+       if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (id == RETRO_DEVICE_ID_ANALOG_X))
+          axistocheck = joypad_analogx_l;
         else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (id == RETRO_DEVICE_ID_ANALOG_Y))
-            axistocheck = joypad_analogy_l;
+          axistocheck = joypad_analogy_l;
         else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (id == RETRO_DEVICE_ID_ANALOG_X))
-            axistocheck = joypad_analogx_r;
+          axistocheck = joypad_analogx_r;
         else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (id == RETRO_DEVICE_ID_ANALOG_Y))
-            axistocheck = joypad_analogy_r;
-
+          axistocheck = joypad_analogy_r;
         for (unsigned int i = 0; i < lib->core_inputbinds.size(); i++)
         {
-            int retro_id = lib->core_inputbinds[i].retro_id;
-            bool isanalog = lib->core_inputbinds[i].isanalog;
-            if (retro_id == id)
-            {
-                if (lib->core_inputbinds[i].pressed)
-                {
-                    if (isanalog)
-                        return lib->core_inputbinds[i].val;
-                    return 1;
-                }
-                return 0;
-            }
+            auto bind = lib->core_inputbinds[i];
+            if(bind.retro_id == axistocheck && bind.isanalog)
+                    return lib->core_inputbinds[i].val;
         }
-        return 0;
     }
+    else if (device == RETRO_DEVICE_JOYPAD)
+    {
+        for (unsigned int i = 0; i < lib->core_inputbinds.size(); i++)
+        {
+            auto bind = lib->core_inputbinds[i];
+                if(bind.retro_id == id && !bind.isanalog)
+                    return bind.val;
+        }
+    }
+    return 0;
 }

@@ -58,15 +58,11 @@ struct retro_core{
          std::string description;
 		 std::string joykey_desc;
 		  unsigned sdl_id;
-		  SDL_JoystickGUID joystic_guid;
-	      std::string joystick_name;
 		  bool isanalog;
 		  bool ispos;
-		  int val;
+		  int16_t val;
 		  joytype_ joytype;
 		  int retro_id;
-		  bool pressed;
-		 
       };
 
 enum libretro_padbinds{

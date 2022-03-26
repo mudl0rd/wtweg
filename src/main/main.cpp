@@ -68,6 +68,8 @@ int main(int argc, char *argv[])
   bool done = false;
 
   std::filesystem::path path = std::filesystem::current_path() / "test.z64";
+  init_inp();
+    
 
   while (!done)
   {
@@ -90,16 +92,6 @@ int main(int argc, char *argv[])
         show_menu = !show_menu;
         break;
       }
-
-      if (event.type == SDL_JOYDEVICEADDED)
-      {
-        init_inp();
-      }
-
-      if (event.type == SDL_JOYDEVICEREMOVED)
-      {
-        close_inp();
-      }
     }
 
     poll_inp(selected_inp, &isselected_inp);
@@ -113,8 +105,9 @@ int main(int argc, char *argv[])
       rendermenu();
     }
   }
-
+  
   delete instance;
+  close_inp();
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
