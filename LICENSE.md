@@ -1,4 +1,4 @@
-Use in source/binary forms, without forking/modification, for personal use 
+Use in source form, without forking/modification, for personal use 
 are permitted provided that the following conditions are met:
 
 Commercial use of the software is not permitted without explicit written consent.
