@@ -65,8 +65,6 @@ axisarrdig arr_dig[] = {
        { "Right Stick Left",2},
        {"Right Stick Down",3},
        { "Right Stick Up",3},
-       { "L Trigger",4},
-       { "R Trigger",4}
 };
 
 const int Masks[] = {SDL_HAT_UP, SDL_HAT_RIGHT, SDL_HAT_DOWN, SDL_HAT_LEFT};
@@ -107,22 +105,22 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         else
         {
             Sint16 axis = SDL_JoystickGetAxis(Joystick, a);
-            const int JOYSTICK_DEAD_ZONE = 0x1000;
+            const int JOYSTICK_DEAD_ZONE = 0x4000;
             if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
             {
-                for(int i=0;i<5;i++)
+                for(int i=0;i<7;i++)
                 {
                     if(a==arr_dig[i].axis)
                     {
                         if(axis > JOYSTICK_DEAD_ZONE)
                         {
-                         bind.ispos = true;
-                        bind.joykey_desc = arr_dig[i+1].name;
+                        bind.ispos = true;
+                        bind.joykey_desc = arr_dig[i].name;
                         }
                         else
                         {
                         bind.ispos = false;
-                        bind.joykey_desc = arr_dig[i].name;
+                        bind.joykey_desc = arr_dig[i+1].name;
                         }
                         bind.sdl_id = a;
                         bind.val=0;
@@ -130,6 +128,20 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                         *isselected_inp = false;
                         ImGui::SetWindowFocus(NULL);
                         return true;
+                    }
+                    if(a>=4)
+                    {
+                        if(axis > JOYSTICK_DEAD_ZONE)
+                        {
+                        bind.ispos = false;
+                        bind.joykey_desc = (a>4)?"R Trigger":"L Trigger";
+                        bind.sdl_id = a;
+                        bind.val=0;
+                        bind.joytype = joytype_::joystick_;
+                        *isselected_inp = false;
+                        ImGui::SetWindowFocus(NULL);
+                        return true;
+                        }
                     }
                 }       
             }
@@ -214,23 +226,19 @@ void poll_lr()
             {
                        
                         Sint16 axis = SDL_JoystickGetAxis(Joystick, bind.sdl_id);
-                        const char* err = SDL_GetError();
-                             if (bind.isanalog){
                                 const int JOYSTICK_DEAD_ZONE = 0x4000;
-                                if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
-                                 bind.val = axis;
-                                 else bind.val = 0;
-                             }
-                             else
-                            {
-                                const int JOYSTICK_DEAD_ZONE = 0x4000;
-                                if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
+                                if(bind.sdl_id < 4)
                                 {
-                                 bind.val =1;
+                                    if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
+                                    bind.val =(bind.isanalog)?axis:1;
+                                    else bind.val = 0;
                                 }
                                 else
-                                bind.val = 0;
-                            }  
+                                {
+                                    if(axis > JOYSTICK_DEAD_ZONE)
+                                    bind.val =(bind.isanalog)?axis:1;
+                                    else bind.val = 0;
+                                }           
             }
             else if (bind.joytype == joytype_::hat)
                 bind.val = SDL_JoystickGetHat(Joystick, 0) & bind.sdl_id;
