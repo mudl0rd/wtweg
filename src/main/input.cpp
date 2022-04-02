@@ -106,7 +106,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         else
         {
             Sint16 axis = SDL_JoystickGetAxis(Joystick, a);
-            const int JOYSTICK_DEAD_ZONE = 4000;
+            const int JOYSTICK_DEAD_ZONE = 0x1000;
             if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
             {
                 for(int i=0;i<5;i++)
@@ -212,22 +212,22 @@ void poll_lr()
                         Sint16 axis = SDL_JoystickGetAxis(Joystick, bind.sdl_id);
                         const char* err = SDL_GetError();
                              if (bind.isanalog){
+                                const int JOYSTICK_DEAD_ZONE = 0x4000;
+                                if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
                                  bind.val = axis;
-                                 continue;
+                                 else bind.val = 0;
                              }
                              else
-                             continue;
-                           /*     const int JOYSTICK_DEAD_ZONE = 0x100;
+                            {
+                                const int JOYSTICK_DEAD_ZONE = 0x4000;
                                 if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
                                 {
                                  bool ispos = axis > JOYSTICK_DEAD_ZONE;
                                  bind.val = ispos? 1:0;
-                                 continue;
                                 }
-                            }
-                            }*/
-                        
-                        
+                                else
+                                bind.val = 0;
+                            }  
             }
             else if (bind.joytype == joytype_::hat)
                 bind.val = SDL_JoystickGetHat(Joystick, 0) & bind.sdl_id;
