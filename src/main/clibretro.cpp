@@ -172,6 +172,7 @@ bool CLibretro::init_inputvars(retro_input_descriptor *var)
         bind.retro_id = axistocheck;
         bind.isanalog = true;
         bind.sdl_id = 0;
+        bind.val=0;
         bind.joytype = joytype_::keyboard;
         bind.joykey_desc = "None";
       }
@@ -179,6 +180,7 @@ bool CLibretro::init_inputvars(retro_input_descriptor *var)
       {
         bind.retro_id = var->id;
         bind.sdl_id = 0;
+        bind.val=0;
         bind.joytype = joytype_::keyboard;
         bind.isanalog = false;
         bind.joykey_desc = "None";

@@ -95,6 +95,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                 name = axis_arr[a];
                 bind.joykey_desc = name;
                 bind.sdl_id = a;
+                bind.val=0;
                 bind.joytype = joytype_::joystick_;
                 *isselected_inp = false;
                 ImGui::SetWindowFocus(NULL);
@@ -124,6 +125,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                         bind.joykey_desc = arr_dig[i].name;
                         }
                         bind.sdl_id = a;
+                        bind.val=0;
                         bind.joytype = joytype_::joystick_;
                         *isselected_inp = false;
                         ImGui::SetWindowFocus(NULL);
@@ -145,6 +147,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
             name += "Button " + std::to_string(b);
             bind.joykey_desc = name;
             bind.sdl_id = b;
+             bind.val=0;
             bind.joytype = joytype_::button;
             *isselected_inp = false;
             ImGui::SetWindowFocus(NULL);
@@ -167,6 +170,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                 name += Names[i];
                 bind.joykey_desc = name;
                 bind.sdl_id = hat;
+                bind.val=0;
                 bind.joytype = joytype_::hat;
                 *isselected_inp = false;
                 ImGui::SetWindowFocus(NULL);
@@ -222,8 +226,7 @@ void poll_lr()
                                 const int JOYSTICK_DEAD_ZONE = 0x4000;
                                 if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
                                 {
-                                 bool ispos = axis > JOYSTICK_DEAD_ZONE;
-                                 bind.val = ispos? 1:0;
+                                 bind.val =1;
                                 }
                                 else
                                 bind.val = 0;
