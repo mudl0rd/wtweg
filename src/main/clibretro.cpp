@@ -18,10 +18,12 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
 
+CLibretro* CLibretro::instance = NULL;
 CLibretro *CLibretro::get_classinstance(SDL_Window *window)
 {
-  static thread_local CLibretro *instance2 = new CLibretro(window);
-  return instance2;
+	if (instance==NULL)
+	instance = new CLibretro(window);
+	return instance ;
 }
 
 void CLibretro::poll()

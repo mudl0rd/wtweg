@@ -109,7 +109,7 @@ std::vector<core_info> get_cores();
 class CLibretro
 {
     private:	
-   
+    static CLibretro *instance;
     retro_core retro;
 	struct retro_game_info info;
 	void load_envsymb(void* handle);

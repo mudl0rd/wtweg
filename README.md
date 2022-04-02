@@ -4,11 +4,6 @@
 
 Personal code playset for anything above Intel Ivy Bridge-level CPUs.
 
-## Why?
-
-* Why not?
-* "How hard can it be?"
-
 ## How?
 
 * OGL 3.3 (only)
