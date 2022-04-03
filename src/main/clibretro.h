@@ -54,15 +54,24 @@ struct retro_core{
 		hat
 	};
 
+	
+
 	struct coreinput_bind {
          std::string description;
 		 std::string joykey_desc;
-		  unsigned sdl_id;
-		  bool isanalog;
-		  bool ispos;
 		  int16_t val;
-		  joytype_ joytype;
-		  int retro_id;
+		  //config vars
+		  	union conf
+			{
+    		uint32_t val;
+    		struct config
+    		{	
+        	uint8_t retro_id;
+         	uint8_t sdl_id;
+        	uint8_t isanalog;
+        	uint8_t joytype;
+    		} bits;
+			} config;
       };
 
 enum libretro_padbinds{
@@ -109,7 +118,6 @@ std::vector<core_info> get_cores();
 class CLibretro
 {
     private:	
-    static CLibretro *instance;
     retro_core retro;
 	struct retro_game_info info;
 	void load_envsymb(void* handle);

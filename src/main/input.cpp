@@ -10,14 +10,176 @@
 #include "imgui.h"
 #include <filesystem>
 #include "clibretro.h"
+#define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
+#include "ini.h"
+#include "utils.h"
+#include <bitset>
 
 SDL_Joystick *Joystick = NULL;
 
-bool load_inpcfg()
+template< typename T >
+std::string int_to_hex( T i )
 {
+  std::stringstream stream;
+  stream << std::hex << i;
+  return stream.str();
+}
+
+bool load_inpcfg(retro_input_descriptor *var)
+{
+  CLibretro *lib = CLibretro::get_classinstance();
+  lib->core_inputbinds.clear();
+
+  size_t lastindex = lib->core_path.find_last_of(".");
+  std::string core_config = lib->core_path.substr(0, lastindex) + ".corecfg";
+
+  int numvars = 0, i = 0;
+
+  while (var->description != NULL && var->port == 0)
+  {
+
+    if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD))
+    {
+
+      coreinput_bind bind;
+
+      bind.description = var->description;
+      auto &settings = bind.config.bits;
+
+      if (var->device == RETRO_DEVICE_ANALOG)
+      {
+        int var_index = var->index;
+        int axistocheck = var->id;
+        if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+          axistocheck = joypad_analogx_l;
+        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+          axistocheck = joypad_analogy_l;
+        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+          axistocheck = joypad_analogx_r;
+        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+          axistocheck = joypad_analogy_r;
+
+        settings.isanalog = true;
+        settings.retro_id = axistocheck;
+        settings.sdl_id = 0;
+        settings.joytype = joytype_::keyboard;
+        bind.val=0;
+        bind.joykey_desc = "None";
+      }
+      else if (var->device == RETRO_DEVICE_JOYPAD)
+      {
+        settings.isanalog = false;
+        settings.retro_id = var->id;
+        settings.sdl_id = 0;
+        settings.joytype = joytype_::keyboard;
+        bind.val=0;
+        bind.joykey_desc = "None";
+      }
+      lib->core_inputbinds.push_back(bind);
+      var++;
+    }
+  }
+
+
+  unsigned sz_coreconfig = get_filesize(core_config.c_str());
+  if (sz_coreconfig)
+  {
+    unsigned size_;
+    std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
+    ini_t *ini = ini_load((char *)data.data(), NULL);
+    int section = ini_find_section(ini, "Input Settings", strlen("Input Settings"));
+    if(!section)
+    {
+        new_sec:
+        section = ini_section_add(ini, "Input Settings", strlen("Input Settings"));
+        for (int i = 0; i < lib->core_inputbinds.size(); i++)
+        {
+          
+             std::string val = int_to_hex(lib->core_inputbinds[i].config.val);
+             ini_property_add(ini, section, (char *)lib->core_inputbinds[i].description.c_str(),lib->core_inputbinds[i].description.length(),
+            (char *)val.c_str(),val.length());
+            std::string keydesc = lib->core_inputbinds[i].description + "_keydesc";
+             ini_property_add(ini, section, (char *)keydesc.c_str(),keydesc.length(),
+            (char *)lib->core_inputbinds[i].joykey_desc.c_str(),lib->core_inputbinds[i].joykey_desc.length());
+        }
+        std::string numvars = std::to_string(lib->core_inputbinds.size());
+        ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
+        int size = ini_save(ini, NULL, 0); // Find the size needed
+        auto ini_data = std::make_unique<char[]>(size);
+        size = ini_save(ini, ini_data.get(), size); // Actually save the file
+        save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+        ini_destroy(ini);
+        return false;
+    }
+    else
+    {
+
+       int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
+       const char *numvars = ini_property_value(ini, section, idx);
+       int vars_infile = atoi(numvars);
+       if(vars_infile != lib->core_inputbinds.size())
+       {
+           ini_section_remove(ini,section);
+           goto new_sec;
+       }
+
+       for (int i = 0; i < vars_infile; i++)
+        {
+        int idx = ini_find_property(ini, section, lib->core_inputbinds[i].description.c_str(), 
+        lib->core_inputbinds[i].description.length());
+        std::string value = ini_property_value(ini, section, idx);
+        lib->core_inputbinds[i].config.val = std::stoul(value, 0, 16);
+
+        std::string keydesc = lib->core_inputbinds[i].description + "_keydesc";
+       int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(),keydesc.length());
+       std::string keyval = ini_property_value(ini, section, pro1);
+       lib->core_inputbinds[i].joykey_desc = keyval;
+        }
+    }
+    ini_destroy(ini);
+  }
+  return true;
 }
 bool save_inpcfg()
 {
+  CLibretro *lib = CLibretro::get_classinstance();
+  size_t lastindex = lib->core_path.find_last_of(".");
+  std::string core_config = lib->core_path.substr(0, lastindex) + ".corecfg";
+
+  unsigned sz_coreconfig = get_filesize(core_config.c_str());
+  if (sz_coreconfig)
+  {
+    unsigned size_;
+    std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
+    ini_t *ini = ini_load((char *)data.data(), NULL);
+    int section = ini_find_section(ini, "Input Settings", strlen("Input"));
+    for (int i = 0; i < lib->core_inputbinds.size(); i++)
+    {
+      int idx = ini_find_property(ini, section,
+                                  lib->core_inputbinds[i].description.c_str(),
+                                  lib->core_inputbinds[i].description.length());
+                                  
+      std::string value = int_to_hex(lib->core_inputbinds[i].config.val);
+      ini_property_value_set(ini, section, idx, value.c_str(),
+                             value.length());
+
+      std::string keydesc = lib->core_inputbinds[i].description + "_keydesc";
+       int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(),keydesc.length());
+       ini_property_value_set(ini, section,pro1,lib->core_inputbinds[i].joykey_desc.c_str(),
+       lib->core_inputbinds[i].joykey_desc.length());
+    }
+    std::string numvars = std::to_string(lib->core_inputbinds.size());
+    int idx = ini_find_property(ini, section,
+                                "usedvars_num", strlen("usedvars_num"));
+    ini_property_value_set(ini, section, idx, numvars.c_str(),
+                           numvars.length());
+    int size = ini_save(ini, NULL, 0); // Find the size needed
+    auto ini_data = std::make_unique<char[]>(size);
+    size = ini_save(ini, ini_data.get(), size); // Actually save the file
+    save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+    ini_destroy(ini);
+  }
+  return true;
 }
 void close_inp()
 {
@@ -80,7 +242,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
     for (int a = 0; a < axesCount; a++)
     {
         
-        if (bind.isanalog)
+        if (bind.config.bits.isanalog)
         {
             Sint16 axis = 0;
             if(a > 4)return false;
@@ -92,9 +254,9 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                 {
                 name = axis_arr[a];
                 bind.joykey_desc = name;
-                bind.sdl_id = a;
+                bind.config.bits.sdl_id = a;
                 bind.val=0;
-                bind.joytype = joytype_::joystick_;
+                bind.config.bits.joytype = joytype_::joystick_;
                 *isselected_inp = false;
                 ImGui::SetWindowFocus(NULL);
                 return true;
@@ -112,19 +274,10 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                 {
                     if(a==arr_dig[i].axis)
                     {
-                        if(axis > JOYSTICK_DEAD_ZONE)
-                        {
-                        bind.ispos = true;
-                        bind.joykey_desc = arr_dig[i].name;
-                        }
-                        else
-                        {
-                        bind.ispos = false;
-                        bind.joykey_desc = arr_dig[i+1].name;
-                        }
-                        bind.sdl_id = a;
+                        bind.joykey_desc = (axis > JOYSTICK_DEAD_ZONE)?arr_dig[i].name:arr_dig[i+1].name;
+                         bind.config.bits.sdl_id = a;
                         bind.val=0;
-                        bind.joytype = joytype_::joystick_;
+                         bind.config.bits.joytype = joytype_::joystick_;
                         *isselected_inp = false;
                         ImGui::SetWindowFocus(NULL);
                         return true;
@@ -133,11 +286,10 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                     {
                         if(axis > JOYSTICK_DEAD_ZONE)
                         {
-                        bind.ispos = false;
                         bind.joykey_desc = (a>4)?"R Trigger":"L Trigger";
-                        bind.sdl_id = a;
+                         bind.config.bits.sdl_id = a;
                         bind.val=0;
-                        bind.joytype = joytype_::joystick_;
+                         bind.config.bits.joytype = joytype_::joystick_;
                         *isselected_inp = false;
                         ImGui::SetWindowFocus(NULL);
                         return true;
@@ -158,9 +310,9 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         {
             name += "Button " + std::to_string(b);
             bind.joykey_desc = name;
-            bind.sdl_id = b;
+             bind.config.bits.sdl_id = b;
              bind.val=0;
-            bind.joytype = joytype_::button;
+             bind.config.bits.joytype = joytype_::button;
             *isselected_inp = false;
             ImGui::SetWindowFocus(NULL);
             return true;
@@ -181,9 +333,9 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                 name = "Hat ";
                 name += Names[i];
                 bind.joykey_desc = name;
-                bind.sdl_id = hat;
+                bind.config.bits.sdl_id = hat;
                 bind.val=0;
-                bind.joytype = joytype_::hat;
+                bind.config.bits.joytype = joytype_::hat;
                 *isselected_inp = false;
                 ImGui::SetWindowFocus(NULL);
                 return true;
@@ -222,29 +374,29 @@ void poll_lr()
         {
             auto &bind = lib->core_inputbinds[i];
             
-            if (bind.joytype == joytype_::joystick_)
+            if ( bind.config.bits.joytype == joytype_::joystick_)
             {
                        
-                        Sint16 axis = SDL_JoystickGetAxis(Joystick, bind.sdl_id);
+                        Sint16 axis = SDL_JoystickGetAxis(Joystick, bind.config.bits.sdl_id);
                                 const int JOYSTICK_DEAD_ZONE = 0x4000;
-                                if(bind.sdl_id < 4)
+                                if(bind.config.bits.sdl_id < 4)
                                 {
                                     if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
-                                    bind.val =(bind.isanalog)?axis:1;
+                                    bind.val =(bind.config.bits.isanalog)?axis:1;
                                     else bind.val = 0;
                                 }
                                 else
                                 {
                                     if(axis > JOYSTICK_DEAD_ZONE)
-                                    bind.val =(bind.isanalog)?axis:1;
+                                    bind.val =(bind.config.bits.isanalog)?axis:1;
                                     else bind.val = 0;
                                 }           
             }
-            else if (bind.joytype == joytype_::hat)
-                bind.val = SDL_JoystickGetHat(Joystick, 0) & bind.sdl_id;
-            else if (bind.joytype == joytype_::button)
-                    bind.val = SDL_JoystickGetButton(Joystick, bind.sdl_id);
-             else if (bind.joytype == joytype_::keyboard) continue;
+            else if (bind.config.bits.joytype == joytype_::hat)
+                bind.val = SDL_JoystickGetHat(Joystick, 0) & bind.config.bits.sdl_id;
+            else if (bind.config.bits.joytype == joytype_::button)
+                   bind.val = SDL_JoystickGetButton(Joystick, bind.config.bits.sdl_id);
+             else if (bind.config.bits.joytype == joytype_::keyboard) continue;
         }
     }
      SDL_UnlockJoysticks();
@@ -276,7 +428,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
           axistocheck = joypad_analogy_r;
         for (unsigned int i = 0; i < lib->core_inputbinds.size(); i++)
         {
-            auto bind = lib->core_inputbinds[i];
+            auto bind = lib->core_inputbinds[i].config.bits;
             if(bind.retro_id == axistocheck && bind.isanalog)
                     return lib->core_inputbinds[i].val;
         }
@@ -285,9 +437,9 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
     {
         for (unsigned int i = 0; i < lib->core_inputbinds.size(); i++)
         {
-            auto bind = lib->core_inputbinds[i];
-                if(bind.retro_id == id && !bind.isanalog)
-                    return bind.val;
+            auto bind = lib->core_inputbinds[i].config.bits;
+            if(bind.retro_id == id && !bind.isanalog)
+            return lib->core_inputbinds[i].val;
         }
     }
     return 0;

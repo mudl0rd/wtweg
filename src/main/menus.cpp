@@ -145,6 +145,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
          inputsettings = false;
          *isselected_inp = false;
          closed_dialog = true;
+         save_inpcfg();
        }
     ImGui::EndPopup();
       }

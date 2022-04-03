@@ -28,7 +28,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
                                 unsigned id);
 void poll_lr();
 
-bool load_inpcfg();
+bool load_inpcfg(retro_input_descriptor *var);
 bool save_inpcfg();
 
 

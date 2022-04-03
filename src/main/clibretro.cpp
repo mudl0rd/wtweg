@@ -18,10 +18,9 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
 
-CLibretro* CLibretro::instance = NULL;
 CLibretro *CLibretro::get_classinstance(SDL_Window *window)
 {
-	if (!instance)instance = new CLibretro(window);
+	static CLibretro *instance = new CLibretro(window);
 	return instance ;
 }
 
@@ -142,54 +141,8 @@ void CLibretro::save_coresettings()
 
 bool CLibretro::init_inputvars(retro_input_descriptor *var)
 {
-  core_inputbinds.clear();
-
-  int numvars = 0, i = 0;
-
-  while (var->description != NULL && var->port == 0)
-  {
-
-    if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD))
-    {
-
-      coreinput_bind bind;
-
-      bind.description = var->description;
-
-      if (var->device == RETRO_DEVICE_ANALOG)
-      {
-        int var_index = var->index;
-        int axistocheck = var->id;
-        if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-          axistocheck = joypad_analogx_l;
-        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-          axistocheck = joypad_analogy_l;
-        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-          axistocheck = joypad_analogx_r;
-        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-          axistocheck = joypad_analogy_r;
-
-        bind.retro_id = axistocheck;
-        bind.isanalog = true;
-        bind.sdl_id = 0;
-        bind.val=0;
-        bind.joytype = joytype_::keyboard;
-        bind.joykey_desc = "None";
-      }
-      else if (var->device == RETRO_DEVICE_JOYPAD)
-      {
-        bind.retro_id = var->id;
-        bind.sdl_id = 0;
-        bind.val=0;
-        bind.joytype = joytype_::keyboard;
-        bind.isanalog = false;
-        bind.joykey_desc = "None";
-      }
-      core_inputbinds.push_back(bind);
-      var++;
-    }
-  }
-  ::load_inpcfg();
+  
+  ::load_inpcfg(var);
   return true;
 }
 
