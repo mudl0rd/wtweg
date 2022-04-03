@@ -60,15 +60,15 @@ struct retro_core{
          std::string description;
 		 std::string joykey_desc;
 		  int16_t val;
+		  uint8_t retro_id;
+		  uint8_t isanalog;
 		  //config vars
 		  	union conf
 			{
-    		uint32_t val;
+    		uint16_t val;
     		struct config
     		{	
-        	uint8_t retro_id;
          	uint8_t sdl_id;
-        	uint8_t isanalog;
         	uint8_t joytype;
     		} bits;
 			} config;

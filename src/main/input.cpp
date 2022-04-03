@@ -53,8 +53,8 @@ bool load_inpcfg(retro_input_descriptor *var)
         else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
           axistocheck = joypad_analogy_r;
         
-        settings.bits.isanalog = (uint8_t)true;
-        settings.bits.retro_id = axistocheck;
+        bind.isanalog = (uint8_t)true;
+        bind.retro_id = axistocheck;
         settings.bits.sdl_id = 0;
         settings.bits.joytype = (uint8_t)joytype_::keyboard;
         bind.val=0;
@@ -62,8 +62,8 @@ bool load_inpcfg(retro_input_descriptor *var)
       }
       else if (var->device == RETRO_DEVICE_JOYPAD)
       {
-        settings.bits.isanalog = (uint8_t)false;
-        settings.bits.retro_id = var->id;
+        bind.isanalog = (uint8_t)false;
+        bind.retro_id = var->id;
         settings.bits.sdl_id = 0;
         settings.bits.joytype = (uint8_t)joytype_::keyboard;
         bind.val=0;
@@ -124,7 +124,7 @@ bool load_inpcfg(retro_input_descriptor *var)
         int idx = ini_find_property(ini, section, lib->core_inputbinds[i].description.c_str(), 
         lib->core_inputbinds[i].description.length());
         std::string value = ini_property_value(ini, section, idx);
-        lib->core_inputbinds[i].config.val =static_cast<uint32_t>(std::stoul(value));
+        lib->core_inputbinds[i].config.val =static_cast<uint16_t>(std::stoul(value));
         std::string keydesc = lib->core_inputbinds[i].description + "_keydesc";
         int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(),keydesc.length());
         std::string keyval = ini_property_value(ini, section, pro1);
@@ -237,7 +237,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
     for (int a = 0; a < axesCount; a++)
     {
         
-        if (bind.config.bits.isanalog)
+        if (bind.isanalog)
         {
             Sint16 axis = 0;
             if(a > 4)return false;
@@ -344,7 +344,12 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 {
     if (*isselected_inp)
     {
+        if(!SDL_JoystickGetAttached(Joystick))
+    {
+        close_inp();
+        init_inp();
         SDL_JoystickUpdate();
+    }
         return checkbuttons_forui(selected_inp, isselected_inp);
     }
     else return false;
@@ -352,7 +357,6 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 
 void poll_lr()
 {
-
     extern bool closed_dialog;
     if (closed_dialog)
     {
@@ -378,13 +382,13 @@ void poll_lr()
                                 if(bind.config.bits.sdl_id < 4)
                                 {
                                     if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
-                                    bind.val =(bind.config.bits.isanalog)?axis:1;
+                                    bind.val =(bind.isanalog)?axis:1;
                                     else bind.val = 0;
                                 }
                                 else
                                 {
                                     if(axis > JOYSTICK_DEAD_ZONE)
-                                    bind.val =(bind.config.bits.isanalog)?axis:1;
+                                    bind.val =(bind.isanalog)?axis:1;
                                     else bind.val = 0;
                                 }           
             }
@@ -423,7 +427,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
           axistocheck = joypad_analogy_r;
         for (unsigned int i = 0; i < lib->core_inputbinds.size(); i++)
         {
-            auto bind = lib->core_inputbinds[i].config.bits;
+            auto bind = lib->core_inputbinds[i];
             if(bind.retro_id == axistocheck && bind.isanalog)
                     return lib->core_inputbinds[i].val;
         }
@@ -432,7 +436,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
     {
         for (unsigned int i = 0; i < lib->core_inputbinds.size(); i++)
         {
-            auto bind = lib->core_inputbinds[i].config.bits;
+            auto bind = lib->core_inputbinds[i];
             if(bind.retro_id == id && !bind.isanalog)
             return lib->core_inputbinds[i].val;
         }
