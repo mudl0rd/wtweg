@@ -23,7 +23,7 @@ static bool coresettings = false;
 const char *checkbox_allowable[] = {"enabled|disabled", "disabled|enabled", "True|False", "False|True", "On|Off", "Off|On"};
 const char *true_vals[] = {"enabled", "true", "on"};
 bool inputsettings = false;
-extern bool closed_dialog = false;
+extern bool closed_dialog = true;
 
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp)
 {
