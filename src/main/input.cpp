@@ -26,8 +26,6 @@ bool load_inpcfg(retro_input_descriptor *var)
   size_t lastindex = lib->core_path.find_last_of(".");
   std::string core_config = lib->core_path.substr(0, lastindex) + ".corecfg";
 
-  int numvars = 0, i = 0;
-
   while (var->description != NULL && var->port == 0)
   {
 
@@ -86,9 +84,8 @@ bool load_inpcfg(retro_input_descriptor *var)
     {
         new_sec:
         section = ini_section_add(ini, "Input Settings", strlen("Input Settings"));
-        for (int i = 0; i < lib->core_inputbinds.size(); i++)
+        for (auto &bind : lib->core_inputbinds)
         {
-            auto &bind = lib->core_inputbinds[i];
             if(bind.description == "")continue;
              std::string val = std::to_string(bind.config.val);
              ini_property_add(ini, section, (char *)bind.description.c_str(),bind.description.length(),
@@ -111,16 +108,14 @@ bool load_inpcfg(retro_input_descriptor *var)
 
        int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
        const char *numvars = ini_property_value(ini, section, idx);
-       int vars_infile = atoi(numvars);
+       size_t vars_infile = atoi(numvars);
        if(vars_infile != lib->core_inputbinds.size())
        {
            ini_section_remove(ini,section);
            goto new_sec;
        }
-
-       for (int i = 0; i < lib->core_inputbinds.size(); i++)
+       for(auto &bind : lib->core_inputbinds)
         {
-        auto &bind = lib->core_inputbinds[i];
         int idx = ini_find_property(ini, section, bind.description.c_str(), 
         bind.description.length());
         std::string value = ini_property_value(ini, section, idx);
@@ -148,10 +143,8 @@ bool save_inpcfg()
     std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
     ini_t *ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, "Input Settings", strlen("Input"));
-    for (int i = 0; i < lib->core_inputbinds.size(); i++)
+    for (auto &bind : lib->core_inputbinds)
     {
-      auto &bind = lib->core_inputbinds[i];
-        
       int idx = ini_find_property(ini, section,bind.description.c_str(),bind.description.length());
       std::string value =std::to_string(bind.config.val);
       ini_property_value_set(ini, section, idx, value.c_str(),value.length());
@@ -363,10 +356,8 @@ void poll_lr()
     }
     
     
-        for (int i = 0; i < lib->core_inputbinds.size(); i++)
+        for (auto &bind : lib->core_inputbinds)
         {
-            auto &bind = lib->core_inputbinds[i];
-            
             if ( bind.config.bits.joytype == joytype_::joystick_)
             {
                        
