@@ -88,14 +88,14 @@ bool load_inpcfg(retro_input_descriptor *var)
         section = ini_section_add(ini, "Input Settings", strlen("Input Settings"));
         for (int i = 0; i < lib->core_inputbinds.size(); i++)
         {
-            if(lib->core_inputbinds[i].description == "")continue;
-          
-             std::string val = std::to_string(lib->core_inputbinds[i].config.val);
-             ini_property_add(ini, section, (char *)lib->core_inputbinds[i].description.c_str(),lib->core_inputbinds[i].description.length(),
+            auto &bind = lib->core_inputbinds[i];
+            if(bind.description == "")continue;
+             std::string val = std::to_string(bind.config.val);
+             ini_property_add(ini, section, (char *)bind.description.c_str(),bind.description.length(),
             (char *)val.c_str(),val.length());
-            std::string keydesc = lib->core_inputbinds[i].description + "_keydesc";
+            std::string keydesc = bind.description + "_keydesc";
              ini_property_add(ini, section, (char *)keydesc.c_str(),keydesc.length(),
-            (char *)lib->core_inputbinds[i].joykey_desc.c_str(),lib->core_inputbinds[i].joykey_desc.length());
+            (char *)bind.joykey_desc.c_str(),bind.joykey_desc.length());
         }
         std::string numvars = std::to_string(lib->core_inputbinds.size());
         ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
@@ -120,15 +120,15 @@ bool load_inpcfg(retro_input_descriptor *var)
 
        for (int i = 0; i < lib->core_inputbinds.size(); i++)
         {
-        
-        int idx = ini_find_property(ini, section, lib->core_inputbinds[i].description.c_str(), 
-        lib->core_inputbinds[i].description.length());
+        auto &bind = lib->core_inputbinds[i];
+        int idx = ini_find_property(ini, section, bind.description.c_str(), 
+        bind.description.length());
         std::string value = ini_property_value(ini, section, idx);
-        lib->core_inputbinds[i].config.val =static_cast<uint16_t>(std::stoul(value));
-        std::string keydesc = lib->core_inputbinds[i].description + "_keydesc";
+        bind.config.val =static_cast<uint16_t>(std::stoul(value));
+        std::string keydesc = bind.description + "_keydesc";
         int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(),keydesc.length());
         std::string keyval = ini_property_value(ini, section, pro1);
-        lib->core_inputbinds[i].joykey_desc = keyval;
+        bind.joykey_desc = keyval;
         }
     }
     ini_destroy(ini);
@@ -150,18 +150,14 @@ bool save_inpcfg()
     int section = ini_find_section(ini, "Input Settings", strlen("Input"));
     for (int i = 0; i < lib->core_inputbinds.size(); i++)
     {
-      int idx = ini_find_property(ini, section,
-                                  lib->core_inputbinds[i].description.c_str(),
-                                  lib->core_inputbinds[i].description.length());
-                                  
-      std::string value =std::to_string(lib->core_inputbinds[i].config.val);
-      ini_property_value_set(ini, section, idx, value.c_str(),
-                             value.length());
-
-      std::string keydesc = lib->core_inputbinds[i].description + "_keydesc";
+      auto &bind = lib->core_inputbinds[i];
+        
+      int idx = ini_find_property(ini, section,bind.description.c_str(),bind.description.length());
+      std::string value =std::to_string(bind.config.val);
+      ini_property_value_set(ini, section, idx, value.c_str(),value.length());
+      std::string keydesc = bind.description + "_keydesc";
        int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(),keydesc.length());
-       ini_property_value_set(ini, section,pro1,lib->core_inputbinds[i].joykey_desc.c_str(),
-       lib->core_inputbinds[i].joykey_desc.length());
+       ini_property_value_set(ini, section,pro1,bind.joykey_desc.c_str(),bind.joykey_desc.length());
     }
     std::string numvars = std::to_string(lib->core_inputbinds.size());
     int idx = ini_find_property(ini, section,
@@ -357,9 +353,6 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 
 void poll_lr()
 {
-    extern bool closed_dialog;
-    if (closed_dialog)
-    {
     CLibretro *lib = CLibretro::get_classinstance();
     SDL_JoystickUpdate();
     if(!SDL_JoystickGetAttached(Joystick))
@@ -398,7 +391,6 @@ void poll_lr()
                    bind.val = SDL_JoystickGetButton(Joystick, bind.config.bits.sdl_id);
              else if (bind.config.bits.joytype == joytype_::keyboard) continue;
         }
-    }
 }
 
 int16_t input_state(unsigned port, unsigned device, unsigned index,
