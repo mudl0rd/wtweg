@@ -408,20 +408,18 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
           axistocheck = joypad_analogx_r;
         else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (id == RETRO_DEVICE_ID_ANALOG_Y))
           axistocheck = joypad_analogy_r;
-        for (unsigned int i = 0; i < lib->core_inputbinds.size(); i++)
+        for (auto &bind : lib->core_inputbinds)
         {
-            auto bind = lib->core_inputbinds[i];
             if(bind.retro_id == axistocheck && bind.isanalog)
-                    return lib->core_inputbinds[i].val;
+                    return bind.val;
         }
     }
     else if (device == RETRO_DEVICE_JOYPAD)
     {
-        for (unsigned int i = 0; i < lib->core_inputbinds.size(); i++)
+        for (auto &bind : lib->core_inputbinds)
         {
-            auto bind = lib->core_inputbinds[i];
             if(bind.retro_id == id && !bind.isanalog)
-            return lib->core_inputbinds[i].val;
+            return bind.val;
         }
     }
     return 0;
