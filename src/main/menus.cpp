@@ -94,6 +94,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     {
       std::string filePathName = romloader.GetFilePathName();
       std::string filePath = romloader.GetCurrentPath();
+      instance->core_savestate(filePathName.c_str(),false);
       // action
     }
     // close
@@ -107,7 +108,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     {
       std::string filePathName = romloader.GetFilePathName();
       std::string filePath = romloader.GetCurrentPath();
-      // action
+      instance->core_savestate(filePathName.c_str(),true);
     }
     // close
     romloader.Close();
@@ -125,11 +126,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
 
     std::string str2;
     for (int i=0;i<instance->core_inputbinds.size();i++){
-      if(instance->core_inputbinds[i].description == "")continue;
+      auto &bind = instance->core_inputbinds[i];
+      if(bind.description == "")continue;
 
-       int total_w = 300; ImGui::Text(instance->core_inputbinds[i].description.c_str());
-       std::string script = "##" + instance->core_inputbinds[i].description;
-        char* button_str= (char*)instance->core_inputbinds[i].joykey_desc.c_str();
+       int total_w = 300; ImGui::Text(bind.description.c_str());
+       std::string script = "##" + bind.description;
+        char* button_str= (char*)bind.joykey_desc.c_str();
        ImGui::SameLine(350);ImGui::SetNextItemWidth(total_w); 
        ImGui::InputText(script.c_str(),button_str, NULL, NULL, NULL);
        if (ImGui::IsItemClicked()) {
@@ -160,16 +162,17 @@ if(coresettings && instance->core_isrunning())
 
     if (ImGui::BeginPopupModal("Core Settings",&coresettings))
     {
-      for (int i = 0; i < instance->core_variables.size(); i++)
+      for ( auto &bind : instance->core_variables)
       {
-        if (instance->core_variables[i].config_visible)
+        
+        if (bind.config_visible)
         {
-          std::string descript = instance->core_variables[i].description;
-          std::string usedv = instance->core_variables[i].usevars;
-          std::string var = instance->core_variables[i].var;
+          std::string descript = bind.description;
+          std::string usedv = bind.usevars;
+          std::string var = bind.var;
 
-          int sel_idx = instance->core_variables[i].sel_idx;
-          std::string current_item = instance->core_variables[i].config_vals[sel_idx];
+          int sel_idx = bind.sel_idx;
+          std::string current_item = bind.config_vals[sel_idx];
           bool checkbox_made = false;
           bool checkbox_enabled = false;
           for (int j = 0; j < IM_ARRAYSIZE(checkbox_allowable); j++)
@@ -192,9 +195,9 @@ if(coresettings && instance->core_isrunning())
             int total_w = descript.length(); ImGui::Text(descript.c_str()); ImGui::SameLine(450); ImGui::SetNextItemWidth(total_w); 
             if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
             {
-              instance->core_variables[i].sel_idx ^= 1;
-              std::string change = instance->core_variables[i].config_vals[instance->core_variables[i].sel_idx];
-              instance->core_variables[i].var = change;
+              bind.sel_idx ^= 1;
+              std::string change = bind.config_vals[bind.sel_idx];
+              bind.var = change;
               instance->variables_changed = true;
             }
               
@@ -204,14 +207,14 @@ if(coresettings && instance->core_isrunning())
              int total_w = 200; ImGui::Text(descript.c_str()); ImGui::SameLine(650-200); ImGui::SetNextItemWidth(total_w); 
             if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
             {
-              for (int n = 0; n < instance->core_variables[i].config_vals.size(); n++)
+              for (int n = 0; n < bind.config_vals.size(); n++)
               {
-                bool is_selected = (instance->core_variables[i].sel_idx == n); // You can store your selection however you want, outside or inside your objects
-                if (ImGui::Selectable(instance->core_variables[i].config_vals[n].c_str(), is_selected))
+                bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
+                if (ImGui::Selectable(bind.config_vals[n].c_str(), is_selected))
                 {
-                  instance->core_variables[i].sel_idx = n;
-                   std::string change = instance->core_variables[i].config_vals[instance->core_variables[i].sel_idx];
-                   instance->core_variables[i].var = change;
+                  bind.sel_idx = n;
+                   std::string change = bind.config_vals[bind.sel_idx];
+                   bind.var = change;
                    instance->variables_changed = true;
                 }
                   

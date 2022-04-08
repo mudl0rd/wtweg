@@ -29,6 +29,47 @@ void CLibretro::poll()
   poll_lr();
 }
 
+bool CLibretro::core_savestate(const char *filename, bool save) {
+  if (lr_isrunning) {
+    size_t size = retro.retro_serialize_size();
+    if (size) {
+      auto Memory = std::make_unique<uint8_t[]>(size);
+      if (save) {
+        // Get the filesize
+        retro.retro_serialize(Memory.get(), size);
+        save_data(Memory.get(), size, filename);
+      } else {
+        unsigned sz;
+        std::vector<uint8_t> save_data = load_data(filename, &sz);
+        if (save_data.empty())return false;
+        memcpy(Memory.get(), (uint8_t*)save_data.data(), size);
+        retro.retro_unserialize(Memory.get(), size);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+bool CLibretro::core_saveram(const char *filename, bool save) {
+  if (lr_isrunning) {
+    size_t size = retro.retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+    if (size) {
+     uint8_t* Memory = (uint8_t *)retro.retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+      if (save)
+        return save_data(Memory, size, filename);
+      else {
+        unsigned sz;
+        std::vector<uint8_t> save_data = load_data(filename, &sz);
+        if (save_data.empty())return false;
+        memcpy(Memory, (uint8_t*)save_data.data(), size);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool CLibretro::load_coresettings()
 {
   size_t lastindex = core_path.find_last_of(".");

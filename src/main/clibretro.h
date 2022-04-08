@@ -134,6 +134,8 @@ class CLibretro
     bool core_isrunning();
     bool core_load(char* ROM, bool game_specific_settings);
     void core_unload();
+	bool core_saveram(const char* filename, bool save);
+	bool core_savestate(const char* filename, bool save);
     void core_run();
     void set_inputdevice(int device);
 	void get_cores();
