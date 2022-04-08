@@ -148,7 +148,6 @@ static void core_video_refresh(const void *data, unsigned width,
   CLibretro *retro = CLibretro::get_classinstance();
   if (retro->core_isrunning())
   {
-    video_buf_clear();
     video_refresh(data, width, height, pitch);
     extern void rendermenu();
     rendermenu();

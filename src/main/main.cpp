@@ -92,6 +92,11 @@ int main(int argc, char *argv[])
         show_menu = !show_menu;
         break;
       }
+      if(event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+      {
+       if (instance->core_isrunning())
+       video_setsize(event.window.data1,event.window.data2);
+      }
     }
 
     poll_inp(selected_inp, &isselected_inp);
