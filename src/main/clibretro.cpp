@@ -275,19 +275,10 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings)
   for (int i = 0; cores.size(); i++)
   {
     c = cores.at(i).core_path;
+    std::string core_ext = cores.at(i).core_extensions;
     std::string ext = ROM;
     ext = ext.substr(ext.find_last_of(".") + 1);
-    if (ext == "sfc")
-      if (c.find("snes9x_libretro") != std::string::npos)
-        break;
-
-    if (ext == "n64" || ext == "z64" || ext == "v64")
-      if (c.find("mupen64plus_next_libretro") != std::string::npos)
-        break;
-
-    if (ext == "chd")
-      if (c.find("mednafen_psx_hw_libretro") != std::string::npos)
-        break;
+    if (core_ext.find(ext)!=std::string::npos)break;
   }
 
   core_path = c;
@@ -331,7 +322,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings)
   info.meta = "";
 
   retro.retro_get_system_info(&system);
-  retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   if (!system.need_fullpath)
   {
     FILE *inputfile = fopen(ROM, "rb");
