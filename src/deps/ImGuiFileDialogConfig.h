@@ -6,7 +6,7 @@
 //#define USE_STD_FILESYSTEM
 
 //#define MAX_FILE_DIALOG_NAME_BUFFER 1024
-//#define MAX_PATH_BUFFER_SIZE 1024
+#define MAX_PATH_BUFFER_SIZE 4096
 
 //#define USE_THUMBNAILS
 //the thumbnail generation use the stb_image and stb_resize lib who need to define the implementation

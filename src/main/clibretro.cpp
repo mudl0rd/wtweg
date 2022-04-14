@@ -4,6 +4,7 @@
 #include <filesystem>
 #include "io.h"
 #include "utils.h"
+#include <algorithm>
 #define INI_IMPLEMENTATION
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
@@ -263,7 +264,7 @@ CLibretro::~CLibretro()
   core_unload();
 }
 
-bool CLibretro::core_load(char *ROM, bool game_specific_settings)
+bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
 {
   if (lr_isrunning)
   {
@@ -271,22 +272,9 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings)
     core_unload();
   }
 
-  std::string c;
-  for (int i = 0; cores.size(); i++)
-  {
-    c = cores.at(i).core_path;
-    std::string core_ext = cores.at(i).core_extensions;
-    std::string ext = ROM;
-    ext = ext.substr(ext.find_last_of(".") + 1);
-    if (core_ext.find(ext)!=std::string::npos)break;
-  }
-
-  core_path = c;
-  void *hDLL = openlib((const char *)c.c_str());
+  void *hDLL = openlib((const char *)corepath);
   if (!hDLL)
-  {
     return false;
-  }
 
 #define libload(name) getfunc(hDLL, name)
 #define load_sym(V, name)                         \
@@ -369,30 +357,40 @@ void CLibretro::core_run()
 
 void CLibretro::core_unload()
 {
+  lr_isrunning = false;
   if (retro.initialized)
   {
     retro.retro_unload_game();
     retro.retro_deinit();
   }
+  
+  if (info.data)
+    free((void *)info.data);
+  audio_destroy();
+  video_deinit();
+
   if (retro.handle)
   {
     freelib(retro.handle);
     retro.handle = NULL;
     memset((retro_core *)&retro, 0, sizeof(retro_core));
   }
-  if (info.data)
-    free((void *)info.data);
-  audio_destroy();
-  video_deinit();
 }
 
-void addplugin(const char *path, std::vector<core_info> *cores)
+void CLibretro::get_cores()
 {
-  typedef void (*retro_get_system_info)(struct retro_system_info * info);
+  std::filesystem::path path = std::filesystem::current_path() / "cores";
+  romsavesstatespath = path.generic_string();
+  for (auto &entry : std::filesystem::directory_iterator(path))
+  {
+    string str = entry.path().string();
+    if (entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
+    {
+      typedef void (*retro_get_system_info)(struct retro_system_info * info);
   retro_get_system_info getinfo;
   struct retro_system_info system = {0};
-
-  void *hDLL = openlib(path);
+  std::string corepathz = entry.path().string();
+  void *hDLL = openlib(corepathz.c_str());
   if (!hDLL)
   {
     return;
@@ -405,24 +403,31 @@ void addplugin(const char *path, std::vector<core_info> *cores)
     entry.fps = 60;
     entry.samplerate = 44100;
     entry.aspect_ratio = 4 / 3;
-
     entry.core_name = system.library_name;
-    entry.core_extensions = system.valid_extensions;
-    entry.core_path = path;
-    cores->push_back(entry);
+    std::string ext = system.valid_extensions;
+    entry.core_extensions = ext;
+    entry.core_path = corepathz;
+    cores.push_back(entry);
   }
   freelib(hDLL);
-}
 
-void CLibretro::get_cores()
-{
-  std::filesystem::path path = std::filesystem::current_path() / "cores";
-  romsavesstatespath = path.generic_string();
-
-  for (auto &entry : std::filesystem::directory_iterator(path))
-  {
-    string str = entry.path().string();
-    if (entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
-      addplugin(entry.path().string().c_str(), &cores);
+    }
   }
+  coreexts = "All supported {.";
+  int end = cores.size();
+  for (auto &corez: cores)
+  {
+    std::stringstream test(corez.core_extensions);
+    std::string segment;
+    std::vector<std::string> seglist;
+    while (std::getline(test, segment, '|'))
+      if(coreexts.find(segment) == std::string::npos)
+        coreexts += segment + ",.";
+  }
+  ofstream file_out;
+  std::filesystem::path path2 = std::filesystem::current_path() / "string.txt";
+  file_out.open(path2.c_str(), std::ios_base::binary);
+  coreexts.resize(coreexts.size()-2);
+  coreexts += "}";
+  file_out << coreexts;
 }
