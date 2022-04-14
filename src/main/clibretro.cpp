@@ -264,7 +264,7 @@ CLibretro::~CLibretro()
   core_unload();
 }
 
-bool CLibretro::core_load(char *ROM, bool game_specific_settings)
+bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
 {
   if (lr_isrunning)
   {
@@ -272,22 +272,9 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings)
     core_unload();
   }
 
-  std::string c;
-  for (int i = 0; cores.size(); i++)
-  {
-    c = cores.at(i).core_path;
-    std::string core_ext = cores.at(i).core_extensions;
-    std::string ext = ROM;
-    ext = ext.substr(ext.find_last_of(".") + 1);
-    if (core_ext.find(ext)!=std::string::npos)break;
-  }
-
-  core_path = c;
-  void *hDLL = openlib((const char *)c.c_str());
+  void *hDLL = openlib((const char *)corepath);
   if (!hDLL)
-  {
     return false;
-  }
 
 #define libload(name) getfunc(hDLL, name)
 #define load_sym(V, name)                         \

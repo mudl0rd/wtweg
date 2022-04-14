@@ -24,6 +24,17 @@ const char *checkbox_allowable[] = {"enabled|disabled", "disabled|enabled", "Tru
 const char *true_vals[] = {"enabled", "true", "on"};
 bool inputsettings = false;
 extern bool closed_dialog = true;
+static bool coreselect = false;
+std::string filenamepath;
+
+ static auto vector_getter = [] (void* data, int n, const char** out_text)
+      {
+      const std::vector<core_info>* v = (std::vector<core_info>*)data;
+      *out_text = v->at(n).core_name.c_str();
+      return true;
+     };
+  
+
 
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp)
 {
@@ -80,11 +91,69 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     {
       std::string filePathName = romloader.GetFilePathName();
       std::string filePath = romloader.GetCurrentPath();
-      instance->core_load((char *)filePathName.c_str(), false);
-      // action
+
+      std::string corepath;
+      int hits = 0;
+      int selected_core=0;
+  for (int i = 0; i < instance->cores.size(); i++)
+  {
+    corepath = instance->cores.at(i).core_path;
+    std::string core_ext = instance->cores.at(i).core_extensions;
+    std::string ext = filePathName;
+    ext = ext.substr(ext.find_last_of(".") + 1);
+    if (core_ext.find(ext)!=std::string::npos){
+      hits++;
+      selected_core=i;
+      filenamepath = filePathName;
     }
-    // close
+  }
+
+  if(hits==1)
+  {
     romloader.Close();
+    instance->core_load((char *)filenamepath.c_str(), false,(char*)
+    instance->cores.at(selected_core).core_path.c_str());
+  }
+  else
+  {
+    romloader.Close();
+    coreselect = true;
+  }
+  }
+  }
+
+  if(coreselect)
+  {
+    ImGui::OpenPopup("Select a core");
+    if(ImGui::BeginPopupModal("Select a core",&coreselect))
+    {
+       std::vector<core_info> cores_info;
+       cores_info.clear();
+      for(int i=0;i<instance->cores.size();i++)
+      {
+        std::string core_ext = instance->cores.at(i).core_extensions;
+        std::string ext = filenamepath;
+        ext = ext.substr(ext.find_last_of(".") + 1);
+        if (core_ext.find(ext)!=std::string::npos){
+        cores_info.push_back(instance->cores.at(i));
+        }
+
+      }
+      static int listbox_item_current = 0;
+       ImGui::PushItemWidth(200);
+    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
+       ImGui::ListBox("Select a core", 
+       &listbox_item_current, vector_getter,static_cast<void*>(&cores_info), cores_info.size());
+       if (ImGui::Button("OK"))
+       {
+         instance->core_load((char *)filenamepath.c_str(), false,(char*)
+         cores_info.at(listbox_item_current).core_path.c_str());
+         coreselect = false;
+       }
+     ImGui::BulletText("WTFgerrat couldn't determine the core to use.");
+     ImGui::BulletText("Choose the specific core to load the ROM/ISO wanted.");
+     ImGui::EndPopup();
+    }
   }
 
   if (romloader.Display("LoadSaveState"))

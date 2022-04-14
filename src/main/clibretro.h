@@ -132,7 +132,7 @@ class CLibretro
     void poll();
     
     bool core_isrunning();
-    bool core_load(char* ROM, bool game_specific_settings);
+    bool core_load(char* ROM, bool game_specific_settings, char* corepath);
     void core_unload();
 	bool core_saveram(const char* filename, bool save);
 	bool core_savestate(const char* filename, bool save);
