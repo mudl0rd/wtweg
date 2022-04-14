@@ -143,7 +143,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
   if(coreselect)
   {
     ImGui::OpenPopup("Select a core");
-    if(ImGui::BeginPopupModal("Select a core",&coreselect))
+    if(ImGui::BeginPopupModal("Select a core",&coreselect,ImGuiWindowFlags_AlwaysAutoResize))
     {
        std::vector<core_info> cores_info;
        cores_info.clear();
@@ -242,9 +242,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
 if(aboutbox)
 {
    ImGui::PushItemWidth(200);
-    ImGui::SetNextWindowSize(ImVec2(550, 400), ImGuiCond_FirstUseEver);
     ImGui::OpenPopup("About WTFgerrat");
-    if (ImGui::BeginPopupModal("About WTFgerrat",&aboutbox))
+    if (ImGui::BeginPopupModal("About WTFgerrat",&aboutbox,ImGuiWindowFlags_AlwaysAutoResize))
     {
        std::string date = "Built on " __DATE__ " at " __TIME__ " (GMT+10)\n\n";
        ImGui::Text("%s",date.c_str());
@@ -292,7 +291,7 @@ if(coresettings && instance->core_isrunning())
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
     ImGui::OpenPopup("Core Settings");
 
-    if (ImGui::BeginPopupModal("Core Settings",&coresettings))
+    if (ImGui::BeginPopupModal("Core Settings",&coresettings,ImGuiWindowFlags_AlwaysAutoResize))
     {
       for ( auto &bind : instance->core_variables)
       {

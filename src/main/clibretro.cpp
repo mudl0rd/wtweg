@@ -377,13 +377,20 @@ void CLibretro::core_unload()
   }
 }
 
-void addplugin(const char *path, std::vector<core_info> *cores, std::string &str1)
+void CLibretro::get_cores()
 {
-  typedef void (*retro_get_system_info)(struct retro_system_info * info);
+  std::filesystem::path path = std::filesystem::current_path() / "cores";
+  romsavesstatespath = path.generic_string();
+  for (auto &entry : std::filesystem::directory_iterator(path))
+  {
+    string str = entry.path().string();
+    if (entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
+    {
+      typedef void (*retro_get_system_info)(struct retro_system_info * info);
   retro_get_system_info getinfo;
   struct retro_system_info system = {0};
-
-  void *hDLL = openlib(path);
+  std::string corepathz = entry.path().string();
+  void *hDLL = openlib(corepathz.c_str());
   if (!hDLL)
   {
     return;
@@ -398,45 +405,29 @@ void addplugin(const char *path, std::vector<core_info> *cores, std::string &str
     entry.aspect_ratio = 4 / 3;
     entry.core_name = system.library_name;
     std::string ext = system.valid_extensions;
-
-    std::stringstream test(ext);
-    std::string segment;
-    std::vector<std::string> seglist;
-    while (std::getline(test, segment, '|')){
-      if(str1.find(segment) == std::string::npos)
-      str1 += segment + ",.";
-    }
-    
-      
-    std::string need = "|";
-    while(ext.find(need) != std::string::npos) {
-    {
-      ext.replace(ext.find(need),need.size(),",.");}
-    }
-    
-    ext = entry.core_name +" {"+ext+"}";
     entry.core_extensions = ext;
-    entry.core_path = path;
-    cores->push_back(entry);
+    entry.core_path = corepathz;
+    cores.push_back(entry);
   }
   freelib(hDLL);
-}
 
-void CLibretro::get_cores()
-{
-  std::filesystem::path path = std::filesystem::current_path() / "cores";
-  romsavesstatespath = path.generic_string();
-
-  coreexts = "All supported {";
-
-  for (auto &entry : std::filesystem::directory_iterator(path))
-  {
-    string str = entry.path().string();
-    if (entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
-      addplugin(entry.path().string().c_str(), &cores,coreexts);
+    }
   }
-  coreexts.resize(coreexts.size() - 2);
+  coreexts = "All supported {.";
+  int end = cores.size();
+  for (auto &corez: cores)
+  {
+    std::stringstream test(corez.core_extensions);
+    std::string segment;
+    std::vector<std::string> seglist;
+    while (std::getline(test, segment, '|'))
+      if(coreexts.find(segment) == std::string::npos)
+        coreexts += segment + ",.";
+  }
+  ofstream file_out;
+  std::filesystem::path path2 = std::filesystem::current_path() / "string.txt";
+  file_out.open(path2.c_str(), std::ios_base::binary);
+  coreexts.resize(coreexts.size()-2);
   coreexts += "}";
-
-  for (auto& core: cores)coreexts += core.core_extensions;
+  file_out << coreexts;
 }
