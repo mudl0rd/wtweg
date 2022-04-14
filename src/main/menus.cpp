@@ -26,6 +26,7 @@ bool inputsettings = false;
 extern bool closed_dialog = true;
 static bool coreselect = false;
 std::string filenamepath;
+static bool aboutbox = false;
 
  static auto vector_getter = [] (void* data, int n, const char** out_text)
       {
@@ -33,8 +34,6 @@ std::string filenamepath;
       *out_text = v->at(n).core_name.c_str();
       return true;
      };
-  
-
 
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp)
 {
@@ -44,15 +43,27 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     if (ImGui::BeginMenu("File"))
     {
       if (ImGui::MenuItem("Load ROM/ISO"))
-        romloader.OpenModal("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
+     romloader.OpenModal("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
+
+       
 
       ImGui::Separator();
 
       if (ImGui::MenuItem("Load Savestate"))
-        romloader.OpenModal("LoadSaveState", "Load a savestate", ss_filters, ".", "", 1, nullptr, flags);
+      {
+        if(instance->core_isrunning())
+         romloader.OpenModal("LoadSaveState", "Load a savestate", ss_filters, ".", "", 1, nullptr, flags);
+      }
+   
+        
 
       if (ImGui::MenuItem("Save Savestate"))
+      {
+        if(instance->core_isrunning())
         romloader.OpenModal("SaveSaveState", "Save a savestate", ss_filters, ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
+      }
+    
+        
 
       ImGui::EndMenu();
     }
@@ -81,10 +92,16 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
       }
       ImGui::EndMenu();
     }
+
+    
+     if (ImGui::MenuItem("About..."))
+     aboutbox = true;
+    
+
     ImGui::EndMainMenuBar();
   }
 
-  if (romloader.Display("ChooseFileDlgKey"))
+  if (romloader.Display("ChooseFileDlgKey",NULL,ImVec2(550, 400)))
   {
     // action if OK
     if (romloader.IsOk())
@@ -97,8 +114,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
       int selected_core=0;
   for (int i = 0; i < instance->cores.size(); i++)
   {
-    corepath = instance->cores.at(i).core_path;
-    std::string core_ext = instance->cores.at(i).core_extensions;
+    auto &core = instance->cores.at(i);
+    corepath = core.core_path;
+    std::string core_ext = core.core_extensions;
     std::string ext = filePathName;
     ext = ext.substr(ext.find_last_of(".") + 1);
     if (core_ext.find(ext)!=std::string::npos){
@@ -129,15 +147,13 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     {
        std::vector<core_info> cores_info;
        cores_info.clear();
-      for(int i=0;i<instance->cores.size();i++)
-      {
-        std::string core_ext = instance->cores.at(i).core_extensions;
+      for(auto & core: instance->cores){
+        std::string core_ext = core.core_extensions;
         std::string ext = filenamepath;
         ext = ext.substr(ext.find_last_of(".") + 1);
         if (core_ext.find(ext)!=std::string::npos){
-        cores_info.push_back(instance->cores.at(i));
+        cores_info.push_back(core);
         }
-
       }
       static int listbox_item_current = 0;
        ImGui::PushItemWidth(200);
@@ -156,7 +172,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     }
   }
 
-  if (romloader.Display("LoadSaveState"))
+  if (romloader.Display("LoadSaveState",NULL,ImVec2(550, 400)))
   {
     // action if OK
     if (romloader.IsOk())
@@ -170,7 +186,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     romloader.Close();
   }
 
-  if (romloader.Display("SaveSaveState"))
+  if (romloader.Display("SaveSaveState",NULL,ImVec2(550, 400)))
   {
     // action if OK
     if (romloader.IsOk())
@@ -221,6 +237,53 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     ImGui::EndPopup();
       }
    }
+
+
+if(aboutbox)
+{
+   ImGui::PushItemWidth(200);
+    ImGui::SetNextWindowSize(ImVec2(550, 400), ImGuiCond_FirstUseEver);
+    ImGui::OpenPopup("About WTFgerrat");
+    if (ImGui::BeginPopupModal("About WTFgerrat",&aboutbox))
+    {
+       std::string date = "Built on " __DATE__ " at " __TIME__ " (GMT+10)\n\n";
+       ImGui::Text("%s",date.c_str());
+       ImGui::BulletText("WTFgerrat is for personal use.");
+       ImGui::BulletText("Support for all libretro cores is not expected.");
+       ImGui::BulletText("Support/bug reports will be ignored.");
+       std::string greetz = 
+       
+R"foo(
+
+Greetz:
+
+Higor Eurípedes
+Andre Leiradella
+Andrés Suárez
+Brad Parker
+Chris Snowhill
+Hunter Kaller
+Alfred Agrell
+Lars Viklund
+Samuel Neves
+Peter Pawlowski
+Gian-Carlo Pascutto
+Chastity
+Genju
+)foo";
+ImGui::Text("%s",greetz.c_str());
+
+
+
+
+
+      if (ImGui::Button("OK"))
+      {
+        aboutbox=false;
+      }
+      ImGui::EndPopup();
+    }
+}
 
 
 if(coresettings && instance->core_isrunning())
