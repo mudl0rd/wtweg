@@ -110,16 +110,16 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
 
   if(hits==1)
   {
-    romloader.Close();
     instance->core_load((char *)filenamepath.c_str(), false,(char*)
     instance->cores.at(selected_core).core_path.c_str());
   }
   else
   {
-    romloader.Close();
+    
     coreselect = true;
   }
   }
+  romloader.Close();
   }
 
   if(coreselect)
