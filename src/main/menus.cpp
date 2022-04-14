@@ -33,7 +33,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     if (ImGui::BeginMenu("File"))
     {
       if (ImGui::MenuItem("Load ROM/ISO"))
-        romloader.OpenModal("ChooseFileDlgKey", " Choose a ROM/ISO", filters, ".", "", 1, nullptr, flags);
+        romloader.OpenModal("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
 
       ImGui::Separator();
 

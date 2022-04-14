@@ -4,6 +4,7 @@
 #include <filesystem>
 #include "io.h"
 #include "utils.h"
+#include <algorithm>
 #define INI_IMPLEMENTATION
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
@@ -369,24 +370,27 @@ void CLibretro::core_run()
 
 void CLibretro::core_unload()
 {
+  lr_isrunning = false;
   if (retro.initialized)
   {
     retro.retro_unload_game();
     retro.retro_deinit();
   }
+  
+  if (info.data)
+    free((void *)info.data);
+  audio_destroy();
+  video_deinit();
+
   if (retro.handle)
   {
     freelib(retro.handle);
     retro.handle = NULL;
     memset((retro_core *)&retro, 0, sizeof(retro_core));
   }
-  if (info.data)
-    free((void *)info.data);
-  audio_destroy();
-  video_deinit();
 }
 
-void addplugin(const char *path, std::vector<core_info> *cores)
+void addplugin(const char *path, std::vector<core_info> *cores, std::string &str1)
 {
   typedef void (*retro_get_system_info)(struct retro_system_info * info);
   retro_get_system_info getinfo;
@@ -405,9 +409,26 @@ void addplugin(const char *path, std::vector<core_info> *cores)
     entry.fps = 60;
     entry.samplerate = 44100;
     entry.aspect_ratio = 4 / 3;
-
     entry.core_name = system.library_name;
-    entry.core_extensions = system.valid_extensions;
+    std::string ext = system.valid_extensions;
+
+    std::stringstream test(ext);
+    std::string segment;
+    std::vector<std::string> seglist;
+    while (std::getline(test, segment, '|')){
+      if(str1.find(segment) == std::string::npos)
+      str1 += segment + ",.";
+    }
+    
+      
+    std::string need = "|";
+    while(ext.find(need) != std::string::npos) {
+    {
+      ext.replace(ext.find(need),need.size(),",.");}
+    }
+    
+    ext = entry.core_name +" {"+ext+"}";
+    entry.core_extensions = ext;
     entry.core_path = path;
     cores->push_back(entry);
   }
@@ -419,10 +440,16 @@ void CLibretro::get_cores()
   std::filesystem::path path = std::filesystem::current_path() / "cores";
   romsavesstatespath = path.generic_string();
 
+  coreexts = "All supported {";
+
   for (auto &entry : std::filesystem::directory_iterator(path))
   {
     string str = entry.path().string();
     if (entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
-      addplugin(entry.path().string().c_str(), &cores);
+      addplugin(entry.path().string().c_str(), &cores,coreexts);
   }
+  coreexts.resize(coreexts.size() - 2);
+  coreexts += "}";
+
+  for (auto& core: cores)coreexts += core.core_extensions;
 }

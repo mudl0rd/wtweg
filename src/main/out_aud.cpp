@@ -215,7 +215,7 @@ bool audio_init(double refreshra, float input_srate, float fps)
 void audio_destroy()
 {
     {
-        SDL_PauseAudio(0);
+        SDL_PauseAudio(1);
         SDL_CloseAudio();
         fifo_free(audio_ctx_s._fifo);
         resampler_sinc_free(audio_ctx_s.resample);

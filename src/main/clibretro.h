@@ -158,6 +158,7 @@ class CLibretro
 	std::string romsavesstatespath;
 	std::string corespath;
 	std::string core_path;
+	std::string coreexts;
 };
 
 

@@ -309,14 +309,17 @@ bool video_init(const struct retro_game_geometry *geom, float &refreshrate, SDL_
 	return true;
 }
 
+
 void resize_cb()
 {
+
+
 	unsigned rend_width = g_video.rend_width;
 	unsigned rend_height = g_video.rend_height;
 	int pad_x = 0, pad_y = 0;
 	if (!rend_width || !rend_height)
 		return;
-	float screenaspect = (float)rend_width / (float)rend_height;
+	float screenaspect = g_video.aspect;
 	unsigned base_h = g_video.base_h;
 	if (base_h == 0)
 		base_h = 1;
@@ -334,6 +337,7 @@ void resize_cb()
 
 void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch)
 {
+	video_buf_clear();
 
 	if (g_video.base_w != width || g_video.base_h != height)
 	{
@@ -342,7 +346,7 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 
 		refresh_vertex_data();
 	}
-	video_buf_clear();
+	
     resize_cb();
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 
