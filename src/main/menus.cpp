@@ -291,7 +291,7 @@ if(coresettings && instance->core_isrunning())
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
     ImGui::OpenPopup("Core Settings");
 
-    if (ImGui::BeginPopupModal("Core Settings",&coresettings,ImGuiWindowFlags_AlwaysAutoResize))
+    if (ImGui::BeginPopupModal("Core Settings",&coresettings))
     {
       for ( auto &bind : instance->core_variables)
       {

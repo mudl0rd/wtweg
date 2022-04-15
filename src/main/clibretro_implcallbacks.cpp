@@ -13,7 +13,7 @@ using namespace std;
 
 static void core_audio_sample(int16_t left, int16_t right)
 {
-  CLibretro *lib = CLibretro::get_classinstance();
+  auto lib = CLibretro::get_classinstance();
   if (lib->core_isrunning())
   {
     int16_t buf[2] = {left, right};
@@ -22,7 +22,7 @@ static void core_audio_sample(int16_t left, int16_t right)
 }
 static size_t core_audio_sample_batch(const int16_t *data, size_t frames)
 {
-  CLibretro *lib = CLibretro::get_classinstance();
+  auto lib = CLibretro::get_classinstance();
   if (lib->core_isrunning())
   {
     audio_mix(data, frames);
@@ -46,7 +46,7 @@ static void core_log(enum retro_log_level level, const char *fmt, ...)
 static bool core_environment(unsigned cmd, void *data)
 {
   bool *bval;
-  CLibretro *retro = CLibretro::get_classinstance();
+  auto retro = CLibretro::get_classinstance();
 
   switch (cmd)
   {
@@ -145,12 +145,12 @@ static bool core_environment(unsigned cmd, void *data)
 static void core_video_refresh(const void *data, unsigned width,
                                unsigned height, size_t pitch)
 {
-  CLibretro *retro = CLibretro::get_classinstance();
+  auto retro = CLibretro::get_classinstance();
   if (retro->core_isrunning())
   {
     video_refresh(data, width, height, pitch);
-    extern void rendermenu();
-    rendermenu();
+    extern void rendermenu(CLibretro* retro);
+    rendermenu(retro.get());
   }
 }
 

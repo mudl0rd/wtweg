@@ -20,7 +20,7 @@ SDL_Joystick *Joystick = NULL;
 
 bool load_inpcfg(retro_input_descriptor *var)
 {
-  CLibretro *lib = CLibretro::get_classinstance();
+  auto lib = CLibretro::get_classinstance();
   lib->core_inputbinds.clear();
 
   size_t lastindex = lib->core_path.find_last_of(".");
@@ -132,7 +132,7 @@ bool load_inpcfg(retro_input_descriptor *var)
 }
 bool save_inpcfg()
 {
-  CLibretro *lib = CLibretro::get_classinstance();
+  auto lib = CLibretro::get_classinstance();
   size_t lastindex = lib->core_path.find_last_of(".");
   std::string core_config = lib->core_path.substr(0, lastindex) + ".corecfg";
 
@@ -218,7 +218,7 @@ const char *Names[] = {"Up", "Right", "Down", "Left"};
 
 bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
 {
-    CLibretro *lib = CLibretro::get_classinstance();
+    auto lib = CLibretro::get_classinstance();
     std::string name;
    
     int axesCount = SDL_JoystickNumAxes(Joystick);
@@ -346,7 +346,7 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 
 void poll_lr()
 {
-    CLibretro *lib = CLibretro::get_classinstance();
+    auto lib = CLibretro::get_classinstance();
     SDL_JoystickUpdate();
     if(!SDL_JoystickGetAttached(Joystick))
     {
@@ -389,7 +389,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
 {
     if (port != 0)
         return 0;
-    CLibretro *lib = CLibretro::get_classinstance();
+    auto lib = CLibretro::get_classinstance();
 
     if (device == RETRO_DEVICE_MOUSE)
     {

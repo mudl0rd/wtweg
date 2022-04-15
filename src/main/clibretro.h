@@ -126,7 +126,13 @@ class CLibretro
     bool lr_isrunning;
     CLibretro(SDL_Window *window);
 	~CLibretro();
-    static CLibretro* get_classinstance(SDL_Window* window = NULL);
+	 CLibretro(CLibretro const&) = delete;
+    CLibretro& operator=(CLibretro const&) = delete;
+	static std::shared_ptr<CLibretro> get_classinstance(SDL_Window* window = NULL)
+    {
+        static std::shared_ptr<CLibretro> s{new CLibretro(window)};
+        return s;
+    }
 
 
     void poll();

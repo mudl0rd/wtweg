@@ -18,12 +18,7 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 #else
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
-
-CLibretro *CLibretro::get_classinstance(SDL_Window *window)
-{
-	static thread_local CLibretro *instance = new CLibretro(window);
-	return instance ;
-}
+	
 
 void CLibretro::poll()
 {
