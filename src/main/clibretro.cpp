@@ -18,12 +18,6 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 #else
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
-	
-
-void CLibretro::poll()
-{
-  poll_lr();
-}
 
 bool CLibretro::core_savestate(const char *filename, bool save) {
   if (lr_isrunning) {
@@ -268,7 +262,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
   {
     SDL_UnloadObject(retro.handle);
     retro.handle = NULL;
-    //memset((retro_core *)&retro, 0, sizeof(retro_core));
+    memset((retro_core *)&retro, 0, sizeof(retro_core));
   }
 
   void *hDLL = SDL_LoadObject((const char *)corepath);
