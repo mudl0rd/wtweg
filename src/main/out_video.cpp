@@ -338,7 +338,7 @@ static inline unsigned get_alignment(unsigned pitch)
    return 8;
 }
 
-void video_renderpause()
+void video_render()
 {
 	refresh_vertex_data();
 	resize_cb();
@@ -361,8 +361,6 @@ void video_renderpause()
 
 void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch)
 {
-	video_buf_clear();
-
 	if (g_video.base_w != width || g_video.base_h != height)
 	{
 		g_video.base_h = height;
@@ -370,38 +368,18 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 
 		refresh_vertex_data();
 	}
-	
     resize_cb();
-	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-
-	if (pitch != g_video.pitch)
-		g_video.pitch = pitch;
-
 	if (data && data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
+		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
+	    if (pitch != g_video.pitch)
+		g_video.pitch = pitch;
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(width * g_video.pixformat.bpp));
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
 						g_video.pixformat.pixfmt, data);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
-	
-	glUseProgram(g_video.g_shader.program);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-	glUniform1i(g_video.g_shader.u_tex, 0);
-	glBindVertexArray(g_video.g_shader.vao);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	GLenum error = glGetError();
-	if (error != GL_NO_ERROR)
-	{
-		//   std::cerr << error << std::endl;
-		return;
-	}
-	glBindVertexArray(0);
-	glUseProgram(0);
-	SDL_GL_SwapWindow((SDL_Window *)g_video.sdl_context);
-	
 }
 
 void video_deinit()
@@ -441,9 +419,5 @@ void video_deinit()
 
 void video_buf_clear()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0,0,g_video.rend_width,g_video.rend_height);
-	glScissor(0,0,g_video.rend_width,g_video.rend_height);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0., 0., 0., 1.0);
+	
 }
