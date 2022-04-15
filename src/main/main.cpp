@@ -10,13 +10,13 @@
 #include "clibretro.h"
 
 const int WIDTH = 1280, HEIGHT = 720;
-CLibretro *instance = NULL;
 int selected_inp = 0;
 bool isselected_inp = false;
 SDL_Window *window = NULL;
 bool show_menu = true;
+int last_resolution_x=0;
 
-void rendermenu()
+void rendermenu(CLibretro *instance)
 {
   if (show_menu)
   {
@@ -58,10 +58,11 @@ int main(int argc, char *argv[])
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   (void)io;
+  last_resolution_x = 1280;
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
-  instance = CLibretro::get_classinstance(window);
+  auto instance = CLibretro::get_classinstance(window);
 
   // Main loop
 
@@ -96,6 +97,9 @@ int main(int argc, char *argv[])
       {
        if (instance->core_isrunning())
        video_setsize(event.window.data1,event.window.data2);
+       glViewport(0,0,event.window.data1,event.window.data2);
+       glScissor(0,0,event.window.data1,event.window.data2);
+       
       }
     }
 
@@ -107,11 +111,9 @@ int main(int argc, char *argv[])
     {
       glClearColor(0., 0., 0., 1.0);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      rendermenu();
+      rendermenu(instance.get());
     }
   }
-  
-  delete instance;
   close_inp();
 
   // Cleanup
