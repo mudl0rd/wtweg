@@ -146,12 +146,8 @@ static void core_video_refresh(const void *data, unsigned width,
                                unsigned height, size_t pitch)
 {
   auto retro = CLibretro::get_classinstance();
-  if (retro->core_isrunning())
-  {
+  if(retro->core_isrunning())
     video_refresh(data, width, height, pitch);
-    extern void rendermenu(CLibretro* retro);
-    rendermenu(retro.get());
-  }
 }
 
 static void core_input_poll(void)
@@ -168,7 +164,7 @@ static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
 
 void CLibretro::load_envsymb(void *handle)
 {
-#define libload(name) getfunc(handle, name)
+#define libload(name) SDL_LoadFunction(handle, name)
 #define load_sym(V, name) if (!(*(void **)(&V) = (void *)libload(#name)))
   void (*set_environment)(retro_environment_t) = NULL;
   void (*set_video_refresh)(retro_video_refresh_t) = NULL;

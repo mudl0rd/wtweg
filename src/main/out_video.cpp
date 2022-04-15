@@ -338,6 +338,27 @@ static inline unsigned get_alignment(unsigned pitch)
    return 8;
 }
 
+void video_renderpause()
+{
+	refresh_vertex_data();
+	resize_cb();
+	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
+	glUseProgram(g_video.g_shader.program);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
+	glUniform1i(g_video.g_shader.u_tex, 0);
+	glBindVertexArray(g_video.g_shader.vao);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		//   std::cerr << error << std::endl;
+		return;
+	}
+	glBindVertexArray(0);
+	glUseProgram(0);
+}
+
 void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch)
 {
 	video_buf_clear();
@@ -379,10 +400,14 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 	}
 	glBindVertexArray(0);
 	glUseProgram(0);
+	SDL_GL_SwapWindow((SDL_Window *)g_video.sdl_context);
+	
 }
 
 void video_deinit()
 {
+	if (g_video.hw.context_destroy)
+		g_video.hw.context_destroy();
 	if (g_video.tex_id)
 	{
 		glDeleteTextures(1, &g_video.tex_id);

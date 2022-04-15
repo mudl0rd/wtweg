@@ -262,16 +262,20 @@ CLibretro::~CLibretro()
 bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
 {
   if (lr_isrunning)
-  {
-    lr_isrunning = false;
     core_unload();
+
+  if (retro.handle)
+  {
+    SDL_UnloadObject(retro.handle);
+    retro.handle = NULL;
+    //memset((retro_core *)&retro, 0, sizeof(retro_core));
   }
 
-  void *hDLL = openlib((const char *)corepath);
+  void *hDLL = SDL_LoadObject((const char *)corepath);
   if (!hDLL)
     return false;
 
-#define libload(name) getfunc(hDLL, name)
+#define libload(name) SDL_LoadFunction(hDLL, name)
 #define load_sym(V, name)                         \
   if (!(*(void **)(&V) = (void *)libload(#name))) \
     return false;
@@ -294,7 +298,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
   load_retro_sym(retro_get_memory_data);
   load_envsymb(retro.handle);
   retro.retro_init();
-  retro.initialized = true;
 
   struct retro_system_info system = {0};
   retro_system_av_info av = {0};
@@ -327,6 +330,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
     return false;
   }
+  retro.retro_reset();
   retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   retro.retro_get_system_av_info(&av);
   float refreshr = 60;
@@ -343,33 +347,25 @@ bool CLibretro::core_isrunning()
 
 void CLibretro::core_run()
 {
-  if (lr_isrunning)
-  {
-
     retro.retro_run();
-  }
 }
 
 void CLibretro::core_unload()
 {
-  lr_isrunning = false;
-  if (retro.initialized)
-  {
-    retro.retro_unload_game();
-    retro.retro_deinit();
-  }
   
-  if (info.data)
-    free((void *)info.data);
+  if (lr_isrunning)
+    retro.retro_deinit();
+  
+  
+
   audio_destroy();
   video_deinit();
+  lr_isrunning = false;
 
-  if (retro.handle)
-  {
-    freelib(retro.handle);
-    retro.handle = NULL;
-    memset((retro_core *)&retro, 0, sizeof(retro_core));
-  }
+ 
+
+
+  
 }
 
 void CLibretro::get_cores()

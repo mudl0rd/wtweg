@@ -18,9 +18,14 @@ int last_resolution_x=0;
 
 void rendermenu(CLibretro *instance)
 {
+   std::string window_name;
   if (show_menu)
   {
-    std::string window_name;
+    extern void video_renderpause();
+    if(instance->core_isrunning())
+    video_renderpause();
+
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
@@ -28,7 +33,6 @@ void rendermenu(CLibretro *instance)
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
-
   SDL_GL_SwapWindow(window);
 }
 
@@ -104,9 +108,21 @@ int main(int argc, char *argv[])
     }
 
     poll_inp(selected_inp, &isselected_inp);
-
+     
+    
     if (instance->core_isrunning())
-      instance->core_run();
+    {
+      glBindFramebuffer(GL_FRAMEBUFFER,0);
+      glClearColor(0., 0., 0., 1.0);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+     
+     if(show_menu)
+      rendermenu(instance.get());
+    else
+    instance->core_run();
+      
+
+    }
     else
     {
       glClearColor(0., 0., 0., 1.0);
