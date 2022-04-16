@@ -1,4 +1,6 @@
-# WTFggerat
+# WTFggerät
+
+**Support/help/bug reports/pull requests will be ignored.**
 
 ## What?
 
