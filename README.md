@@ -1,10 +1,19 @@
-# WTFggerät
+# WTFweggerät
 
 **Support/help/bug reports/pull requests will be ignored.**
 
 ## What?
 
 Personal code playset for anything above Intel Ivy Bridge-level CPUs.
+
+## With?
+
+* [Dynamic rate control](https://docs.libretro.com/development/cores/dynamic-rate-control/).
+* OGL 3.3 based rendering w/ support for GL-based libretro cores.
+* SDL2.0+ input/audio handling.
+* Savestates/SRAM saving/loading.
+* [dear-imgui based UI](https://github.com/ocornut/imgui).
+
 
 
 ![ss1](https://user-images.githubusercontent.com/56025978/163493614-c992cfd3-78d5-4579-87aa-53b580f70305.png)
