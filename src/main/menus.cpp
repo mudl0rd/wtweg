@@ -35,6 +35,33 @@ static bool aboutbox = false;
       return true;
      };
 
+void loadfile(CLibretro* instance,char* file)
+{
+  int hits = 0;
+  int selected_core=0;
+  std::string corepath;
+  for (int i = 0; i < instance->cores.size(); i++)
+  {
+    auto &core = instance->cores.at(i);
+    corepath = core.core_path;
+    std::string core_ext = core.core_extensions;
+    std::string ext = file;
+    ext = ext.substr(ext.find_last_of(".") + 1);
+    if (core_ext.find(ext)!=std::string::npos){
+      hits++;
+      selected_core=i;
+    }
+  }
+
+  if(hits==1)
+  {
+    instance->core_load((char *)file, false,(char*)
+    instance->cores.at(selected_core).core_path.c_str());
+  }
+  else
+    coreselect = true;
+}
+
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp)
 {
   
@@ -108,35 +135,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected
     {
       std::string filePathName = romloader.GetFilePathName();
       std::string filePath = romloader.GetCurrentPath();
-
-      std::string corepath;
-      int hits = 0;
-      int selected_core=0;
-  for (int i = 0; i < instance->cores.size(); i++)
-  {
-    auto &core = instance->cores.at(i);
-    corepath = core.core_path;
-    std::string core_ext = core.core_extensions;
-    std::string ext = filePathName;
-    ext = ext.substr(ext.find_last_of(".") + 1);
-    if (core_ext.find(ext)!=std::string::npos){
-      hits++;
-      selected_core=i;
-      filenamepath = filePathName;
+      loadfile(instance,(char*)filePathName.c_str());
+      filenamepath=filePathName;
     }
-  }
-
-  if(hits==1)
-  {
-    instance->core_load((char *)filenamepath.c_str(), false,(char*)
-    instance->cores.at(selected_core).core_path.c_str());
-  }
-  else
-  {
-    
-    coreselect = true;
-  }
-  }
+  
   romloader.Close();
   }
 

@@ -101,6 +101,12 @@ int main(int argc, char *argv[])
        glScissor(0,0,event.window.data1,event.window.data2);
        
       }
+      if(event.type == SDL_DROPFILE)
+      {
+        char *filez= event.drop.file;
+        loadfile(instance.get(),filez);
+        SDL_free(filez);
+      }
     }
 
     poll_inp(selected_inp, &isselected_inp);
@@ -111,7 +117,6 @@ int main(int argc, char *argv[])
     
     if(instance->core_isrunning())
     {
-    extern void video_render();
     instance->core_run();
     video_render();
     }
