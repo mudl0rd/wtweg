@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include "sdlggerat.h"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
@@ -14,14 +13,13 @@ int selected_inp = 0;
 bool isselected_inp = false;
 SDL_Window *window = NULL;
 bool show_menu = true;
-int last_resolution_x=0;
+int last_resolution_x = 0;
 
 void rendermenu(CLibretro *instance)
 {
-   std::string window_name;
+  std::string window_name;
   if (show_menu)
   {
-
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
@@ -70,7 +68,6 @@ int main(int argc, char *argv[])
 
   std::filesystem::path path = std::filesystem::current_path() / "test.z64";
   init_inp();
-    
 
   while (!done)
   {
@@ -93,36 +90,34 @@ int main(int argc, char *argv[])
         show_menu = !show_menu;
         break;
       }
-      if(event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+      if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
       {
-       if (instance->core_isrunning())
-       video_setsize(event.window.data1,event.window.data2);
-       glViewport(0,0,event.window.data1,event.window.data2);
-       glScissor(0,0,event.window.data1,event.window.data2);
-       
+        if (instance->core_isrunning())
+          video_setsize(event.window.data1, event.window.data2);
+        glViewport(0, 0, event.window.data1, event.window.data2);
+        glScissor(0, 0, event.window.data1, event.window.data2);
       }
-      if(event.type == SDL_DROPFILE)
+      if (event.type == SDL_DROPFILE)
       {
-        char *filez= event.drop.file;
-        loadfile(instance.get(),filez);
+        char *filez = event.drop.file;
+        loadfile(instance.get(), filez);
         SDL_free(filez);
       }
     }
 
     poll_inp(selected_inp, &isselected_inp);
-     
-    glBindFramebuffer(GL_FRAMEBUFFER,0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    if(instance->core_isrunning())
+
+    if (instance->core_isrunning())
     {
-    instance->core_run();
-    video_render();
+      instance->core_run();
+      video_render();
     }
     rendermenu(instance.get());
   }
-  close_inp();
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();

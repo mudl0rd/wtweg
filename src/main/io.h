@@ -11,8 +11,7 @@
 void audio_mix(const int16_t* samples, size_t size);
 bool audio_init(double refreshra, float input_srate, float fps);
 void audio_destroy();
-void video_test(SDL_Window *window);
-void video_test2();
+void video_render();
 bool video_init(const struct retro_game_geometry* geom,float & refreshrate, SDL_Window *window);
 void video_refresh(const void* data, unsigned width, unsigned height, unsigned pitch);
 void video_setsize(unsigned width,unsigned height);

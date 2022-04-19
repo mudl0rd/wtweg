@@ -167,7 +167,7 @@ class CLibretro
 	std::string coreexts;
 };
 
-void loadfile(CLibretro* instance,char* file);
+bool loadfile(CLibretro* instance,char* file);
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp);
 
 

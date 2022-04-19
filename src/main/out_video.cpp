@@ -35,7 +35,7 @@ struct
 	GLuint pitch;
 	GLint tex_w, tex_h;
 	GLuint base_w, base_h;
-	unsigned rend_width,rend_height;
+	unsigned rend_width, rend_height;
 	float aspect;
 	int aspect_factor;
 
@@ -64,7 +64,7 @@ struct
 	} g_shader = {0};
 } g_video = {0};
 
-void video_setsize(unsigned width,unsigned height)
+void video_setsize(unsigned width, unsigned height)
 {
 	g_video.rend_width = width;
 	g_video.rend_height = height;
@@ -303,39 +303,40 @@ bool video_init(const struct retro_game_geometry *geom, float &refreshrate, SDL_
 	double factor = x < y ? x : y;
 	int int_factor = unsigned(factor);
 	int nominal = int_factor;
-	if(!g_video.rend_width)
-	SDL_GetWindowSize((SDL_Window *)g_video.sdl_context,(int*)&g_video.rend_width,(int*)&g_video.rend_height);
+	if (!g_video.rend_width)
+		SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 	return true;
 }
 
-
 void resize_cb()
 {
 	float aspect = g_video.aspect;
-    if (aspect <= 0) {
-        aspect = (float)g_video.base_w / (float)g_video.base_h;
-    }
-    int height = g_video.rend_height;
-    int width = height * aspect;
-    if (width > g_video.rend_width) {
-        height = (float)g_video.rend_width / aspect;
-        width = g_video.rend_width;
-    }
-    int x = (g_video.rend_width - width) / 2;
-    int y = (g_video.rend_height - height) / 2;
+	if (aspect <= 0)
+	{
+		aspect = (float)g_video.base_w / (float)g_video.base_h;
+	}
+	int height = g_video.rend_height;
+	int width = height * aspect;
+	if (width > g_video.rend_width)
+	{
+		height = (float)g_video.rend_width / aspect;
+		width = g_video.rend_width;
+	}
+	int x = (g_video.rend_width - width) / 2;
+	int y = (g_video.rend_height - height) / 2;
 	glViewport(x, y, width, height);
 }
 
 static inline unsigned get_alignment(unsigned pitch)
 {
-   if (pitch & 1)
-      return 1;
-   if (pitch & 2)
-      return 2;
-   if (pitch & 4)
-      return 4;
-   return 8;
+	if (pitch & 1)
+		return 1;
+	if (pitch & 2)
+		return 2;
+	if (pitch & 4)
+		return 4;
+	return 8;
 }
 
 void video_render()
@@ -369,8 +370,8 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 	if (data && data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
 		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-	    if (pitch != g_video.pitch)
-		g_video.pitch = pitch;
+		if (pitch != g_video.pitch)
+			g_video.pitch = pitch;
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(width * g_video.pixformat.bpp));
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
@@ -416,5 +417,4 @@ void video_deinit()
 
 void video_buf_clear()
 {
-	
 }
