@@ -1,4 +1,4 @@
-# WTFweggerät
+# WTFweg
 
 **Support/help/bug reports/pull requests will be ignored.**
 
