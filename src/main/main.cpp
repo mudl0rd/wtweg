@@ -8,14 +8,14 @@
 #include <filesystem>
 #include "clibretro.h"
 
-const int WIDTH = 1280, HEIGHT = 720;
+#define WIDTH 1280 
+#define HEIGHT 720
 int selected_inp = 0;
 bool isselected_inp = false;
-SDL_Window *window = NULL;
-bool show_menu = true;
-int last_resolution_x = 0;
 
-void rendermenu(CLibretro *instance)
+
+
+void rendermenu(CLibretro *instance,SDL_Window *window, bool show_menu)
 {
   std::string window_name;
   if (show_menu)
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-  window = SDL_CreateWindow("WTFggerat", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+  SDL_Window *window = SDL_CreateWindow("WTFggerat", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
   SDL_GL_SetSwapInterval(1); // Enable vsync
@@ -56,7 +56,6 @@ int main(int argc, char *argv[])
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   (void)io;
-  last_resolution_x = 1280;
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
@@ -65,6 +64,7 @@ int main(int argc, char *argv[])
   // Main loop
 
   bool done = false;
+  bool show_menu = true;
 
   std::filesystem::path path = std::filesystem::current_path() / "test.z64";
   init_inp();
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
       instance->core_run();
       video_render();
     }
-    rendermenu(instance.get());
+    rendermenu(instance.get(),window,show_menu);
   }
 
   // Cleanup

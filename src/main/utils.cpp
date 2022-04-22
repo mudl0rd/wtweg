@@ -22,23 +22,15 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
 
-unsigned get_filesize(FILE *fp)
-{
-	unsigned size = 0;
-	unsigned pos = ftell(fp);
-	fseek(fp, 0, SEEK_END);
-	size = ftell(fp);
-	fseek(fp, pos, SEEK_SET);
-	return size;
-}
-
 unsigned get_filesize(const char *path)
 {
-	auto input = unique_ptr<FILE, int (*)(FILE *)>(fopen(path, "rb"), &fclose);
-	if (!input)
-		return 0;
-	unsigned size = get_filesize(input.get());
-	return size;
+	std::ifstream is (path, std::ifstream::binary);
+    if (is) {
+    // get length of file:
+    is.seekg (0, is.end);
+    return is.tellg();
+	}
+	return 0;
 }
 
 inline uint32_t pow2up(uint32_t v)
@@ -85,22 +77,22 @@ void vector_appendbytes(std::vector<uint8_t> &vec, uint8_t *bytes, size_t len)
 
 std::vector<uint8_t> load_data(const char *path, unsigned *size)
 {
-	auto input = unique_ptr<FILE, int (*)(FILE *)>(fopen(path, "rb"), &fclose);
-	if (!input)
-		return {};
-	unsigned Size = get_filesize(input.get());
+	std::ifstream input (path, std::ifstream::binary);
+	input.seekg (0, input.end);
+	unsigned Size =input.tellg();
 	*size = Size;
+	input.seekg (0, input.beg);
 	std::vector<uint8_t> Memory(Size, 0);
-	int res = fread((uint8_t *)Memory.data(), 1, Size, input.get());
+	input.read((char *)Memory.data(),Size);
 	return Memory;
 }
 
 bool save_data(unsigned char *data, unsigned size, const char *path)
 {
-	auto input = unique_ptr<FILE, int (*)(FILE *)>(fopen(path, "wb"), &fclose);
-	if (!input)
+	std::ofstream input (path, std::ifstream::binary);
+	if (!input.good())
 		return false;
-	fwrite(data, 1, size, input.get());
+	input.write((char*)data,size);
 	return true;
 }
 

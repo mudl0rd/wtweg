@@ -22,11 +22,8 @@ int controller_type = digi_pad;
 
 const char *checkbox_allowable[] = {"enabled|disabled", "disabled|enabled", "True|False", "False|True", "On|Off", "Off|On"};
 const char *true_vals[] = {"enabled", "true", "on"};
-bool inputsettings = false;
-bool coresettings = false;
-bool aboutbox = false;
-bool coreselect = false;
-std::string filenamepath;
+
+
 
 
 static auto vector_getter = [](void *data, int n, const char **out_text)
@@ -65,6 +62,11 @@ bool loadfile(CLibretro *instance, char *file)
 
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_in, bool *isselected_inp)
 {
+static std::string filenamepath;
+static bool inputsettings = false;
+static bool coresettings = false;
+static bool aboutbox = false;
+static bool coreselect = false;
 
   if (ImGui::BeginMainMenuBar())
   {
