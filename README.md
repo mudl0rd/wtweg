@@ -13,6 +13,7 @@ Personal code playset for anything above Intel Ivy Bridge-level CPUs.
 * SDL2.0+ input/audio handling.
 * Savestates/SRAM saving/loading.
 * [dear-imgui based UI](https://github.com/ocornut/imgui).
+* Commandline support for debugging cores with GDB.
 
 
 

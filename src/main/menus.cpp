@@ -33,11 +33,16 @@ static auto vector_getter = [](void *data, int n, const char **out_text)
   return true;
 };
 
-bool loadfile(CLibretro *instance, char *file)
+bool loadfile(CLibretro *instance, const char *file, const char* core_file)
 {
   int hits = 0;
   int selected_core = 0;
   std::string corepath;
+  if(core_file != NULL)
+  {
+    instance->core_load((char *)file, false, (char*)core_file);
+    return false;
+  }
   for (size_t i = 0; i < instance->cores.size(); i++)
   {
     auto &core = instance->cores.at(i);
@@ -129,7 +134,7 @@ static bool coreselect = false;
     {
       std::string filePathName = romloader.GetFilePathName();
       std::string filePath = romloader.GetCurrentPath();
-      coreselect = loadfile(instance, (char *)filePathName.c_str());
+      coreselect = loadfile(instance, (char *)filePathName.c_str(),NULL);
       filenamepath = filePathName;
     }
 

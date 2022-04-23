@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 #include <filesystem>
 #include "clibretro.h"
+#include "cmdline.h"
 
 #define WIDTH 1280 
 #define HEIGHT 720
@@ -30,9 +31,9 @@ void rendermenu(CLibretro *instance,SDL_Window *window, bool show_menu)
   SDL_GL_SwapWindow(window);
 }
 
-int main(int argc, char *argv[])
+int main2(const char* rom = NULL, const char* core = NULL)
 {
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   {
     printf("SDL_Init failed: %s\n", SDL_GetError());
     return 1;
@@ -66,8 +67,10 @@ int main(int argc, char *argv[])
   bool done = false;
   bool show_menu = true;
 
-  std::filesystem::path path = std::filesystem::current_path() / "test.z64";
   init_inp();
+
+  if(rom && core)
+     loadfile(instance.get(), rom,core);
 
   while (!done)
   {
@@ -101,7 +104,7 @@ int main(int argc, char *argv[])
       if (event.type == SDL_DROPFILE)
       {
         char *filez = event.drop.file;
-        loadfile(instance.get(), filez);
+        loadfile(instance.get(), filez,NULL);
         SDL_free(filez);
       }
     }
@@ -130,4 +133,23 @@ int main(int argc, char *argv[])
   close_inp();
   SDL_Quit();
   return 0;
+}
+
+int main(int argc, char *argv[])
+{
+   if (argc > 2)
+    {
+   cmdline::parser a;
+   a.add<std::string>("core_name", 'c', "core filename", true, "");
+   a.add<std::string>("rom_name", 'r', "rom filename", true, "");
+   a.parse_check(argc, argv);
+  std::string rom = a.get<std::string>("rom_name");
+  std::string core = a.get<std::string>("core_name");
+  if(!rom.empty() && !core.empty())
+    return main2(rom.c_str(),core.c_str());
+  else
+  printf("\nPress any key to continue....\n");
+   return 0;
+    }
+  return main2();
 }
