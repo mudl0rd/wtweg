@@ -304,19 +304,17 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
   retro.retro_get_system_info(&system);
   if (!system.need_fullpath)
   {
-    FILE *inputfile = fopen(ROM, "rb");
-    if (!inputfile)
+    std::ifstream ifs;
+    ifs.open(ROM, ios::binary);
+    if (!ifs.good())
     {
     fail:
       printf("FAILED TO LOAD ROMz!!!!!!!!!!!!!!!!!!");
       return false;
     }
     info.data = malloc(info.size);
-    if (!info.data)
-      goto fail;
-    fread((void *)info.data, 1, info.size, inputfile);
-    fclose(inputfile);
-    inputfile = NULL;
+    if (!info.data)goto fail;
+    ifs.read((char*)info.data,info.size);
   }
 
   if (!retro.retro_load_game(&info))
