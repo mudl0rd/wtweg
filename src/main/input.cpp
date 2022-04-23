@@ -20,9 +20,7 @@ bool load_inpcfg(retro_input_descriptor *var)
 {
     auto lib = CLibretro::get_classinstance();
     lib->core_inputbinds.clear();
-
-    std::filesystem::path corepath = lib->core_path;
-    std::string core_config = corepath.stem().string() + ".corecfg";
+    std::string core_config = lib->core_config;
 
     while (var->description != NULL && var->port == 0)
     {
@@ -76,7 +74,7 @@ bool load_inpcfg(retro_input_descriptor *var)
         std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
         ini_t *ini = ini_load((char *)data.data(), NULL);
         int section = ini_find_section(ini, "Input Settings", strlen("Input Settings"));
-        if (!section)
+        if (section = -1)
         {
         new_sec:
             section = ini_section_add(ini, "Input Settings", strlen("Input Settings"));
@@ -130,8 +128,7 @@ bool load_inpcfg(retro_input_descriptor *var)
 bool save_inpcfg()
 {
     auto lib = CLibretro::get_classinstance();
-    std::filesystem::path corepath = lib->core_path;
-    std::string core_config = corepath.stem().string() + ".corecfg";
+    std::string core_config = lib->core_config;
 
     unsigned sz_coreconfig = get_filesize(core_config.c_str());
     if (sz_coreconfig)

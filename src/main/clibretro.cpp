@@ -66,8 +66,6 @@ bool CLibretro::core_saveram(const char *filename, bool save) {
 
 bool CLibretro::load_coresettings()
 {
-  std::filesystem::path corepath = core_path;
-  std::string core_config = corepath.stem().string() + ".corecfg";
   int size_ = get_filesize(core_config.c_str());
   ini_t *ini = NULL;
   if (!size_)
@@ -143,9 +141,6 @@ bool CLibretro::load_coresettings()
 
 void CLibretro::save_coresettings()
 {
-  std::filesystem::path corepath = core_path;
-  std::string core_config = corepath.stem().string() + ".corecfg";
-
   unsigned sz_coreconfig = get_filesize(core_config.c_str());
   if (sz_coreconfig)
   {
@@ -259,14 +254,17 @@ CLibretro::~CLibretro()
 bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
 {
   std::filesystem::path romzpath = ROM;
-  romzpath = romzpath.replace_filename(romzpath.stem().string()+".sram");
+  std::filesystem::path corepath2 = corepath;
   std::filesystem::path save_path = std::filesystem::current_path() / "system" / romzpath.filename();
-  romsavesstatespath = std::filesystem::absolute(save_path).generic_string();
-
+  save_path.replace_filename(save_path.stem().string()+".sram");
+  romsavesstatespath = std::filesystem::absolute(save_path).string();
   if(game_specific_settings)
-    core_path = romsavesstatespath;
+    corepath2 = std::filesystem::current_path() / "cores" /corepath2.replace_filename(save_path.stem().string()+".corecfg");
   else
-  core_path = corepath;
+    corepath2 = std::filesystem::current_path() / "cores" /corepath2.replace_filename(corepath2.stem().string()+".corecfg");
+  core_config = std::filesystem::absolute(corepath2).string();
+
+
   if (lr_isrunning)
     core_unload();
 

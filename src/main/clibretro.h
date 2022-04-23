@@ -162,7 +162,7 @@ class CLibretro
 	bool variables_changed;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
-	std::string core_path;
+	std::string core_config;
 	std::string coreexts;
 };
 
