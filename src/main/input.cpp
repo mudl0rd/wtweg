@@ -74,7 +74,7 @@ bool load_inpcfg(retro_input_descriptor *var)
         std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
         ini_t *ini = ini_load((char *)data.data(), NULL);
         int section = ini_find_section(ini, "Input Settings", strlen("Input Settings"));
-        if (section = -1)
+        if (section == -1)
         {
         new_sec:
             section = ini_section_add(ini, "Input Settings", strlen("Input Settings"));
@@ -217,6 +217,25 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
 
     int axesCount = SDL_JoystickNumAxes(Joystick);
     auto &bind = lib->core_inputbinds[selected_inp];
+
+
+    int numkeys=0;
+    const Uint8* keyboard = SDL_GetKeyboardState(&numkeys);
+    for(int i=0;i<numkeys;i++)
+    {
+        if(keyboard[i])
+        {
+            bind.joykey_desc = SDL_GetScancodeName((SDL_Scancode)i);
+            bind.config.bits.sdl_id = i;
+            bind.val = 0;
+            bind.config.bits.joytype = joytype_::keyboard;
+            *isselected_inp = false;
+            ImGui::SetWindowFocus(NULL);
+            return true;
+        }
+    }
+
+
     for (int a = 0; a < axesCount; a++)
     {
 
@@ -352,6 +371,7 @@ void poll_lr()
 
     for (auto &bind : lib->core_inputbinds)
     {
+
         if (bind.config.bits.joytype == joytype_::joystick_)
         {
 
@@ -377,7 +397,7 @@ void poll_lr()
         else if (bind.config.bits.joytype == joytype_::button)
             bind.val = SDL_JoystickGetButton(Joystick, bind.config.bits.sdl_id);
         else if (bind.config.bits.joytype == joytype_::keyboard)
-            continue;
+            bind.val = SDL_GetKeyboardState(NULL)[bind.config.bits.sdl_id];  
     }
 }
 

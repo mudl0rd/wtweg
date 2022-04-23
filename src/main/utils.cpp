@@ -125,7 +125,7 @@ std::vector<uint8_t> load_data(const char *path, unsigned *size)
 
 bool save_data(unsigned char *data, unsigned size, const char *path)
 {
-	std::ofstream input (path, std::ifstream::binary);
+	std::ofstream input (path, std::ofstream::binary | std::ios::trunc);
 	if (!input.good())
 		return false;
 	input.write((char*)data,size);
