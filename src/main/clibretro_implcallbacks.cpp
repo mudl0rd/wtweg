@@ -88,8 +88,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
-    std::filesystem::path path = std::filesystem::current_path() / "system";
-    std::string str = std::filesystem::absolute(path).generic_string();
+    std::string str = retro->saves_path;
     static char *sys_path = strdup((const char*)str.c_str());
     char **ppDir = (char **)data;
     *ppDir = sys_path;

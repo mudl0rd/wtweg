@@ -254,15 +254,17 @@ CLibretro::~CLibretro()
 bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
 {
   std::filesystem::path romzpath = ROM;
-  std::filesystem::path corepath2 = corepath;
-  std::filesystem::path save_path = std::filesystem::current_path() / "system" / romzpath.filename();
-  save_path.replace_filename(save_path.stem().string()+".sram");
+  std::filesystem::path core_path_ = corepath;
+  std::filesystem::path save_path_ = std::filesystem::current_path() / "system";
+  std::filesystem::path save_path = save_path_ / (romzpath.stem().string()+".sram");
   romsavesstatespath = std::filesystem::absolute(save_path).string();
+  saves_path = std::filesystem::absolute(save_path_).string();
+
   if(game_specific_settings)
-    corepath2 = std::filesystem::current_path() / "cores" /corepath2.replace_filename(save_path.stem().string()+".corecfg");
+  save_path.replace_filename(romzpath.stem().string()+".corecfg");
   else
-    corepath2 = std::filesystem::current_path() / "cores" /corepath2.replace_filename(corepath2.stem().string()+".corecfg");
-  core_config = std::filesystem::absolute(corepath2).string();
+  save_path.replace_filename(core_path_.stem().string()+".corecfg");
+  core_config = std::filesystem::absolute(save_path).string();
 
 
   if (lr_isrunning)
@@ -326,8 +328,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
     if (!info.data)goto fail;
     ifs.read((char*)info.data,info.size);
   }
-
-  
 
   if (!retro.retro_load_game(&info))
   {

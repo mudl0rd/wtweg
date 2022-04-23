@@ -155,14 +155,14 @@ class CLibretro
     
 	const char* load_corevars(retro_variable *var);
 	
-
-	
     std::vector<coreinput_bind>core_inputbinds;
     std::vector<loadedcore_configvars> core_variables;
 	bool variables_changed;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
 	std::string core_config;
+	std::string core_path;
+	std::string saves_path;
 	std::string coreexts;
 };
 
