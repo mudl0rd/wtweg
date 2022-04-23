@@ -33,20 +33,18 @@ static auto vector_getter = [](void *data, int n, const char **out_text)
   return true;
 };
 
-bool loadfile(CLibretro *instance, const char *file, const char* core_file)
+bool loadfile(CLibretro *instance, const char *file, const char* core_file,bool pergame)
 {
   int hits = 0;
   int selected_core = 0;
-  std::string corepath;
   if(core_file != NULL)
   {
-    instance->core_load((char *)file, false, (char*)core_file);
+    instance->core_load((char *)file, pergame, (char*)core_file);
     return false;
   }
   for (size_t i = 0; i < instance->cores.size(); i++)
   {
     auto &core = instance->cores.at(i);
-    corepath = core.core_path;
     std::string core_ext = core.core_extensions;
     std::string ext = file;
     ext = ext.substr(ext.find_last_of(".") + 1);
@@ -58,7 +56,7 @@ bool loadfile(CLibretro *instance, const char *file, const char* core_file)
   }
   if (hits == 1)
   {
-    instance->core_load((char *)file, false, (char *)instance->cores.at(selected_core).core_path.c_str());
+    instance->core_load((char *)file, pergame, (char *)instance->cores.at(selected_core).core_path.c_str());
     return false;
   }
   else
@@ -134,7 +132,7 @@ static bool coreselect = false;
     {
       std::string filePathName = romloader.GetFilePathName();
       std::string filePath = romloader.GetCurrentPath();
-      coreselect = loadfile(instance, (char *)filePathName.c_str(),NULL);
+      coreselect = loadfile(instance, (char *)filePathName.c_str(),NULL,false);
       filenamepath = filePathName;
     }
 

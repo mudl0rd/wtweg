@@ -162,12 +162,11 @@ class CLibretro
 	bool variables_changed;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
-	std::string corespath;
 	std::string core_path;
 	std::string coreexts;
 };
 
-bool loadfile(CLibretro* instance,const char* file,const char *core_file);
+bool loadfile(CLibretro* instance,const char* file,const char *core_file, bool pergame);
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int * selected_in,bool *isselected_inp);
 
 

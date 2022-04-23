@@ -62,8 +62,8 @@ bool CLibretro::core_saveram(const char *filename, bool save) {
 
 bool CLibretro::load_coresettings()
 {
-  size_t lastindex = core_path.find_last_of(".");
-  std::string core_config = core_path.substr(0, lastindex) + ".corecfg";
+  std::filesystem::path corepath = core_path;
+  std::string core_config = corepath.stem().string() + ".corecfg";
   int size_ = get_filesize(core_config.c_str());
   ini_t *ini = NULL;
   if (!size_)
@@ -139,8 +139,8 @@ bool CLibretro::load_coresettings()
 
 void CLibretro::save_coresettings()
 {
-  size_t lastindex = core_path.find_last_of(".");
-  std::string core_config = core_path.substr(0, lastindex) + ".corecfg";
+  std::filesystem::path corepath = core_path;
+  std::string core_config = corepath.stem().string() + ".corecfg";
 
   unsigned sz_coreconfig = get_filesize(core_config.c_str());
   if (sz_coreconfig)
@@ -254,6 +254,15 @@ CLibretro::~CLibretro()
 
 bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
 {
+  std::filesystem::path romzpath = ROM;
+  romzpath = romzpath.replace_filename(romzpath.stem().string()+".sram");
+  std::filesystem::path save_path = std::filesystem::current_path() / "system" / romzpath.filename();
+  romsavesstatespath = std::filesystem::absolute(save_path).generic_string();
+
+  if(game_specific_settings)
+    core_path = romsavesstatespath;
+  else
+  core_path = corepath;
   if (lr_isrunning)
     core_unload();
 
@@ -316,6 +325,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
     ifs.read((char*)info.data,info.size);
   }
 
+  
+
   if (!retro.retro_load_game(&info))
   {
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
@@ -328,6 +339,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
   audio_init(refreshr, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, refreshr, sdl_window);
   lr_isrunning = true;
+
+  core_saveram(romsavesstatespath.c_str(), false);
   return true;
 }
 
@@ -345,7 +358,11 @@ void CLibretro::core_unload()
 {
   
   if (lr_isrunning)
+  {
+    core_saveram(romsavesstatespath.c_str(), true);
     retro.retro_deinit();
+  }
+    
 
   audio_destroy();
   video_deinit();
@@ -355,7 +372,6 @@ void CLibretro::core_unload()
 void CLibretro::get_cores()
 {
   std::filesystem::path path = std::filesystem::current_path() / "cores";
-  romsavesstatespath = path.generic_string();
   for (auto &entry : std::filesystem::directory_iterator(path))
   {
     string str = entry.path().string();

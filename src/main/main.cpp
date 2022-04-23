@@ -31,7 +31,7 @@ void rendermenu(CLibretro *instance,SDL_Window *window, bool show_menu)
   SDL_GL_SwapWindow(window);
 }
 
-int main2(const char* rom = NULL, const char* core = NULL)
+int main2(const char* rom = NULL, const char* core = NULL,bool pergame)
 {
 if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   {
@@ -70,7 +70,7 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   init_inp();
 
   if(rom && core)
-     loadfile(instance.get(), rom,core);
+     loadfile(instance.get(), rom,core,pergame);
 
   while (!done)
   {
@@ -104,7 +104,7 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
       if (event.type == SDL_DROPFILE)
       {
         char *filez = event.drop.file;
-        loadfile(instance.get(), filez,NULL);
+        loadfile(instance.get(), filez,NULL,false);
         SDL_free(filez);
       }
     }
@@ -142,11 +142,13 @@ int main(int argc, char *argv[])
    cmdline::parser a;
    a.add<std::string>("core_name", 'c', "core filename", true, "");
    a.add<std::string>("rom_name", 'r', "rom filename", true, "");
+   a.add("pergame", 'g', "per-game configuration");
    a.parse_check(argc, argv);
   std::string rom = a.get<std::string>("rom_name");
   std::string core = a.get<std::string>("core_name");
+  bool pergame = a.exist("pergame");
   if(!rom.empty() && !core.empty())
-    return main2(rom.c_str(),core.c_str());
+    return main2(rom.c_str(),core.c_str(),pergame);
   else
   printf("\nPress any key to continue....\n");
    return 0;
