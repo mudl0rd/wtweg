@@ -76,7 +76,7 @@ bool video_set_pixelformat(retro_pixel_format fmt)
 	switch (fmt)
 	{
 	case RETRO_PIXEL_FORMAT_0RGB1555:
-		g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_5_5_5_1;
+		g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_1_5_5_5_REV;
 		g_video.pixformat.pixtype = GL_BGRA;
 		g_video.pixformat.bpp = sizeof(uint16_t);
 		break;
@@ -268,7 +268,12 @@ bool video_init(const struct retro_game_geometry *geom, float &refreshrate, SDL_
 	g_video.tex_id = 0;
 
 	if (!g_video.pixformat.pixfmt)
-		g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_5_5_5_1;
+	{
+		g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+		g_video.pixformat.pixtype = GL_BGRA;
+		g_video.pixformat.bpp = sizeof(uint16_t);
+	}
+		
 
 	glGenTextures(1, &g_video.tex_id);
 
