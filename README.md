@@ -14,6 +14,7 @@ Personal code playset for anything above Intel Ivy Bridge-level CPUs.
 * Savestates/SRAM saving/loading.
 * [dear-imgui based UI](https://github.com/ocornut/imgui).
 * Commandline support for debugging cores with GDB.
+* Per-game settings per-core.
 
 
 
