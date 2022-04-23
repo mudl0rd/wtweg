@@ -13,7 +13,7 @@
 		std::string description;
 		std::string usevars;
 		std::vector<std::string>config_vals;
-		int sel_idx;
+		unsigned sel_idx;
 		bool config_visible;
 	};
 

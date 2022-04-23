@@ -296,13 +296,6 @@ bool video_init(const struct retro_game_geometry *geom, float &refreshrate, SDL_
 	if (g_video.hw.context_reset)
 		g_video.hw.context_reset();
 
-	SDL_DisplayMode dm;
-	SDL_GetDesktopDisplayMode(0, &dm);
-	double x = (double)dm.w / (double)geom->base_width;
-	double y = (double)dm.h / (double)geom->base_height;
-	double factor = x < y ? x : y;
-	int int_factor = unsigned(factor);
-	int nominal = int_factor;
 	if (!g_video.rend_width)
 		SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -316,15 +309,15 @@ void resize_cb()
 	{
 		aspect = (float)g_video.base_w / (float)g_video.base_h;
 	}
-	int height = g_video.rend_height;
-	int width = height * aspect;
+	unsigned height = g_video.rend_height;
+	unsigned width = height * aspect;
 	if (width > g_video.rend_width)
 	{
 		height = (float)g_video.rend_width / aspect;
 		width = g_video.rend_width;
 	}
-	int x = (g_video.rend_width - width) / 2;
-	int y = (g_video.rend_height - height) / 2;
+	unsigned x = (g_video.rend_width - width) / 2;
+	unsigned y = (g_video.rend_height - height) / 2;
 	glViewport(x, y, width, height);
 }
 
@@ -413,8 +406,4 @@ void video_deinit()
 		glDeleteShader(g_video.g_shader.fshader);
 	if (g_video.g_shader.vshader)
 		glDeleteShader(g_video.g_shader.vshader);
-}
-
-void video_buf_clear()
-{
 }

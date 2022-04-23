@@ -75,14 +75,14 @@ bool CLibretro::load_coresettings()
     ini = ini_create(NULL);
     int section =
         ini_section_add(ini, "Core Settings", strlen("Core Settings"));
-    for (int i = 0; i < core_variables.size(); i++)
+    for (size_t i = 0; i < core_variables.size(); i++)
     {
       ini_property_add(ini, section, (char *)core_variables[i].name.c_str(),
                        core_variables[i].name.length(),
                        (char *)core_variables[i].var.c_str(),
                        core_variables[i].var.length());
 
-      for (int j = 0; j < core_variables[i].config_vals.size(); j++)
+      for (size_t j = 0; j < core_variables[i].config_vals.size(); j++)
       {
         if (core_variables[i].config_vals[j] == core_variables[i].var)
         {
@@ -107,7 +107,7 @@ bool CLibretro::load_coresettings()
     int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
     int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
     const char *numvars = ini_property_value(ini, section, idx);
-    int vars_infile = atoi(numvars);
+    size_t vars_infile = atoi(numvars);
     if (core_variables.size() != vars_infile)
     {
       // rebuild cache.
@@ -115,14 +115,14 @@ bool CLibretro::load_coresettings()
       goto redo;
     }
 
-    for (int i = 0; i < vars_infile; i++)
+    for (size_t i = 0; i < vars_infile; i++)
     {
       std::string name = ini_property_name(ini, section, i);
       std::string value = ini_property_value(ini, section, i);
       core_variables[i].name = name;
       core_variables[i].var = value;
 
-      for (int j = 0; j < core_variables[i].config_vals.size(); j++)
+      for (size_t j = 0; j < core_variables[i].config_vals.size(); j++)
       {
         if (core_variables[i].config_vals[j] == core_variables[i].var)
         {
@@ -149,7 +149,7 @@ void CLibretro::save_coresettings()
     std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
     ini_t *ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
-    for (int i = 0; i < core_variables.size(); i++)
+    for (size_t i = 0; i < core_variables.size(); i++)
     {
       int idx = ini_find_property(ini, section,
                                   core_variables[i].name.c_str(),
@@ -172,7 +172,6 @@ void CLibretro::save_coresettings()
 
 bool CLibretro::init_inputvars(retro_input_descriptor *var)
 {
-  
   ::load_inpcfg(var);
   return true;
 }
@@ -347,17 +346,10 @@ void CLibretro::core_unload()
   
   if (lr_isrunning)
     retro.retro_deinit();
-  
-  
 
   audio_destroy();
   video_deinit();
   lr_isrunning = false;
-
- 
-
-
-  
 }
 
 void CLibretro::get_cores()
@@ -397,7 +389,6 @@ void CLibretro::get_cores()
     }
   }
   coreexts = "All supported {.";
-  int end = cores.size();
   for (auto &corez: cores)
   {
     std::stringstream test(corez.core_extensions);
@@ -407,10 +398,6 @@ void CLibretro::get_cores()
       if(coreexts.find(segment) == std::string::npos)
         coreexts += segment + ",.";
   }
-  ofstream file_out;
-  std::filesystem::path path2 = std::filesystem::current_path() / "string.txt";
-  file_out.open(path2.c_str(), std::ios_base::binary);
   coreexts.resize(coreexts.size()-2);
   coreexts += "}";
-  file_out << coreexts;
 }

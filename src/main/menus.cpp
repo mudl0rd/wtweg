@@ -38,7 +38,7 @@ bool loadfile(CLibretro *instance, char *file)
   int hits = 0;
   int selected_core = 0;
   std::string corepath;
-  for (int i = 0; i < instance->cores.size(); i++)
+  for (size_t i = 0; i < instance->cores.size(); i++)
   {
     auto &core = instance->cores.at(i);
     corepath = core.core_path;
@@ -122,7 +122,7 @@ static bool coreselect = false;
     ImGui::EndMainMenuBar();
   }
 
-  if (romloader.Display("ChooseFileDlgKey", NULL, ImVec2(550, 400)))
+  if (romloader.Display("ChooseFileDlgKey", 0, ImVec2(550, 400)))
   {
     // action if OK
     if (romloader.IsOk())
@@ -169,7 +169,7 @@ static bool coreselect = false;
     }
   }
 
-  if (romloader.Display("LoadSaveState", NULL, ImVec2(550, 400)))
+  if (romloader.Display("LoadSaveState", 0, ImVec2(550, 400)))
   {
     // action if OK
     if (romloader.IsOk())
@@ -183,7 +183,7 @@ static bool coreselect = false;
     romloader.Close();
   }
 
-  if (romloader.Display("SaveSaveState", NULL, ImVec2(550, 400)))
+  if (romloader.Display("SaveSaveState", 0, ImVec2(550, 400)))
   {
     // action if OK
     if (romloader.IsOk())
@@ -206,7 +206,7 @@ static bool coreselect = false;
     {
 
       std::string str2;
-      for (int i = 0; i < instance->core_inputbinds.size(); i++)
+      for (size_t i = 0; i < instance->core_inputbinds.size(); i++)
       {
         auto &bind = instance->core_inputbinds[i];
         if (bind.description == "")
@@ -218,7 +218,7 @@ static bool coreselect = false;
         char *button_str = (char *)bind.joykey_desc.c_str();
         ImGui::SameLine(350);
         ImGui::SetNextItemWidth(total_w);
-        ImGui::InputText(script.c_str(), button_str, NULL, NULL, NULL);
+        ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
         if (ImGui::IsItemClicked())
         {
           *selected_in = i;
@@ -334,9 +334,9 @@ Genju
             ImGui::SetNextItemWidth(total_w);
             if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
             {
-              for (int n = 0; n < bind.config_vals.size(); n++)
+              for (size_t n = 0; n < bind.config_vals.size(); n++)
               {
-                bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
+                bool is_selected = (bind.sel_idx ==n); // You can store your selection however you want, outside or inside your objects
                 if (ImGui::Selectable(bind.config_vals[n].c_str(), is_selected))
                 {
                   bind.sel_idx = n;

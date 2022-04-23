@@ -195,7 +195,7 @@ const char *axis_arr[] =
 
 struct axisarrdig
 {
-    char *name;
+    const char *name;
     int axis;
 };
 
@@ -307,7 +307,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
     for (int h = 0; h < hatsCount; h++)
     {
         int hat = SDL_JoystickGetHat(Joystick, h);
-        for (int i = 0; i < sizeof(Masks) / sizeof(Masks[0]); i++)
+        for (size_t i = 0; i < sizeof(Masks) / sizeof(Masks[0]); i++)
         {
             if (hat & Masks[i])
             {

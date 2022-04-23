@@ -100,7 +100,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 31
   {
     struct retro_input_descriptor *var = (struct retro_input_descriptor *)data;
-    bool ret = retro->init_inputvars(var);
+    retro->init_inputvars(var);
     return true;
   }
 
