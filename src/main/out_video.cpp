@@ -4,24 +4,27 @@
 #include "gl3w.h"
 #include <vector>
 
-static const char *g_vshader_src =
-	"#version 330\n"
-	"in vec2 i_pos;\n"
-	"in vec2 i_coord;\n"
-	"out vec2 o_coord;\n"
-	"uniform mat4 u_mvp;\n"
-	"void main() {\n"
-	"o_coord = i_coord;\n"
-	"gl_Position = vec4(i_pos, 0.0, 1.0) * u_mvp;\n"
-	"}";
+static const char *g_vshader_src = 
+R"(
+#version 330
+in vec2 i_pos;
+in vec2 i_coord;
+out vec2 o_coord;
+uniform mat4 u_mvp;
+void main() {
+o_coord = i_coord;
+gl_Position = vec4(i_pos, 0.0, 1.0) * u_mvp;
+})";
 
-static const char *g_fshader_src = "#version 330\n"
-								   "in vec2 o_coord;\n"
-								   "uniform sampler2D u_tex;\n"
-								   "layout(location = 0) out vec4 FragColor;\n"
-								   "void main() {\n"
-								   "FragColor = texture(u_tex, o_coord);\n"
-								   "}";
+static const char *g_fshader_src = 
+R"(
+#version 330
+in vec2 o_coord;
+uniform sampler2D u_tex;
+layout(location = 0) out vec4 FragColor;
+void main() {
+FragColor = texture(u_tex, o_coord);
+})";
 
 struct
 {

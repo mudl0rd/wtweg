@@ -4,7 +4,18 @@
 
 ## What?
 
-Personal code playset for anything above Intel Ivy Bridge-level CPUs.
+Personal code playset for anything with:
+
+* Intel Sandy Bridge-level CPUs and above.
+* OpenGL 3.3
+* Windows 7 and up
+
+
+## Tested cores (recommended also for use):
+
+* Snes9x
+* Beetle PSX
+* Parallel N64
 
 ## With?
 
