@@ -7,10 +7,10 @@
 Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 * **x86 CPUs w/SSE4.2+ 4 threads and above**.
-* **ARM CPUs around RPI4 level supporting NEON**.
+* **ARM+NEON supporting CPUs around RPI4 level and above**.
 * **OGL 3.3/OGLESv2**
 * Win7/modern Linux
-* **Modern** GCC/G++ with C++17 support
+* **Modern GCC/G++ with C++17 support**
 
 
 ## Tested cores (recommended for use):
