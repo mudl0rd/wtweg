@@ -37,7 +37,7 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 ## How?
 
-* OGL 3.3/ES2 (only)!
+* OGL 3.3/ES2 **(only)**!
 * C++17 using G++
 * SDL2
 * dear-imgui
