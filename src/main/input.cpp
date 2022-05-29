@@ -224,61 +224,61 @@ bool load_inpcfg(retro_input_descriptor *var)
     }
 
     unsigned sz_coreconfig = get_filesize(core_config.c_str());
-    if (sz_coreconfig)
-    {
-        unsigned size_;
-        std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
-        ini_t *ini = ini_load((char *)data.data(), NULL);
-        int section = ini_find_section(ini, "Input Settings", strlen("Input Settings"));
-        if (section == -1)
-        {
-        new_sec:
-            section = ini_section_add(ini, "Input Settings", strlen("Input Settings"));
-            for (auto &bind : lib->core_inputbinds)
-            {
-                if (bind.description == "")
-                    continue;
-                std::string val = std::to_string(bind.config.val);
-                ini_property_add(ini, section, (char *)bind.description.c_str(), bind.description.length(),
-                                 (char *)val.c_str(), val.length());
-                std::string keydesc = bind.description + "_keydesc";
-                ini_property_add(ini, section, (char *)keydesc.c_str(), keydesc.length(),
-                                 (char *)bind.joykey_desc.c_str(), bind.joykey_desc.length());
-            }
-            std::string numvars = std::to_string(lib->core_inputbinds.size());
-            ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
-            int size = ini_save(ini, NULL, 0); // Find the size needed
-            auto ini_data = std::make_unique<char[]>(size);
-            size = ini_save(ini, ini_data.get(), size); // Actually save the file
-            save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-            ini_destroy(ini);
-            return false;
-        }
-        else
-        {
+    unsigned size_;
+    std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
+    ini_t *ini = NULL;
 
-            int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
-            const char *numvars = ini_property_value(ini, section, idx);
-            size_t vars_infile = atoi(numvars);
-            if (vars_infile != lib->core_inputbinds.size())
-            {
-                ini_section_remove(ini, section);
-                goto new_sec;
-            }
-            for (auto &bind : lib->core_inputbinds)
-            {
-                int idx = ini_find_property(ini, section, bind.description.c_str(),
-                                            bind.description.length());
-                std::string value = ini_property_value(ini, section, idx);
-                bind.config.val = static_cast<uint16_t>(std::stoul(value));
-                std::string keydesc = bind.description + "_keydesc";
-                int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(), keydesc.length());
-                std::string keyval = ini_property_value(ini, section, pro1);
-                bind.joykey_desc = keyval;
-            }
+    ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
+    int section = ini_find_section(ini, "Input Settings", strlen("Input Settings"));
+    if (section == INI_NOT_FOUND)
+    {
+    new_sec:
+        section = ini_section_add(ini, "Input Settings", strlen("Input Settings"));
+        for (auto &bind : lib->core_inputbinds)
+        {
+            if (bind.description == "")
+                continue;
+            std::string val = std::to_string(bind.config.val);
+            ini_property_add(ini, section, (char *)bind.description.c_str(), bind.description.length(),
+                             (char *)val.c_str(), val.length());
+            std::string keydesc = bind.description + "_keydesc";
+            ini_property_add(ini, section, (char *)keydesc.c_str(), keydesc.length(),
+                             (char *)bind.joykey_desc.c_str(), bind.joykey_desc.length());
         }
+        std::string numvars = std::to_string(lib->core_inputbinds.size());
+        ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
+        int size = ini_save(ini, NULL, 0); // Find the size needed
+        auto ini_data = std::make_unique<char[]>(size);
+        size = ini_save(ini, ini_data.get(), size); // Actually save the file
+        save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
         ini_destroy(ini);
+        return false;
     }
+    else
+    {
+
+        int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
+        const char *numvars = ini_property_value(ini, section, idx);
+        size_t vars_infile = atoi(numvars);
+        if (vars_infile != lib->core_inputbinds.size())
+        {
+            ini_section_remove(ini, section);
+            goto new_sec;
+        }
+        for (auto &bind : lib->core_inputbinds)
+        {
+            int idx = ini_find_property(ini, section, bind.description.c_str(),
+                                        bind.description.length());
+            std::string value = ini_property_value(ini, section, idx);
+            bind.config.val = static_cast<uint16_t>(std::stoul(value));
+            std::string keydesc = bind.description + "_keydesc";
+            int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(), keydesc.length());
+            std::string keyval = ini_property_value(ini, section, pro1);
+            bind.joykey_desc = keyval;
+        }
+    }
+    ini_destroy(ini);
+
     return true;
 }
 bool save_inpcfg()
@@ -312,6 +312,9 @@ bool save_inpcfg()
         size = ini_save(ini, ini_data.get(), size); // Actually save the file
         save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
         ini_destroy(ini);
+    }
+    else
+    {
     }
     return true;
 }
@@ -584,7 +587,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         case RETRO_DEVICE_ID_MOUSE_BUTTON_5:
             return (SDL_BUTTON(SDL_BUTTON_X2) & btn);
         default:
-        return 0;
+            return 0;
         }
     }
 

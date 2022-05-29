@@ -19,20 +19,27 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
 
-bool CLibretro::core_savestate(const char *filename, bool save) {
-  if (lr_isrunning) {
+bool CLibretro::core_savestate(const char *filename, bool save)
+{
+  if (lr_isrunning)
+  {
     size_t size = retro.retro_serialize_size();
-    if (size) {
+    if (size)
+    {
       auto Memory = std::make_unique<uint8_t[]>(size);
-      if (save) {
+      if (save)
+      {
         // Get the filesize
         retro.retro_serialize(Memory.get(), size);
         save_data(Memory.get(), size, filename);
-      } else {
+      }
+      else
+      {
         unsigned sz;
         std::vector<uint8_t> save_data = load_data(filename, &sz);
-        if (save_data.empty())return false;
-        memcpy(Memory.get(), (uint8_t*)save_data.data(), size);
+        if (save_data.empty())
+          return false;
+        memcpy(Memory.get(), (uint8_t *)save_data.data(), size);
         retro.retro_unserialize(Memory.get(), size);
       }
       return true;
@@ -41,24 +48,28 @@ bool CLibretro::core_savestate(const char *filename, bool save) {
   return false;
 }
 
-bool CLibretro::core_saveram(const char *filename, bool save) {
-  if (lr_isrunning) {
+bool CLibretro::core_saveram(const char *filename, bool save)
+{
+  if (lr_isrunning)
+  {
     size_t size = retro.retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
-    if (size) {
-     uint8_t* Memory = (uint8_t *)retro.retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
-     if(Memory)
-     {
-      if (save)
-        return save_data(Memory, size, filename);
-      else {
-        unsigned sz;
-        std::vector<uint8_t> save_data = load_data(filename, &sz);
-        if (save_data.empty())return false;
-        memcpy(Memory, (uint8_t*)&save_data[0], size);
-        return true;
+    if (size)
+    {
+      uint8_t *Memory = (uint8_t *)retro.retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+      if (Memory)
+      {
+        if (save)
+          return save_data(Memory, size, filename);
+        else
+        {
+          unsigned sz;
+          std::vector<uint8_t> save_data = load_data(filename, &sz);
+          if (save_data.empty())
+            return false;
+          memcpy(Memory, (uint8_t *)&save_data[0], size);
+          return true;
+        }
       }
-     }
-     
     }
   }
   return false;
@@ -74,32 +85,35 @@ bool CLibretro::load_coresettings()
   // create a new file with defaults
   // create cache of core options
   redo:
-    ini = ini_create(NULL);
-    int section =
-        ini_section_add(ini, "Core Settings", strlen("Core Settings"));
-    for (size_t i = 0; i < core_variables.size(); i++)
+    if (core_variables.size())
     {
-      ini_property_add(ini, section, (char *)core_variables[i].name.c_str(),
-                       core_variables[i].name.length(),
-                       (char *)core_variables[i].var.c_str(),
-                       core_variables[i].var.length());
-
-      for (size_t j = 0; j < core_variables[i].config_vals.size(); j++)
+      ini = ini_create(NULL);
+      int section =
+          ini_section_add(ini, "Core Settings", strlen("Core Settings"));
+      for (size_t i = 0; i < core_variables.size(); i++)
       {
-        if (core_variables[i].config_vals[j] == core_variables[i].var)
+        ini_property_add(ini, section, (char *)core_variables[i].name.c_str(),
+                         core_variables[i].name.length(),
+                         (char *)core_variables[i].var.c_str(),
+                         core_variables[i].var.length());
+
+        for (size_t j = 0; j < core_variables[i].config_vals.size(); j++)
         {
-          core_variables[i].sel_idx = j;
-          break;
+          if (core_variables[i].config_vals[j] == core_variables[i].var)
+          {
+            core_variables[i].sel_idx = j;
+            break;
+          }
         }
       }
+      std::string numvars = std::to_string(core_variables.size());
+      ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
+      int size = ini_save(ini, NULL, 0); // Find the size needed
+      auto ini_data = std::make_unique<char[]>(size);
+      size = ini_save(ini, ini_data.get(), size); // Actually save the file
+      save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+      ini_destroy(ini);
     }
-    std::string numvars = std::to_string(core_variables.size());
-    ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
-    int size = ini_save(ini, NULL, 0); // Find the size needed
-    auto ini_data = std::make_unique<char[]>(size);
-    size = ini_save(ini, ini_data.get(), size); // Actually save the file
-    save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-    ini_destroy(ini);
     return false;
   }
   else
@@ -107,34 +121,37 @@ bool CLibretro::load_coresettings()
     std::vector<uint8_t> data = load_data(core_config.c_str(), (unsigned int *)&size_);
     ini_t *ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
-    int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
-    const char *numvars = ini_property_value(ini, section, idx);
-    size_t vars_infile = atoi(numvars);
-    if (core_variables.size() != vars_infile)
+    if (section != INI_NOT_FOUND)
     {
-      // rebuild cache.
-      ini_destroy(ini);
-      goto redo;
-    }
-
-    for (size_t i = 0; i < vars_infile; i++)
-    {
-      std::string name = ini_property_name(ini, section, i);
-      std::string value = ini_property_value(ini, section, i);
-      core_variables[i].name = name;
-      core_variables[i].var = value;
-
-      for (size_t j = 0; j < core_variables[i].config_vals.size(); j++)
+      int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
+      const char *numvars = ini_property_value(ini, section, idx);
+      size_t vars_infile = atoi(numvars);
+      if (core_variables.size() != vars_infile)
       {
-        if (core_variables[i].config_vals[j] == core_variables[i].var)
+        // rebuild cache.
+        ini_destroy(ini);
+        goto redo;
+      }
+
+      for (size_t i = 0; i < vars_infile; i++)
+      {
+        std::string name = ini_property_name(ini, section, i);
+        std::string value = ini_property_value(ini, section, i);
+        core_variables[i].name = name;
+        core_variables[i].var = value;
+
+        for (size_t j = 0; j < core_variables[i].config_vals.size(); j++)
         {
-          core_variables[i].sel_idx = j;
-          break;
+          if (core_variables[i].config_vals[j] == core_variables[i].var)
+          {
+            core_variables[i].sel_idx = j;
+            break;
+          }
         }
       }
     }
     ini_destroy(ini);
-    return true;
+    return (section != INI_NOT_FOUND ? true : false);
   }
   return false;
 }
@@ -251,21 +268,20 @@ CLibretro::~CLibretro()
   core_unload();
 }
 
-bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
+bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath)
 {
   std::filesystem::path romzpath = ROM;
   std::filesystem::path core_path_ = corepath;
   std::filesystem::path save_path_ = std::filesystem::current_path() / "system";
-  std::filesystem::path save_path = save_path_ / (romzpath.stem().string()+".sram");
+  std::filesystem::path save_path = save_path_ / (romzpath.stem().string() + ".sram");
   romsavesstatespath = std::filesystem::absolute(save_path).string();
   saves_path = std::filesystem::absolute(save_path_).string();
 
-  if(game_specific_settings)
-  save_path.replace_filename(romzpath.stem().string()+".corecfg");
+  if (game_specific_settings)
+    save_path.replace_filename(romzpath.stem().string() + ".corecfg");
   else
-  save_path.replace_filename(core_path_.stem().string()+".corecfg");
+    save_path.replace_filename(core_path_.stem().string() + ".corecfg");
   core_config = std::filesystem::absolute(save_path).string();
-
 
   if (lr_isrunning)
     core_unload();
@@ -325,8 +341,9 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
       return false;
     }
     info.data = malloc(info.size);
-    if (!info.data)goto fail;
-    ifs.read((char*)info.data,info.size);
+    if (!info.data)
+      goto fail;
+    ifs.read((char *)info.data, info.size);
   }
 
   if (!retro.retro_load_game(&info))
@@ -337,9 +354,10 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings,char *corepath)
   retro.retro_reset();
   retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   retro.retro_get_system_av_info(&av);
-  float refreshr = 60;
-  audio_init(refreshr, av.timing.sample_rate, av.timing.fps);
-  video_init(&av.geometry, refreshr, sdl_window);
+  SDL_DisplayMode dm;
+  SDL_GetDesktopDisplayMode(0, &dm);
+  audio_init(dm.refresh_rate, av.timing.sample_rate, av.timing.fps);
+  video_init(&av.geometry, sdl_window);
   lr_isrunning = true;
 
   core_saveram(romsavesstatespath.c_str(), false);
@@ -353,18 +371,17 @@ bool CLibretro::core_isrunning()
 
 void CLibretro::core_run()
 {
-    retro.retro_run();
+  retro.retro_run();
 }
 
 void CLibretro::core_unload()
 {
-  
+
   if (lr_isrunning)
   {
     core_saveram(romsavesstatespath.c_str(), true);
     retro.retro_deinit();
   }
-    
 
   audio_destroy();
   video_deinit();
@@ -380,42 +397,41 @@ void CLibretro::get_cores()
     if (entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
     {
       typedef void (*retro_get_system_info)(struct retro_system_info * info);
-  retro_get_system_info getinfo;
-  struct retro_system_info system = {0};
-  std::string corepathz = entry.path().string();
-  void *hDLL = openlib(corepathz.c_str());
-  if (!hDLL)
-  {
-    return;
-  }
-  getinfo = (retro_get_system_info)getfunc(hDLL, "retro_get_system_info");
-  if (getinfo)
-  {
-    getinfo(&system);
-    core_info entry;
-    entry.fps = 60;
-    entry.samplerate = 44100;
-    entry.aspect_ratio = 4 / 3;
-    entry.core_name = system.library_name;
-    std::string ext = system.valid_extensions;
-    entry.core_extensions = ext;
-    entry.core_path = corepathz;
-    cores.push_back(entry);
-  }
-  freelib(hDLL);
-
+      retro_get_system_info getinfo;
+      struct retro_system_info system = {0};
+      std::string corepathz = entry.path().string();
+      void *hDLL = openlib(corepathz.c_str());
+      if (!hDLL)
+      {
+        return;
+      }
+      getinfo = (retro_get_system_info)getfunc(hDLL, "retro_get_system_info");
+      if (getinfo)
+      {
+        getinfo(&system);
+        core_info entry;
+        entry.fps = 60;
+        entry.samplerate = 44100;
+        entry.aspect_ratio = 4 / 3;
+        entry.core_name = system.library_name;
+        std::string ext = system.valid_extensions;
+        entry.core_extensions = ext;
+        entry.core_path = corepathz;
+        cores.push_back(entry);
+      }
+      freelib(hDLL);
     }
   }
   coreexts = "All supported {.";
-  for (auto &corez: cores)
+  for (auto &corez : cores)
   {
     std::stringstream test(corez.core_extensions);
     std::string segment;
     std::vector<std::string> seglist;
     while (std::getline(test, segment, '|'))
-      if(coreexts.find(segment) == std::string::npos)
+      if (coreexts.find(segment) == std::string::npos)
         coreexts += segment + ",.";
   }
-  coreexts.resize(coreexts.size()-2);
+  coreexts.resize(coreexts.size() - 2);
   coreexts += "}";
 }

@@ -257,7 +257,7 @@ void init_framebuffer(int width, int height)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-bool video_init(const struct retro_game_geometry *geom, float &refreshrate, SDL_Window *context)
+bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 {
 	g_video.g_shader = {0};
 

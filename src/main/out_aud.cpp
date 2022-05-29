@@ -190,11 +190,26 @@ void audio_mix(const int16_t *samples, size_t size)
 
 bool audio_init(double refreshra, float input_srate, float fps)
 {
+    float swap_ratio;
+   unsigned swap_integer;
+   
+     swap_ratio = refreshra / fps;
+   swap_integer = (unsigned)(swap_ratio + 0.5f);
+   if (fps> refreshra)
+     swap_integer = 1;
+     if ((swap_integer < 1) || (swap_integer > 4))
+     swap_integer = 1;
+     float timing_skew = fabs(1.0f - fps / (refreshra / (float)swap_integer));
+     float target_video_sync_rate = refreshra/ (float) swap_integer;
+   if (timing_skew <= 0.05)
+       audio_ctx_s.system_rate= input_srate * target_video_sync_rate / fps;
+
+
+
+
     audio_ctx_s.processed = true;
     audio_ctx_s.system_rate = input_srate;
     double system_fps = fps;
-    if (fabs(1.0f - system_fps / refreshra) <= 0.05)
-        audio_ctx_s.system_rate *= (refreshra / system_fps);
     audio_ctx_s.shit.freq = 44100;
     audio_ctx_s.shit.format = AUDIO_F32;
     audio_ctx_s.shit.samples = FRAME_COUNT;

@@ -5,12 +5,40 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "dbg libretro core (Win32)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/compile_dir/demo.exe",
+            "args": ["--core_name=C:/msys64/home/mudlo/work/libgarbagefiar/libgarbagefiar.dll",
+            "--rom_name=Z:/ROMS/N64/Legend of Zelda, The - Ocarina of Time (USA) (Rev 2).z64"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/compile_dir",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description":  "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+        {
             "preLaunchTask": "build",
             "name": "Compile/Debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/compile_dir/demo.exe",
-            "args": [],
+            "args": ["--core_name=C:/msys64/home/mudlo/work/libgarbagefiar/libgarbagefiar.dll",
+                "--rom_name=Z:/ROMS/N64/Legend of Zelda, The - Ocarina of Time (USA) (Rev 2).z64"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/compile_dir",
             "environment": [],
