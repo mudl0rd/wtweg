@@ -18,6 +18,7 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 * Snes9x
 * Beetle PSX
 * Parallel N64
+* mupen64plus-next
 
 ## With?
 
