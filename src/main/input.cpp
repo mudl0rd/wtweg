@@ -313,9 +313,6 @@ bool save_inpcfg()
         save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
         ini_destroy(ini);
     }
-    else
-    {
-    }
     return true;
 }
 void close_inp()
