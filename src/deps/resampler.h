@@ -101,7 +101,7 @@ typedef struct rarch_sinc_resampler
 
 /* Modified Bessel function of first order.
 * Check Wiki for mathematical definition ... */
-static __forceinline double besseli0(double x)
+static inline double besseli0(double x)
 {
 	unsigned i;
 	double sum = 0.0;
@@ -124,12 +124,12 @@ static __forceinline double besseli0(double x)
 	return sum;
 }
 
-static __forceinline double kaiser_window_function(double index, double beta)
+static inline double kaiser_window_function(double index, double beta)
 {
 	return besseli0(beta * sqrtf(1 - index * index));
 }
 
-static __forceinline double sinc(double val)
+static inline double sinc(double val)
 {
 	if (fabs(val) < 0.00001)
 		return 1.0;

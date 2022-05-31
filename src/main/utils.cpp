@@ -13,6 +13,8 @@
 #include "ini.h"
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <dlfcn.h>
 #endif
 using namespace std;
 
