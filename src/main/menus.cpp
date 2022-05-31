@@ -8,6 +8,10 @@
 #include "io.h"
 #include "clibretro.h"
 
+#ifndef _WIN32
+#define stricmp strcasecmp
+#endif
+
 ImGuiFileDialog romloader;
 const char *ss_filters = "Savestates (*.state){.state}";
 static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_None;

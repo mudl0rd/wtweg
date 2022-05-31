@@ -165,6 +165,6 @@ void freelib(void *handle)
 #ifdef _WIN32
 	FreeLibrary((HMODULE)handle);
 #else
-	return dlclose(handle);
+	dlclose(handle);
 #endif
 }
