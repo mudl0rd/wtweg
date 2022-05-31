@@ -32,13 +32,13 @@ struct audio_ctx
 
 typedef struct fifo_buffer fifo_buffer_t;
 
-static __forceinline void fifo_clear(fifo_buffer_t *buffer)
+static inline void fifo_clear(fifo_buffer_t *buffer)
 {
     buffer->first = 0;
     buffer->end = 0;
 }
 
-static __forceinline void fifo_free(fifo_buffer_t *buffer)
+static inline void fifo_free(fifo_buffer_t *buffer)
 {
     if (!buffer)
         return;
@@ -47,13 +47,13 @@ static __forceinline void fifo_free(fifo_buffer_t *buffer)
     free(buffer);
 }
 
-static __forceinline size_t fifo_read_avail(fifo_buffer_t *buffer)
+static inline size_t fifo_read_avail(fifo_buffer_t *buffer)
 {
     return (buffer->end + ((buffer->end < buffer->first) ? buffer->size : 0)) -
            buffer->first;
 }
 
-static __forceinline size_t fifo_write_avail(fifo_buffer_t *buffer)
+static inline size_t fifo_write_avail(fifo_buffer_t *buffer)
 {
     return (buffer->size - 1) -
            ((buffer->end + ((buffer->end < buffer->first) ? buffer->size : 0)) -
@@ -105,7 +105,7 @@ void fifo_read(fifo_buffer_t *buffer, void *in_buf, size_t size)
     buffer->first = (buffer->first + size) % buffer->size;
 }
 
-__forceinline void s16tof(float *dst, const int16_t *src, unsigned int count)
+inline void s16tof(float *dst, const int16_t *src, unsigned int count)
 {
     unsigned int i = 0;
     float fgain = 1.0 / UINT32_C(0x80000000);
