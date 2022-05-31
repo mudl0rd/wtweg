@@ -286,13 +286,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   if (lr_isrunning)
     core_unload();
 
-  if (retro.handle)
-  {
-    SDL_UnloadObject(retro.handle);
-    retro.handle = NULL;
-    memset((retro_core *)&retro, 0, sizeof(retro_core));
-  }
-
   void *hDLL = SDL_LoadObject((const char *)corepath);
   if (!hDLL)
     return false;
@@ -376,16 +369,21 @@ void CLibretro::core_run()
 
 void CLibretro::core_unload()
 {
-
   if (lr_isrunning)
   {
     core_saveram(romsavesstatespath.c_str(), true);
+    if(retro.handle != NULL)
+    {
+    retro.retro_unload_game();
     retro.retro_deinit();
-  }
-
+    SDL_UnloadObject(retro.handle);
+    retro.handle = NULL;
+    memset((retro_core *)&retro, 0, sizeof(retro_core));
+    }
   audio_destroy();
   video_deinit();
-  lr_isrunning = false;
+  lr_isrunning = false;  
+  }
 }
 
 void CLibretro::get_cores()

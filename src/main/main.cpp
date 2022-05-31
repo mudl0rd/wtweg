@@ -124,6 +124,8 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     rendermenu(instance.get(),window,show_menu);
   }
 
+  instance->core_unload();
+
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplSDL2_Shutdown();
