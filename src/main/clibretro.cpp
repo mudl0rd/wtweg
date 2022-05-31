@@ -374,14 +374,15 @@ void CLibretro::core_unload()
     core_saveram(romsavesstatespath.c_str(), true);
     if(retro.handle != NULL)
     {
+    audio_destroy();
+    video_deinit();
     retro.retro_unload_game();
     retro.retro_deinit();
     SDL_UnloadObject(retro.handle);
     retro.handle = NULL;
     memset((retro_core *)&retro, 0, sizeof(retro_core));
     }
-  audio_destroy();
-  video_deinit();
+  
   lr_isrunning = false;  
   }
 }
