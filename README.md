@@ -6,25 +6,26 @@
 
 Personal [libretro](https://www.libretro.com) code playset for anything with:
 
-* **x86 CPUs w/SSE4.2+ 4 threads and above**.
-* **ARM+NEON supporting CPUs around RPI4 level and above**.
-* **OGL 3.3/OGLESv2**
-* **Win7 and above**/modern Linux
-* **Modern GCC/G++ with C++17 support**
+* **x86 CPUs w/SSE4.1 and above**.
+* **ARM+NEON CPUs around RPI4 level and above**.
+* **OGL 3.3/OGLESv2 and above**
+* **Win7 and above/Linux**
+* **GCC/G++ with C++17 support**
 
 
-## Tested cores (recommended for use):
+## Recommended cores for use:
 
 * Snes9x
 * Beetle PSX
-* Parallel N64
 * mupen64plus-next
+* mGBA
+* SameBoy
+* Genesis-Plus GX
 
 ## With?
 
 * [Dynamic rate control](https://docs.libretro.com/development/cores/dynamic-rate-control/).
-* OGL 3.3/ES2 based rendering w/ support for GL-based libretro cores.
-* SDL2.0+ input/audio handling.
+* Support for GL-based libretro cores.
 * Savestates/SRAM saving/loading.
 * [dear-imgui based UI](https://github.com/ocornut/imgui).
 * Commandline support for debugging cores with GDB.
@@ -38,8 +39,7 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 ## How?
 
-* OGL 3.3/ES2 **(only)**!
-* C++17 using G++
+* OGL 3.3
 * SDL2
 * dear-imgui
 * Meson
