@@ -120,7 +120,7 @@ class CLibretro
     private:	
     retro_core retro;
 	struct retro_game_info info;
-	void load_envsymb(void* handle);
+	void load_envsymb(void* handle, bool first);
 	SDL_Window * sdl_window;
     public:
     bool lr_isrunning;

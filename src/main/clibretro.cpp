@@ -255,7 +255,6 @@ bool CLibretro::init_configvars(retro_variable *var)
 
 CLibretro::CLibretro(SDL_Window *window)
 {
-  memset((retro_core *)&retro, 0, sizeof(retro_core));
   cores.clear();
   get_cores();
   sdl_window = window;
@@ -296,6 +295,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     return false;
 #define load_retro_sym(S) load_sym(retro.S, S)
   retro.handle = hDLL;
+
   load_retro_sym(retro_init);
   load_retro_sym(retro_deinit);
   load_retro_sym(retro_api_version);
@@ -311,8 +311,11 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   load_retro_sym(retro_serialize_size);
   load_retro_sym(retro_get_memory_size);
   load_retro_sym(retro_get_memory_data);
-  load_envsymb(retro.handle);
+  load_envsymb(retro.handle,true);
   retro.retro_init();
+  load_envsymb(retro.handle,false);
+  
+  
 
   struct retro_system_info system = {0};
   retro_system_av_info av = {0};

@@ -161,26 +161,33 @@ static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
                      id);
 }
 
-void CLibretro::load_envsymb(void *handle)
+void CLibretro::load_envsymb(void *handle,bool first)
 {
 #define libload(name) SDL_LoadFunction(handle, name)
 #define load_sym(V, name) if (!(*(void **)(&V) = (void *)libload(#name)))
+
+if(first)
+{
   void (*set_environment)(retro_environment_t) = NULL;
+  load_sym(set_environment, retro_set_environment);
+  set_environment(core_environment);
+}
+else
+{
   void (*set_video_refresh)(retro_video_refresh_t) = NULL;
   void (*set_input_poll)(retro_input_poll_t) = NULL;
   void (*set_input_state)(retro_input_state_t) = NULL;
   void (*set_audio_sample)(retro_audio_sample_t) = NULL;
   void (*set_audio_sample_batch)(retro_audio_sample_batch_t) = NULL;
-  load_sym(set_environment, retro_set_environment);
   load_sym(set_video_refresh, retro_set_video_refresh);
   load_sym(set_input_poll, retro_set_input_poll);
   load_sym(set_input_state, retro_set_input_state);
   load_sym(set_audio_sample, retro_set_audio_sample);
   load_sym(set_audio_sample_batch, retro_set_audio_sample_batch);
-  set_environment(core_environment);
   set_video_refresh(core_video_refresh);
   set_input_poll(core_input_poll);
   set_input_state(core_input_state);
   set_audio_sample(core_audio_sample);
   set_audio_sample_batch(core_audio_sample_batch);
+}
 }

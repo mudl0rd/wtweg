@@ -104,8 +104,8 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
       }
       if (event.type == SDL_DROPFILE)
       {
-        char *filez = event.drop.file;
-        loadfile(instance.get(), filez,NULL,false);
+        char *filez = (char*)event.drop.file;
+        loadfile(instance.get(), event.drop.file,NULL,false);
         SDL_free(filez);
       }
     }
