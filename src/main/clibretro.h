@@ -124,13 +124,13 @@ class CLibretro
 	SDL_Window * sdl_window;
     public:
     bool lr_isrunning;
-    CLibretro(SDL_Window *window);
+    CLibretro(SDL_Window *window,char* exepath);
 	~CLibretro();
 	 CLibretro(CLibretro const&) = delete;
     CLibretro& operator=(CLibretro const&) = delete;
-	static std::shared_ptr<CLibretro> get_classinstance(SDL_Window* window = NULL)
+	static std::shared_ptr<CLibretro> get_classinstance(SDL_Window* window = NULL,char * exepath=NULL)
     {
-        static std::shared_ptr<CLibretro> s{new CLibretro(window)};
+        static std::shared_ptr<CLibretro> s{new CLibretro(window,exepath)};
         return s;
     }
 
@@ -144,7 +144,7 @@ class CLibretro
 	bool core_savestate(const char* filename, bool save);
     void core_run();
     void set_inputdevice(int device);
-	void get_cores();
+	void get_cores(char *exepath);
 	
 
 	bool init_configvars(retro_variable *var);

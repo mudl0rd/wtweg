@@ -253,10 +253,10 @@ bool CLibretro::init_configvars(retro_variable *var)
   return true;
 }
 
-CLibretro::CLibretro(SDL_Window *window)
+CLibretro::CLibretro(SDL_Window *window,char *exepath)
 {
   cores.clear();
-  get_cores();
+  get_cores(exepath);
   sdl_window = window;
   lr_isrunning = false;
   info = {0};
@@ -390,9 +390,10 @@ void CLibretro::core_unload()
   }
 }
 
-void CLibretro::get_cores()
+void CLibretro::get_cores(char* exepath)
 {
-  std::filesystem::path path = std::filesystem::current_path() / "cores";
+  std::filesystem::path p(exepath);
+  std::filesystem::path path = p.parent_path() / "cores";
   for (auto &entry : std::filesystem::directory_iterator(path))
   {
     string str = entry.path().string();
