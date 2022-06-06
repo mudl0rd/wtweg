@@ -53,7 +53,6 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   SDL_Window *window = SDL_CreateWindow("WTFggerat", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
-  SDL_GL_SetSwapInterval(1); // Enable vsync
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();

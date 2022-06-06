@@ -132,12 +132,9 @@ void func_callback(void *userdata, Uint8 *stream, int len)
     audio_ctx *context = (audio_ctx *)userdata;
     std::unique_lock<std::mutex> lk(context->mutex);
     int amount = fifo_read_avail(context->_fifo);
-    amount = (len >= amount) ? amount : len;
+    amount = (len > amount) ? amount : len;
     fifo_read(context->_fifo, (uint8_t *)stream, amount);
     memset(stream + amount, 0, len - amount);
-    context->processed = true;
-    lk.unlock();
-    context->cv.notify_one();
 }
 
 void audio_mix(const int16_t *samples, size_t size)
@@ -170,6 +167,7 @@ void audio_mix(const int16_t *samples, size_t size)
     audio_ctx_s.processed = false;
     while (written < out_len)
     {
+        SDL_LockAudio();
         size_t avail = fifo_write_avail(audio_ctx_s._fifo);
         if (avail)
         {
@@ -177,53 +175,63 @@ void audio_mix(const int16_t *samples, size_t size)
             size_t write_amt = out_len - written > avail ? avail : out_len - written;
             fifo_write(audio_ctx_s._fifo,
                        (const char *)output_float.get() + written, write_amt);
+            SDL_UnlockAudio();
             written += write_amt;
         }
         else
         {
-            std::unique_lock<std::mutex> lk(audio_ctx_s.mutex);
-            audio_ctx_s.cv.wait(lk, []
-                                { return audio_ctx_s.processed; });
+            SDL_UnlockAudio();
         }
     }
 }
 
+unsigned long upper_power_of_two(unsigned long v)
+{
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+
+}
+
 bool audio_init(double refreshra, float input_srate, float fps)
 {
-    float swap_ratio;
-   unsigned swap_integer;
-   
-     swap_ratio = refreshra / fps;
-   swap_integer = (unsigned)(swap_ratio + 0.5f);
-   if (fps> refreshra)
-     swap_integer = 1;
-     if ((swap_integer < 1) || (swap_integer > 4))
-     swap_integer = 1;
-     float timing_skew = fabs(1.0f - fps / (refreshra / (float)swap_integer));
-     float target_video_sync_rate = refreshra/ (float) swap_integer;
+
+  int swap =1;
+  if ((int)refreshra% (int)fps == 0) {
+    swap = refreshra / fps;
+  }
+  float timing_skew = fabs(1.0f - fps / (refreshra / (float)swap));
+  float target_video_sync_rate = refreshra/ (float) swap;
    if (timing_skew <= 0.05)
        audio_ctx_s.system_rate= input_srate * target_video_sync_rate / fps;
 
 
-
+    int frames = upper_power_of_two((44100 * 60) / 1000);
 
     audio_ctx_s.processed = true;
     audio_ctx_s.system_rate = input_srate;
     double system_fps = fps;
     audio_ctx_s.shit.freq = 44100;
     audio_ctx_s.shit.format = AUDIO_F32;
-    audio_ctx_s.shit.samples = FRAME_COUNT;
+    audio_ctx_s.shit.samples = frames;
     audio_ctx_s.shit.callback = func_callback;
     audio_ctx_s.shit.userdata = (audio_ctx *)&audio_ctx_s;
     audio_ctx_s.shit.channels = 2;
     audio_ctx_s.client_rate = audio_ctx_s.shit.freq;
     audio_ctx_s.resample = resampler_sinc_init();
     // allow for tons of space in the tank
-    size_t sampsize = (FRAME_COUNT * (2 * sizeof(float)));
+    SDL_AudioSpec out;
+    SDL_OpenAudio(&audio_ctx_s.shit, &out);
+   
+    size_t sampsize = (out.samples * (4 * sizeof(float)));
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
     auto tmp = std::make_unique<uint8_t[]>(sampsize);
     fifo_write(audio_ctx_s._fifo, tmp.get(), sampsize);
-    SDL_OpenAudio(&audio_ctx_s.shit, NULL);
     SDL_PauseAudio(0);
     return true;
 }
