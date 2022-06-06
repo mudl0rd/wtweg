@@ -9,8 +9,6 @@
 #include "io.h"
 #include "utils.h"
 
-#define FRAME_COUNT (1024)
-
 struct fifo_buffer
 {
     uint8_t *buffer;
@@ -26,9 +24,6 @@ struct audio_ctx
     unsigned client_rate;
     double system_rate;
     void *resample;
-    std::mutex mutex;
-    std::condition_variable cv;
-    bool processed;
 } audio_ctx_s;
 
 typedef struct fifo_buffer fifo_buffer_t;
@@ -131,7 +126,6 @@ inline void s16tof(float *dst, const int16_t *src, unsigned int count)
 void func_callback(void *userdata, Uint8 *stream, int len)
 {
     audio_ctx *context = (audio_ctx *)userdata;
-    std::unique_lock<std::mutex> lk(context->mutex);
     int amount = fifo_read_avail(context->_fifo);
     amount = (len > amount) ? amount : len;
     fifo_read(context->_fifo, (uint8_t *)stream, amount);
@@ -165,7 +159,6 @@ void audio_mix(const int16_t *samples, size_t size)
     src_data.data_out = output_float.get();
     resampler_sinc_process(audio_ctx_s.resample, &src_data);
     size_t out_len = src_data.output_frames * 2 * sizeof(float);
-    audio_ctx_s.processed = false;
     while (written < out_len)
     {
         SDL_LockAudio();
@@ -201,9 +194,7 @@ bool audio_init(double refreshra, float input_srate, float fps)
 
     int frames = pow2up((44100 * 60) / 1000);
 
-    audio_ctx_s.processed = true;
     audio_ctx_s.system_rate = input_srate;
-    double system_fps = fps;
     audio_ctx_s.shit.freq = 44100;
     audio_ctx_s.shit.format = AUDIO_F32;
     audio_ctx_s.shit.samples = frames;
