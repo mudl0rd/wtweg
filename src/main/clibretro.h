@@ -164,6 +164,7 @@ class CLibretro
 	std::string core_path;
 	std::string saves_path;
 	std::string coreexts;
+	std::string exe_path;
 };
 
 bool loadfile(CLibretro* instance,const char* file,const char *core_file, bool pergame);

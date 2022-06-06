@@ -276,6 +276,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   romsavesstatespath = std::filesystem::absolute(save_path).string();
   saves_path = std::filesystem::absolute(save_path_).string();
 
+
   if (game_specific_settings)
     save_path.replace_filename(romzpath.stem().string() + ".corecfg");
   else
@@ -393,8 +394,9 @@ void CLibretro::core_unload()
 void CLibretro::get_cores(char* exepath)
 {
   std::filesystem::path p(exepath);
+  exe_path = p.parent_path().native();
   std::filesystem::path path = p.parent_path() / "cores";
-  for (auto &entry : std::filesystem::directory_iterator(path))
+  for (auto &entry : std::filesystem::directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
   {
     string str = entry.path().string();
     if (entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
@@ -402,13 +404,12 @@ void CLibretro::get_cores(char* exepath)
       typedef void (*retro_get_system_info)(struct retro_system_info * info);
       retro_get_system_info getinfo;
       struct retro_system_info system = {0};
-      std::string corepathz = entry.path().string();
-      void *hDLL = openlib(corepathz.c_str());
+      void *hDLL = SDL_LoadObject(str.c_str());
       if (!hDLL)
       {
-        return;
+        continue;
       }
-      getinfo = (retro_get_system_info)getfunc(hDLL, "retro_get_system_info");
+      getinfo = (retro_get_system_info)SDL_LoadFunction(hDLL, "retro_get_system_info");
       if (getinfo)
       {
         getinfo(&system);
@@ -419,10 +420,11 @@ void CLibretro::get_cores(char* exepath)
         entry.core_name = system.library_name;
         std::string ext = system.valid_extensions;
         entry.core_extensions = ext;
-        entry.core_path = corepathz;
+        entry.core_path = str;
         cores.push_back(entry);
+        SDL_UnloadObject(hDLL);
       }
-      freelib(hDLL);
+      
     }
   }
   coreexts = "All supported {.";
