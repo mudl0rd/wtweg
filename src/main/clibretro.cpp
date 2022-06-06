@@ -326,7 +326,10 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   info.size = get_filesize(ROM);
   info.meta = "";
 
-  retro.retro_get_system_info(&system);
+
+
+
+
   if (!system.need_fullpath)
   {
     std::ifstream ifs;
@@ -348,9 +351,10 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
     return false;
   }
-  retro.retro_reset();
+  retro.retro_get_system_info(&system);
   retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   retro.retro_get_system_av_info(&av);
+  
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
   int swap =1;
