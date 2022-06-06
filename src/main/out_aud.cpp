@@ -185,19 +185,6 @@ void audio_mix(const int16_t *samples, size_t size)
     }
 }
 
-unsigned long upper_power_of_two(unsigned long v)
-{
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-    return v;
-
-}
-
 bool audio_init(double refreshra, float input_srate, float fps)
 {
 
@@ -211,7 +198,7 @@ bool audio_init(double refreshra, float input_srate, float fps)
        audio_ctx_s.system_rate= input_srate * target_video_sync_rate / fps;
 
 
-    int frames = upper_power_of_two((44100 * 60) / 1000);
+    int frames = pow2up((44100 * 60) / 1000);
 
     audio_ctx_s.processed = true;
     audio_ctx_s.system_rate = input_srate;
