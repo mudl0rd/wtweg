@@ -1,4 +1,3 @@
-#define THREADS_IMPLEMENTATION
 #define RESAMPLER_IMPLEMENTATION
 #include <SDL2/SDL.h>
 #include "resampler.h"

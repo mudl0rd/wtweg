@@ -327,6 +327,7 @@ void resize_cb()
 	unsigned x = (g_video.rend_width - width) / 2;
 	unsigned y = (g_video.rend_height - height) / 2;
 	glViewport(x, y, width, height);
+	glScissor(0, 0, g_video.rend_width, g_video.rend_height);
 }
 
 static inline unsigned get_alignment(unsigned pitch)
