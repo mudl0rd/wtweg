@@ -70,7 +70,7 @@ unsigned get_filesize(const char *path)
 	return 0;
 }
 
-inline uint32_t pow2up(uint32_t v)
+uint32_t pow2up(uint32_t v)
 {
 	v--;
 	v |= v >> 1;

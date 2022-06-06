@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include "libretro.h"
 #include "io.h"
+#include "utils.h"
 
 #define FRAME_COUNT (1024)
 
