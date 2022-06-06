@@ -74,15 +74,13 @@ unsigned get_filesize(const char *path)
 std::string get_wtfwegname()
 {
 #if defined(__linux__) //check defines for your setup
-    char arg1[20];
-        char exepath[PATH_MAX + 1] = {0};
-
-        sprintf( arg1, "/proc/%d/exe", getpid() );
-        readlink( arg1, exepath, sizeof(exepath) );
-        return string( exepath );
+    std::array<char, 1024 * 4> buf{};
+    auto written = readlink("/proc/self/exe", buf.data(), buf.size());
+	if(written == -1)string( "" );
+    return string( buf.data() );
 #elif defined(_WIN32)
-    char buf[MAX_PATH]={0};
-    GetModuleFileNameA(nullptr, buf, MAX_PATH);
+    std::array<char, MAX_PATH> buf{};
+    GetModuleFileNameA(nullptr, buf.data(), buf.size()));
     return buf;
 #else
     static_assert(false, "unrecognized platform");
