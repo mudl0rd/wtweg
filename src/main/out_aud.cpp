@@ -179,9 +179,8 @@ bool audio_init(double refreshra, float input_srate, float fps)
 {
 
   int swap =1;
-  if ((int)refreshra% (int)fps == 0) {
-    swap = refreshra / fps;
-  }
+  if(refreshra>fps)
+  swap = refreshra / fps;
   float timing_skew = fabs(1.0f - fps / (refreshra / (float)swap));
   float target_video_sync_rate = refreshra/ (float) swap;
    if (timing_skew <= 0.05)

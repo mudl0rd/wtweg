@@ -8,6 +8,7 @@
 #include <filesystem>
 #include "clibretro.h"
 #include "cmdline.h"
+#include "utils.h"
 
 #define WIDTH 1280 
 #define HEIGHT 720
@@ -139,7 +140,8 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 
 int main(int argc, char *argv[])
 {
-char* path = argv[0];
+std::string str = get_wtfwegname();
+char* path = (char*)str.c_str();
 
    if (argc > 2)
     {

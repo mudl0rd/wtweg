@@ -357,11 +357,10 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
-  int swap =1;
-  if (dm.refresh_rate % (int)av.timing.fps == 0) {
-    swap = dm.refresh_rate / (int)av.timing.fps;
-  }
-  SDL_GL_SetSwapInterval(swap);
+  float swap =1.0;
+  if(dm.refresh_rate>av.timing.fps)
+  swap = (int)dm.refresh_rate / (int)av.timing.fps;
+  SDL_GL_SetSwapInterval((int)swap);
   audio_init(dm.refresh_rate, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, sdl_window);
   lr_isrunning = true;

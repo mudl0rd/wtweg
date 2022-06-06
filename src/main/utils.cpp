@@ -14,6 +14,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
+#include <unistd.h>
 #include <dlfcn.h>
 #endif
 using namespace std;
@@ -68,6 +69,24 @@ unsigned get_filesize(const char *path)
     return is.tellg();
 	}
 	return 0;
+}
+
+std::string get_wtfwegname()
+{
+#if defined(__linux__) //check defines for your setup
+    char arg1[20];
+        char exepath[PATH_MAX + 1] = {0};
+
+        sprintf( arg1, "/proc/%d/exe", getpid() );
+        readlink( arg1, exepath, sizeof(exepath) );
+        return string( exepath );
+#elif defined(_WIN32)
+    char buf[MAX_PATH]={0};
+    GetModuleFileNameA(nullptr, buf, MAX_PATH);
+    return buf;
+#else
+    static_assert(false, "unrecognized platform");
+#endif
 }
 
 uint32_t pow2up(uint32_t v)

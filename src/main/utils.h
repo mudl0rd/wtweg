@@ -23,6 +23,7 @@ std::string base64_decode(const std::string &in);
 std::string base64_encode(const std::string &in);
 bool save_data(unsigned char* data, unsigned size, const char* path);
 uint32_t pow2up(uint32_t v);
+std::string get_wtfwegname();
 
 #define sizeof_array(arr) sizeof(arr)/sizeof(arr[0])
 
