@@ -80,7 +80,7 @@ std::string get_wtfwegname()
     return string( buf.data() );
 #elif defined(_WIN32)
     std::array<char, MAX_PATH> buf{};
-    GetModuleFileNameA(nullptr, buf.data(), buf.size()));
+    GetModuleFileNameA(nullptr, buf.data(), buf.size());
     return buf;
 #else
     static_assert(false, "unrecognized platform");
