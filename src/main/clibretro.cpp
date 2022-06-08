@@ -255,8 +255,10 @@ bool CLibretro::init_configvars(retro_variable *var)
 
 CLibretro::CLibretro(SDL_Window *window,char *exepath)
 {
+  std::filesystem::path p(get_wtfwegname());
+  exe_path = p.parent_path().native();
   cores.clear();
-  get_cores(exepath);
+  get_cores();
   sdl_window = window;
   lr_isrunning = false;
   info = {0};
@@ -271,16 +273,22 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 {
   std::filesystem::path romzpath = ROM;
   std::filesystem::path core_path_ = corepath;
-  std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "system";
+  std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
+  std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path = save_path_ / (romzpath.stem().string() + ".sram");
   romsavesstatespath = std::filesystem::absolute(save_path).string();
-  saves_path = std::filesystem::absolute(save_path_).string();
-
-
+  system_path = std::filesystem::absolute(system_path_).string();
   if (game_specific_settings)
+  {
+    save_path = std::filesystem::absolute(save_path_).string();
     save_path.replace_filename(romzpath.stem().string() + ".corecfg");
+  }
   else
-    save_path.replace_filename(core_path_.stem().string() + ".corecfg");
+  {
+    save_path = std::filesystem::absolute(system_path_) / 
+    (core_path_.stem().string() + ".corecfg");
+  }
+    
   core_config = std::filesystem::absolute(save_path).string();
 
   if (lr_isrunning)
@@ -399,11 +407,10 @@ void CLibretro::core_unload()
   }
 }
 
-void CLibretro::get_cores(char* exepath)
+void CLibretro::get_cores()
 {
-  std::filesystem::path p(exepath);
-  exe_path = p.parent_path().native();
-  std::filesystem::path path = p.parent_path() / "cores";
+  std::filesystem::path p(exe_path);
+  std::filesystem::path path = p / "cores";
   for (auto &entry : std::filesystem::directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
   {
     string str = entry.path().string();

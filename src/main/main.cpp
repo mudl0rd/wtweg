@@ -32,7 +32,7 @@ void rendermenu(CLibretro *instance,SDL_Window *window, bool show_menu)
   SDL_GL_SwapWindow(window);
 }
 
-int main2(char *exepath,const char* rom, const char* core,bool pergame)
+int main2(const char* rom, const char* core,bool pergame)
 {
 if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   {
@@ -61,7 +61,7 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
-  auto instance = CLibretro::get_classinstance(window,exepath);
+  auto instance = CLibretro::get_classinstance(window);
 
   // Main loop
 
@@ -140,8 +140,6 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 
 int main(int argc, char *argv[])
 {
-std::string str = get_wtfwegname();
-char* path = (char*)str.c_str();
 
    if (argc > 2)
     {
@@ -154,10 +152,10 @@ char* path = (char*)str.c_str();
   std::string core = a.get<std::string>("core_name");
   bool pergame = a.exist("pergame");
   if(!rom.empty() && !core.empty())
-    return main2(path,rom.c_str(),core.c_str(),pergame);
+    return main2(rom.c_str(),core.c_str(),pergame);
   else
   printf("\nPress any key to continue....\n");
    return 0;
     }
-  return main2(path,NULL,NULL,false);
+  return main2(NULL,NULL,false);
 }

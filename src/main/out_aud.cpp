@@ -16,7 +16,7 @@ struct fifo_buffer
 struct audio_ctx
 {
     fifo_buffer *_fifo;
-    SDL_AudioSpec shit;
+    SDL_AudioDeviceID dev;
     unsigned client_rate;
     double system_rate;
     void *resample;
@@ -155,24 +155,21 @@ void audio_mix(const int16_t *samples, size_t size)
     src_data.data_out = output_float.get();
     resampler_sinc_process(audio_ctx_s.resample, &src_data);
     size_t out_len = src_data.output_frames * 2 * sizeof(float);
+   
     while (written < out_len)
     {
-        SDL_LockAudio();
+        SDL_LockAudioDevice(audio_ctx_s.dev);
         size_t avail = fifo_write_avail(audio_ctx_s._fifo);
         if (avail)
         {
-
             size_t write_amt = out_len - written > avail ? avail : out_len - written;
             fifo_write(audio_ctx_s._fifo,
                        (const char *)output_float.get() + written, write_amt);
-            SDL_UnlockAudio();
             written += write_amt;
         }
-        else
-        {
-            SDL_UnlockAudio();
-        }
+        SDL_UnlockAudioDevice(audio_ctx_s.dev);
     }
+    
 }
 
 bool audio_init(double refreshra, float input_srate, float fps)
@@ -184,37 +181,36 @@ bool audio_init(double refreshra, float input_srate, float fps)
   float timing_skew = fabs(1.0f - fps / (refreshra / (float)swap));
   float target_video_sync_rate = refreshra/ (float) swap;
    if (timing_skew <= 0.05)
-       audio_ctx_s.system_rate= input_srate * target_video_sync_rate / fps;
-
-
-    int frames = pow2up((44100 * 60) / 1000);
-
+    audio_ctx_s.system_rate= input_srate * target_video_sync_rate / fps;
+    else
     audio_ctx_s.system_rate = input_srate;
-    audio_ctx_s.shit.freq = 44100;
-    audio_ctx_s.shit.format = AUDIO_F32;
-    audio_ctx_s.shit.samples = frames;
-    audio_ctx_s.shit.callback = func_callback;
-    audio_ctx_s.shit.userdata = (audio_ctx *)&audio_ctx_s;
-    audio_ctx_s.shit.channels = 2;
-    audio_ctx_s.client_rate = audio_ctx_s.shit.freq;
+
+
+
+    int frames = pow2up((44100 * 30) / 1000);
+    SDL_AudioSpec shit = {0}; 
+    shit.freq = 44100;
+    shit.format = AUDIO_F32;
+    shit.samples = frames;
+    shit.callback = func_callback;
+    shit.userdata = (audio_ctx *)&audio_ctx_s;
+    shit.channels = 2;
+    audio_ctx_s.client_rate = shit.freq;
     audio_ctx_s.resample = resampler_sinc_init();
     // allow for tons of space in the tank
     SDL_AudioSpec out;
-    SDL_OpenAudio(&audio_ctx_s.shit, &out);
-   
+    audio_ctx_s.dev =SDL_OpenAudioDevice(NULL,0,&shit, &out,0);
     size_t sampsize = (out.samples * (4 * sizeof(float)));
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
     auto tmp = std::make_unique<uint8_t[]>(sampsize);
     fifo_write(audio_ctx_s._fifo, tmp.get(), sampsize);
-    SDL_PauseAudio(0);
+    SDL_PauseAudioDevice(audio_ctx_s.dev, 0);
     return true;
 }
 void audio_destroy()
 {
-    {
-        SDL_PauseAudio(1);
-        SDL_CloseAudio();
-        fifo_free(audio_ctx_s._fifo);
-        resampler_sinc_free(audio_ctx_s.resample);
-    }
+   SDL_PauseAudioDevice(audio_ctx_s.dev, 1);
+   SDL_CloseAudioDevice(audio_ctx_s.dev);
+   fifo_free(audio_ctx_s._fifo);
+   resampler_sinc_free(audio_ctx_s.resample);
 }

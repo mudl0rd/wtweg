@@ -86,6 +86,14 @@ static bool core_environment(unsigned cmd, void *data)
     *bval = true;
     return true;
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
+   {
+    std::string str = retro->system_path;
+    static char *sys_path = strdup((const char*)str.c_str());
+    char **ppDir = (char **)data;
+    *ppDir = sys_path;
+    return true;
+    break;
+  }
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
     std::string str = retro->saves_path;

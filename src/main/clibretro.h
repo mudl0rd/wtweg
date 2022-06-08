@@ -144,7 +144,7 @@ class CLibretro
 	bool core_savestate(const char* filename, bool save);
     void core_run();
     void set_inputdevice(int device);
-	void get_cores(char *exepath);
+	void get_cores();
 	
 
 	bool init_configvars(retro_variable *var);
@@ -163,6 +163,7 @@ class CLibretro
 	std::string core_config;
 	std::string core_path;
 	std::string saves_path;
+	std::string system_path;
 	std::string coreexts;
 	std::string exe_path;
 };
