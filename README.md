@@ -22,6 +22,7 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 * SameBoy
 * Genesis-Plus GX
 * Mesen
+* Flycast
 
 ## With?
 
