@@ -1,7 +1,5 @@
 # WTFweg
 
-**Support/help/bug reports/pull requests will be ignored.**
-
 ## What?
 
 Personal [libretro](https://www.libretro.com) code playset for anything with:
@@ -41,7 +39,6 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 ## How?
 
-* OGL 3.3
 * SDL2
 * dear-imgui
 * Meson
