@@ -52,7 +52,6 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   SDL_GL_MakeCurrent(window, gl_context);
   gladLoadGL();
 
-
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
   int swap=1;
@@ -123,13 +122,14 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 
     poll_inp(selected_inp, &isselected_inp);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (instance->core_isrunning())
     {
+      video_bindfb();
       instance->core_run();
+      video_unbindfb();
       video_render();
     }
     rendermenu(instance.get(),window,show_menu);

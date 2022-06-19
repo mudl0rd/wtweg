@@ -66,6 +66,7 @@ bool CLibretro::core_saveram(const char *filename, bool save)
           std::vector<uint8_t> save_data = load_data(filename, &sz);
           if (save_data.empty())
             return false;
+          if(sz != size)return false;
           memcpy(Memory,save_data.data(), sz);
           return true;
         }

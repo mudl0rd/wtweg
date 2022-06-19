@@ -27,12 +27,13 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 ```
 flycast_libretro.dll
 genesis_plus_gx_libretro.dll
-mednafen_psx_hw_libretro.dll
+kronos_libretro.dll
 mesen_libretro.dll
 mgba_libretro.dll
 mupen64plus_next_libretro.dll
 sameboy_libretro.dll
 snes9x_libretro.dll
+swanstation_libretro.dll
 ```
 
 ## With?

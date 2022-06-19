@@ -75,7 +75,6 @@ void video_setsize(unsigned width, unsigned height)
 
 bool video_set_pixelformat(retro_pixel_format fmt)
 {
-	memset(&g_video.hw, 0, sizeof(struct retro_hw_render_callback));
 	switch (fmt)
 	{
 	case RETRO_PIXEL_FORMAT_0RGB1555:
@@ -208,9 +207,9 @@ void refresh_vertex_data()
 						  sizeof(vertex_data), (void *)offsetof(vertex_data, x));
 	glVertexAttribPointer(g_video.g_shader.i_coord, 2, GL_FLOAT, GL_FALSE,
 						  sizeof(vertex_data), (void *)offsetof(vertex_data, s));
-
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 }
 
 uintptr_t video_get_fb()
@@ -218,19 +217,35 @@ uintptr_t video_get_fb()
 	return g_video.fbo_id;
 }
 
+void video_bindfb()
+{
+	if(!g_video.software_rast)
+	{
+	glBindFramebuffer(GL_FRAMEBUFFER,g_video.fbo_id);
+	glViewport(0, 0, g_video.tex_w, g_video.tex_h);
+	glScissor(0, 0, g_video.tex_w, g_video.tex_h);
+	}
+	  
+	
+}
+
+void video_unbindfb()
+{
+	if(!g_video.software_rast)
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+}
+
 bool video_sethw(struct retro_hw_render_callback *hw)
 {
-	switch(hw->context_type)
+	 if(hw->context_type == RETRO_HW_CONTEXT_OPENGL || hw->context_type == RETRO_HW_CONTEXT_OPENGL_CORE) 
 	{
-		case RETRO_HW_CONTEXT_OPENGL_CORE:
-		case RETRO_HW_CONTEXT_OPENGL:
+		memset(&g_video.hw, 0, sizeof(struct retro_hw_render_callback));
+		hw->version_major = 4;
+		hw->version_minor = 6;
 		hw->get_current_framebuffer = video_get_fb;
 	    hw->get_proc_address = (retro_hw_get_proc_address_t)SDL_GL_GetProcAddress;
 	    g_video.hw = *hw;
 	    return true;
-		default:
-		return false;
-
 	}
 	return false;
 	
@@ -395,7 +410,12 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 void video_deinit()
 {
 	if (g_video.hw.context_destroy)
+    {
 		g_video.hw.context_destroy();
+	}
+	memset(&g_video.hw, 0, sizeof(struct retro_hw_render_callback));
+		
+	
 	if (g_video.tex_id)
 	{
 		glDeleteTextures(1, &g_video.tex_id);
