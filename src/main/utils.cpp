@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <array>
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
 #ifdef _WIN32
@@ -79,9 +80,9 @@ std::string get_wtfwegname()
 	if(written == -1)string( "" );
     return string( buf.data() );
 #elif defined(_WIN32)
-    std::array<char, MAX_PATH> buf{};
+    std::array<char, 1024*4> buf{};
     GetModuleFileNameA(nullptr, buf.data(), buf.size());
-    return buf;
+    return string( buf.data() );
 #else
     static_assert(false, "unrecognized platform");
 #endif

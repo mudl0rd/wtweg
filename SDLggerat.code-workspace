@@ -70,7 +70,8 @@
 			"bitset": "cpp",
 			"unordered_set": "cpp",
 			"optional": "cpp",
-			"future": "cpp"
+			"future": "cpp",
+			"sdl.h": "c"
 		}
 	}
 }

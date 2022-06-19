@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include "libretro.h"
 #include "io.h"
-#include "gl3w.h"
+#include "glad.h"
 #include <vector>
 
 static const char *g_vshader_src = 
@@ -220,10 +220,20 @@ uintptr_t video_get_fb()
 
 bool video_sethw(struct retro_hw_render_callback *hw)
 {
-	hw->get_current_framebuffer = video_get_fb;
-	hw->get_proc_address = (retro_hw_get_proc_address_t)SDL_GL_GetProcAddress;
-	g_video.hw = *hw;
-	return true;
+	switch(hw->context_type)
+	{
+		case RETRO_HW_CONTEXT_OPENGL_CORE:
+		case RETRO_HW_CONTEXT_OPENGL:
+		hw->get_current_framebuffer = video_get_fb;
+	    hw->get_proc_address = (retro_hw_get_proc_address_t)SDL_GL_GetProcAddress;
+	    g_video.hw = *hw;
+	    return true;
+		default:
+		return false;
+
+	}
+	return false;
+	
 }
 
 void init_framebuffer(int width, int height)

@@ -11,7 +11,18 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 * **GCC/G++ with C++17 support**
 
 
-## Recommended cores for use:
+## Where?
+
+[Here](https://www.mediafire.com/file/rp9ykqbevyobxa4/WTFweg.zip)
+
+## How?
+
+* "cores" is where all libretro cores go
+* "saves" is where all saves are
+* "system" is where all BIOSes/system files go
+
+
+## [Tested cores](http://buildbot.libretro.com/nightly/windows/x86_64/latest/):
 
 * Snes9x
 * Beetle PSX

@@ -9,7 +9,7 @@
 #include "clibretro.h"
 
 void audio_mix(const int16_t* samples, size_t size);
-bool audio_init(double refreshra, float input_srate, float fps);
+bool audio_init(float refreshra, float input_srate, float fps);
 void audio_destroy();
 void video_render();
 bool video_init(const struct retro_game_geometry* geom, SDL_Window *window);

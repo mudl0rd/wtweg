@@ -2,7 +2,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
-#include "gl3w.h"
+#include "glad.h"
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <filesystem>
@@ -50,6 +50,19 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   SDL_Window *window = SDL_CreateWindow("WTFweg", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
+  gladLoadGL();
+
+
+  SDL_DisplayMode dm;
+  SDL_GetDesktopDisplayMode(0, &dm);
+  int swap=1;
+  swap = (int)dm.refresh_rate / (int)60;
+  float refreshtarget = dm.refresh_rate/swap;
+  float timing_skew = fabs(1.0f - 60 / refreshtarget);
+  if(timing_skew <= 0.05)
+  SDL_GL_SetSwapInterval((int)swap);
+  else
+  SDL_GL_SetSwapInterval(1);
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
@@ -58,6 +71,8 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
   auto instance = CLibretro::get_classinstance(window);
+
+  
 
   // Main loop
 

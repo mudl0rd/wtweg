@@ -76,8 +76,6 @@ static bool core_environment(unsigned cmd, void *data)
   {
     struct retro_hw_render_callback *hw =
         (struct retro_hw_render_callback *)data;
-    if (hw->context_type == RETRO_HW_CONTEXT_VULKAN)
-      return false;
     return video_sethw(hw);
   }
 
