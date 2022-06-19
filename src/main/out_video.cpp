@@ -239,9 +239,6 @@ bool video_sethw(struct retro_hw_render_callback *hw)
 {
 	 if(hw->context_type == RETRO_HW_CONTEXT_OPENGL || hw->context_type == RETRO_HW_CONTEXT_OPENGL_CORE) 
 	{
-		memset(&g_video.hw, 0, sizeof(struct retro_hw_render_callback));
-		hw->version_major = 4;
-		hw->version_minor = 6;
 		hw->get_current_framebuffer = video_get_fb;
 	    hw->get_proc_address = (retro_hw_get_proc_address_t)SDL_GL_GetProcAddress;
 	    g_video.hw = *hw;
@@ -280,6 +277,10 @@ void init_framebuffer(int width, int height)
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+int greatestCommonFactor(int width, int height) {
+    return (height == 0) ? width : greatestCommonFactor(height, width % height);
 }
 
 bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
@@ -330,8 +331,24 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 		g_video.hw.context_reset();
 
 	if (!g_video.rend_width)
-		SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
+	SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+	
+	float aspect = g_video.aspect;
+	if (aspect <= 0)
+	{
+		aspect = (float)g_video.base_w / (float)g_video.base_h;
+	}
+	unsigned height = g_video.rend_height;
+	unsigned width = height * aspect;
+	if (width > g_video.rend_width)
+	{
+		height = (float)g_video.rend_width / aspect;
+		width = g_video.rend_width;
+	}
+	
+	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, width,
+                       height);
 	return true;
 }
 
@@ -368,8 +385,19 @@ static inline unsigned get_alignment(unsigned pitch)
 
 void video_render()
 {
-	refresh_vertex_data();
+	video_unbindfb();
+	
+	if(!g_video.software_rast)
+	{
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, g_video.base_w, g_video.base_h,  0, 0, g_video.rend_width,
+		g_video.rend_height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	}
+	else
+	{
 	resize_cb();
+	refresh_vertex_data();
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glUseProgram(g_video.g_shader.program);
 	glActiveTexture(GL_TEXTURE0);
@@ -385,6 +413,10 @@ void video_render()
 	}
 	glBindVertexArray(0);
 	glUseProgram(0);
+
+	}
+	
+
 }
 
 void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch)

@@ -26,14 +26,20 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 ```
 flycast_libretro.dll
+gambatte_libretro.dll
+gearboy_libretro.dll
 genesis_plus_gx_libretro.dll
 kronos_libretro.dll
 mesen_libretro.dll
 mgba_libretro.dll
 mupen64plus_next_libretro.dll
+parallel_n64_libretro.dll
 sameboy_libretro.dll
+snes9x2002_libretro.dll
+snes9x2005_libretro.dll
 snes9x_libretro.dll
 swanstation_libretro.dll
+vbam_libretro.dll
 ```
 
 ## With?
