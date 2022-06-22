@@ -225,7 +225,7 @@ static bool aboutbox = false;
           continue;
 
         int total_w = 300;
-        ImGui::Text(bind.description.c_str());
+        ImGui::Text("%s", bind.description.c_str());
         std::string script = "##" + bind.description;
         char *button_str = (char *)bind.joykey_desc.c_str();
         ImGui::SameLine(350);
@@ -327,7 +327,7 @@ Genju
           {
 
             int total_w = descript.length();
-            ImGui::Text(descript.c_str());
+            ImGui::Text("%s", descript.c_str());
             ImGui::SameLine(450);
             ImGui::SetNextItemWidth(total_w);
             if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
@@ -341,7 +341,7 @@ Genju
           else
           {
             int total_w = 200;
-            ImGui::Text(descript.c_str());
+            ImGui::Text("%s", descript.c_str());
             ImGui::SameLine(650 - 200);
             ImGui::SetNextItemWidth(total_w);
             if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
