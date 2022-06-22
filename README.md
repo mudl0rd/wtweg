@@ -6,10 +6,9 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 * **x86 CPUs w/SSE4.1 and above**.
 * **ARM+NEON CPUs around RPI4 level and above**.
-* **OGL 3.3/OGLESv2 and above**
+* **OGL 4.6/OGLESv2 and above**
 * **Win7 and above/Linux**
 * **GCC/G++ with C++17 support**
-
 
 ## Where?
 
@@ -24,23 +23,7 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 ## [Tested cores](http://buildbot.libretro.com/nightly/windows/x86_64/latest/):
 
-```
-flycast_libretro.dll
-gambatte_libretro.dll
-gearboy_libretro.dll
-genesis_plus_gx_libretro.dll
-kronos_libretro.dll
-mesen_libretro.dll
-mgba_libretro.dll
-mupen64plus_next_libretro.dll
-parallel_n64_libretro.dll
-sameboy_libretro.dll
-snes9x2002_libretro.dll
-snes9x2005_libretro.dll
-snes9x_libretro.dll
-swanstation_libretro.dll
-vbam_libretro.dll
-```
+[Check here for current core support](https://raw.githubusercontent.com/mudlord/WTFweg/master/cores.txt)
 
 ## With?
 
