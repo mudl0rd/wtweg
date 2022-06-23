@@ -1,24 +1,44 @@
-Known to load/play games, might not be problem-free:
+Tested cores (known to load and play games, might not be problem-free):
 
-* mesen_libretro.dll.zip
-* kronos_libretro.dll.zip
-* mupen64plus_next_libretro.dll.zip
-* flycast_libretro.dll.zip
-* mgba_libretro.dll.zip
-* parallel_n64_libretro.dll.zip
-* sameboy_libretro.dll.zip
-* genesis_plus_gx_libretro.dll.zip
-* snes9x_libretro.dll.zip
-* swanstation_libretro.dll.zip
-* mesen_libretro.dll.zip
-* gambatte_libretro.dll.zip
+* mesen_libretro.dll.zip  (incomplete controllers)
+* kronos_libretro.dll.zip (needs to be further tested)
+* mupen64plus_next_libretro.dll.zip (no Vulkan)
+* flycast_libretro.dll.zip (no Vulkan) 
+* parallel_n64_libretro.dll.zip (no Vulkan)
+* swanstation_libretro.dll.zip (no Vulkan)
+* genesis_plus_gx_libretro.dll.zip (possibly incomplete controllers)
+* mesen-s_libretro.dll.zip (incomplete controllers)
+* mesen_libretro.dll.zip (incomplete controllers)
+* snes9x_libretro.dll.zip  (incomplete controllers)
+* snes9x2002_libretro.dll.zip  (incomplete controllers)
+* snes9x2005_libretro.dll.zip  (incomplete controllers)
+* snes9x2005_plus_libretro.dll.zip  (incomplete controllers)
+* snes9x2010_libretro.dll.zip  (incomplete controllers)
+* fixnes_libretro.dll.zip  (incomplete controllers)
+* mednafen_snes_libretro.dll.zip  (incomplete controllers)
+* mednafen_supafaust_libretro.dll.zip (crashes on load)
+* bsnes_hd_beta_libretro.dll.zip  (incomplete controllers)
+* bsnes2014_accuracy_libretro.dll.zip  (incomplete controllers)
+* bsnes2014_balanced_libretro.dll.zip  (incomplete controllers)
+* bsnes2014_performance_libretro.dll.zip  (incomplete controllers)
+* bsnes_cplusplus98_libretro.dll.zip  (incomplete controllers)
+* bsnes_mercury_accuracy_libretro.dll.zip  (incomplete controllers)
+* bsnes_mercury_balanced_libretro.dll.zip  (incomplete controllers)
+* bsnes_mercury_performance_libretro.dll.zip  (incomplete controllers)
+* meteor_libretro.dll.zip (not sure if no config options, but runs great otherwise!)
+
+
+
+Recommended cores (run perfectly):
+
 * gearboy_libretro.dll.zip
-* snes9x2002_libretro.dll.zip
-* snes9x2005_libretro.dll.zip
-
-Recommended cores:
-
-* snes9x_libretro.dll.zip
+* gambatte_libretro.dll.zip
+* fixgb_libretro.dll.zip
+* sameboy_libretro.dll.zip
+* mgba_libretro.dll.zip
+* vbam_libretro.dll.zip
+* vba_next_libretro.dll.zip
+* mednafen_gba_libretro.dll.zip
 
 Untested cores:
 ========================================
@@ -28,19 +48,11 @@ a5200_libretro.dll.zip
 arduous_libretro.dll.zip
 atari800_libretro.dll.zip
 bk_libretro.dll.zip
+bsnes_libretro.dll.zip
 blastem_libretro.dll.zip
 bluemsx_libretro.dll.zip
 boom3_libretro.dll.zip
 boom3_xp_libretro.dll.zip
-bsnes2014_accuracy_libretro.dll.zip
-bsnes2014_balanced_libretro.dll.zip
-bsnes2014_performance_libretro.dll.zip
-bsnes_cplusplus98_libretro.dll.zip
-bsnes_hd_beta_libretro.dll.zip
-bsnes_libretro.dll.zip
-bsnes_mercury_accuracy_libretro.dll.zip
-bsnes_mercury_balanced_libretro.dll.zip
-bsnes_mercury_performance_libretro.dll.zip
 cannonball_libretro.dll.zip
 cap32_libretro.dll.zip
 cdi2015_libretro.dll.zip
@@ -66,8 +78,6 @@ fbalpha2012_neogeo_libretro.dll.zip
 fbalpha_libretro.dll.zip
 fbneo_libretro.dll.zip
 fceumm_libretro.dll.zip
-fixgb_libretro.dll.zip
-fixnes_libretro.dll.zip
 fmsx_libretro.dll.zip
 freechaf_libretro.dll.zip
 freeintv_libretro.dll.zip
@@ -92,7 +102,6 @@ mame2003_midway_libretro.dll.zip
 mame2003_plus_libretro.dll.zip
 mame2010_libretro.dll.zip
 mame_libretro.dll.zip
-mednafen_gba_libretro.dll.zip
 mednafen_lynx_libretro.dll.zip
 mednafen_ngp_libretro.dll.zip
 mednafen_pce_fast_libretro.dll.zip
@@ -101,14 +110,10 @@ mednafen_pcfx_libretro.dll.zip
 mednafen_psx_hw_libretro.dll.zip
 mednafen_psx_libretro.dll.zip
 mednafen_saturn_libretro.dll.zip
-mednafen_snes_libretro.dll.zip
-mednafen_supafaust_libretro.dll.zip
 mednafen_supergrafx_libretro.dll.zip
 mednafen_vb_libretro.dll.zip
 mednafen_wswan_libretro.dll.zip
 melonds_libretro.dll.zip
-mesen-s_libretro.dll.zip
-meteor_libretro.dll.zip
 minivmac_libretro.dll.zip
 mrboom_libretro.dll.zip
 mu_libretro.dll.zip
@@ -142,8 +147,6 @@ sameduck_libretro.dll.zip
 same_cdi_libretro.dll.zip
 scummvm_libretro.dll.zip
 smsplus_libretro.dll.zip
-snes9x2005_plus_libretro.dll.zip
-snes9x2010_libretro.dll.zip
 squirreljme_libretro.dll.zip
 stella2014_libretro.dll.zip
 stella_libretro.dll.zip
@@ -155,8 +158,6 @@ tic80_libretro.dll.zip
 tyrquake_libretro.dll.zip
 uzem_libretro.dll.zip
 vaporspec_libretro.dll.zip
-vbam_libretro.dll.zip
-vba_next_libretro.dll.zip
 vecx_libretro.dll.zip
 vemulator_libretro.dll.zip
 vice_x128_libretro.dll.zip
