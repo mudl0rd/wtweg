@@ -132,6 +132,27 @@ void init_framebuffer(int width, int height)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+vp resize_cb()
+{
+	vp vp_ = {0};
+	float aspect = g_video.aspect;
+	if (aspect <= 0)
+	{
+		aspect = (float)g_video.base_w / (float)g_video.base_h;
+	}
+	unsigned height = g_video.rend_height;
+	unsigned width = height * aspect;
+	if (width > g_video.rend_width)
+	{
+		height = (float)g_video.rend_width / aspect;
+		width = g_video.rend_width;
+	}
+	unsigned x = (g_video.rend_width - width) / 2;
+	unsigned y = (g_video.rend_height - height) / 2;
+	vp_ = {x, y, width, height};
+	return vp_;
+}
+
 bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 {
 	g_video.software_rast = !g_video.hw.context_reset;
@@ -185,44 +206,14 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 		SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
-	float aspect = g_video.aspect;
-	if (aspect <= 0)
-	{
-		aspect = (float)g_video.base_w / (float)g_video.base_h;
-	}
-	unsigned height = g_video.rend_height;
-	unsigned width = height * aspect;
-	if (width > g_video.rend_width)
-	{
-		height = (float)g_video.rend_width / aspect;
-		width = g_video.rend_width;
-	}
+	vp vpx = resize_cb();
 
-	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, width,
-					  height);
+	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, vpx.width,
+					  vpx.height);
 	return true;
 }
 
-vp resize_cb()
-{
-	vp vp_ = {0};
-	float aspect = g_video.aspect;
-	if (aspect <= 0)
-	{
-		aspect = (float)g_video.base_w / (float)g_video.base_h;
-	}
-	unsigned height = g_video.rend_height;
-	unsigned width = height * aspect;
-	if (width > g_video.rend_width)
-	{
-		height = (float)g_video.rend_width / aspect;
-		width = g_video.rend_width;
-	}
-	unsigned x = (g_video.rend_width - width) / 2;
-	unsigned y = (g_video.rend_height - height) / 2;
-	vp_ = {x, y, width, height};
-	return vp_;
-}
+
 
 static inline unsigned get_alignment(unsigned pitch)
 {
