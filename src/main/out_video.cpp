@@ -4,29 +4,8 @@
 #include "glad.h"
 #include <vector>
 
-static const char *g_vshader_src = 
-R"(
-#version 330
-in vec2 i_pos;
-in vec2 i_coord;
-out vec2 o_coord;
-uniform mat4 u_mvp;
-void main() {
-o_coord = i_coord;
-gl_Position = vec4(i_pos, 0.0, 1.0) * u_mvp;
-})";
-
-static const char *g_fshader_src = 
-R"(
-#version 330
-in vec2 o_coord;
-uniform sampler2D u_tex;
-layout(location = 0) out vec4 FragColor;
-void main() {
-FragColor = texture(u_tex, o_coord);
-})";
-
-struct vp {
+struct vp
+{
 	unsigned x;
 	unsigned y;
 	unsigned width;
@@ -38,16 +17,12 @@ struct
 	GLuint tex_id;
 	GLuint rbo_id;
 	GLuint fbo_id;
-
-	int glmajor;
-	int glminor;
 	bool software_rast;
 	GLuint pitch;
 	GLint tex_w, tex_h;
 	GLuint base_w, base_h;
 	unsigned rend_width, rend_height;
 	float aspect;
-	int aspect_factor;
 
 	struct
 	{
@@ -99,31 +74,30 @@ uintptr_t video_get_fb()
 
 void video_bindfb()
 {
-	if(!g_video.software_rast)
+	if (!g_video.software_rast)
 	{
-	glBindFramebuffer(GL_FRAMEBUFFER,g_video.fbo_id);
-	glViewport(0, 0, g_video.tex_w, g_video.tex_h);
-	glScissor(0, 0, g_video.tex_w, g_video.tex_h);
+		glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
+		glViewport(0, 0, g_video.tex_w, g_video.tex_h);
+		glScissor(0, 0, g_video.tex_w, g_video.tex_h);
 	}
 }
 
 void video_unbindfb()
 {
-	if(!g_video.software_rast)
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	if (!g_video.software_rast)
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool video_sethw(struct retro_hw_render_callback *hw)
 {
-	 if(hw->context_type == RETRO_HW_CONTEXT_OPENGL || hw->context_type == RETRO_HW_CONTEXT_OPENGL_CORE) 
+	if (hw->context_type == RETRO_HW_CONTEXT_OPENGL || hw->context_type == RETRO_HW_CONTEXT_OPENGL_CORE)
 	{
 		hw->get_current_framebuffer = video_get_fb;
-	    hw->get_proc_address = (retro_hw_get_proc_address_t)SDL_GL_GetProcAddress;
-	    g_video.hw = *hw;
-	    return true;
+		hw->get_proc_address = (retro_hw_get_proc_address_t)SDL_GL_GetProcAddress;
+		g_video.hw = *hw;
+		return true;
 	}
 	return false;
-	
 }
 
 void init_framebuffer(int width, int height)
@@ -137,7 +111,6 @@ void init_framebuffer(int width, int height)
 	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
 						   g_video.tex_id, 0);
-	
 
 	if (g_video.hw.depth)
 	{
@@ -152,11 +125,10 @@ void init_framebuffer(int width, int height)
 													 : GL_DEPTH_ATTACHMENT,
 								  GL_RENDERBUFFER, g_video.rbo_id);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		
 	}
 
 	glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	glBindTexture(GL_TEXTURE_2D,0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -170,14 +142,14 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 
 	g_video.tex_id = 0;
 
-    if(g_video.software_rast)
+	if (g_video.software_rast)
 	{
-	if (!g_video.pixformat.pixfmt)
-	{
-		g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-		g_video.pixformat.pixtype = GL_BGRA;
-		g_video.pixformat.bpp = sizeof(uint16_t);
-	}
+		if (!g_video.pixformat.pixfmt)
+		{
+			g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+			g_video.pixformat.pixtype = GL_BGRA;
+			g_video.pixformat.bpp = sizeof(uint16_t);
+		}
 	}
 	else
 	{
@@ -185,7 +157,6 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 		g_video.pixformat.pixtype = GL_RGBA;
 		g_video.pixformat.bpp = sizeof(uint16_t);
 	}
-	
 
 	glGenTextures(1, &g_video.tex_id);
 
@@ -201,7 +172,6 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 
 	init_framebuffer(geom->max_width, geom->max_height);
 
-
 	g_video.tex_w = geom->max_width;
 	g_video.tex_h = geom->max_height;
 	g_video.base_w = geom->base_width;
@@ -212,9 +182,9 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 		g_video.hw.context_reset();
 
 	if (!g_video.rend_width)
-	SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
+		SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-	
+
 	float aspect = g_video.aspect;
 	if (aspect <= 0)
 	{
@@ -227,9 +197,9 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 		height = (float)g_video.rend_width / aspect;
 		width = g_video.rend_width;
 	}
-	
+
 	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, width,
-                       height);
+					  height);
 	return true;
 }
 
@@ -250,10 +220,9 @@ vp resize_cb()
 	}
 	unsigned x = (g_video.rend_width - width) / 2;
 	unsigned y = (g_video.rend_height - height) / 2;
-    vp_ = {x,y,width,height};
+	vp_ = {x, y, width, height};
 	return vp_;
 }
-
 
 static inline unsigned get_alignment(unsigned pitch)
 {
@@ -270,16 +239,16 @@ void video_render()
 {
 	video_unbindfb();
 	vp vpx = resize_cb();
-	glBindTexture(GL_TEXTURE_2D,g_video.tex_id);
+	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	if(!g_video.software_rast)
-	glBlitFramebuffer(0,0, g_video.base_w,g_video.base_h,vpx.x,vpx.y,
-    vpx.width,vpx.height, GL_COLOR_BUFFER_BIT,GL_NEAREST);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	if (!g_video.software_rast)
+		glBlitFramebuffer(0, 0, g_video.base_w, g_video.base_h, vpx.x, vpx.y,
+						  vpx.width, vpx.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	else
-	glBlitFramebuffer(0,g_video.base_h,g_video.base_w,0,vpx.x,vpx.y,
-    vpx.width,vpx.height, GL_COLOR_BUFFER_BIT,GL_NEAREST);
+		glBlitFramebuffer(0, g_video.base_h, g_video.base_w, 0, vpx.x, vpx.y,
+						  vpx.width, vpx.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
 void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch)
@@ -305,12 +274,11 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 void video_deinit()
 {
 	if (g_video.hw.context_destroy)
-    {
+	{
 		g_video.hw.context_destroy();
 	}
 	memset(&g_video.hw, 0, sizeof(struct retro_hw_render_callback));
-		
-	
+
 	if (g_video.tex_id)
 	{
 		glDeleteTextures(1, &g_video.tex_id);
