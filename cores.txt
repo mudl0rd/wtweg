@@ -10,14 +10,15 @@ Tested cores (known to load and play games, might not be problem-free):
 * mesen-s_libretro.dll.zip (incomplete controllers)
 * mesen_libretro.dll.zip (incomplete controllers)
 * snes9x_libretro.dll.zip  (incomplete controllers)
+* mednafen_psx_hw_libretro.dll.zip (broken GL context when changing from GL4+ cores?)
 * snes9x2002_libretro.dll.zip  (incomplete controllers)
 * snes9x2005_libretro.dll.zip  (incomplete controllers)
 * snes9x2005_plus_libretro.dll.zip  (incomplete controllers)
 * snes9x2010_libretro.dll.zip  (incomplete controllers)
-* fixnes_libretro.dll.zip  (incomplete controllers)
 * mednafen_snes_libretro.dll.zip  (incomplete controllers)
 * mednafen_supafaust_libretro.dll.zip (crashes on load)
 * bsnes_hd_beta_libretro.dll.zip  (incomplete controllers)
+* bsnes_libretro.dll.zip (broken color format)
 * bsnes2014_accuracy_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_balanced_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_performance_libretro.dll.zip  (incomplete controllers)
@@ -28,7 +29,7 @@ Tested cores (known to load and play games, might not be problem-free):
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
 
-Recommended cores (run perfectly):
+Recommended cores (runs perfectly):
 
 * gearboy_libretro.dll.zip
 * gambatte_libretro.dll.zip
@@ -38,8 +39,10 @@ Recommended cores (run perfectly):
 * vbam_libretro.dll.zip
 * vba_next_libretro.dll.zip
 * mednafen_gba_libretro.dll.zip
-* quicknes_libretro.dll.zip
 * meteor_libretro.dll.zip
+* quicknes_libretro.dll.zip
+* fixnes_libretro.dll.zip
+* mednafen_psx_libretro.dll.zip
 
 Untested cores:
 ========================================
@@ -49,7 +52,6 @@ a5200_libretro.dll.zip
 arduous_libretro.dll.zip
 atari800_libretro.dll.zip
 bk_libretro.dll.zip
-bsnes_libretro.dll.zip
 blastem_libretro.dll.zip
 bluemsx_libretro.dll.zip
 boom3_libretro.dll.zip
@@ -107,8 +109,6 @@ mednafen_ngp_libretro.dll.zip
 mednafen_pce_fast_libretro.dll.zip
 mednafen_pce_libretro.dll.zip
 mednafen_pcfx_libretro.dll.zip
-mednafen_psx_hw_libretro.dll.zip
-mednafen_psx_libretro.dll.zip
 mednafen_saturn_libretro.dll.zip
 mednafen_supergrafx_libretro.dll.zip
 mednafen_vb_libretro.dll.zip
