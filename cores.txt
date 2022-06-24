@@ -4,6 +4,7 @@ Tested cores (known to load and play games, might not be problem-free):
 * kronos_libretro.dll.zip (needs to be further tested)
 * mupen64plus_next_libretro.dll.zip (no Vulkan)
 * flycast_libretro.dll.zip (no Vulkan) 
+* mednafen_psx_libretro.dll.zip (no Vulkan) 
 * parallel_n64_libretro.dll.zip (no Vulkan)
 * swanstation_libretro.dll.zip (no Vulkan)
 * genesis_plus_gx_libretro.dll.zip (possibly incomplete controllers)
@@ -42,7 +43,6 @@ Recommended cores (runs perfectly):
 * meteor_libretro.dll.zip
 * quicknes_libretro.dll.zip
 * fixnes_libretro.dll.zip
-* mednafen_psx_libretro.dll.zip
 
 Untested cores:
 ========================================
