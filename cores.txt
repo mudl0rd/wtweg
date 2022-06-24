@@ -1,7 +1,5 @@
 Tested cores (known to load and play games, might not be problem-free):
 
-* mesen_libretro.dll.zip  (incomplete controllers)
-* kronos_libretro.dll.zip (needs to be further tested)
 * mupen64plus_next_libretro.dll.zip (no Vulkan)
 * flycast_libretro.dll.zip (no Vulkan) 
 * mednafen_psx_libretro.dll.zip (no Vulkan) 
@@ -17,9 +15,7 @@ Tested cores (known to load and play games, might not be problem-free):
 * snes9x2005_plus_libretro.dll.zip  (incomplete controllers)
 * snes9x2010_libretro.dll.zip  (incomplete controllers)
 * mednafen_snes_libretro.dll.zip  (incomplete controllers)
-* mednafen_supafaust_libretro.dll.zip (crashes on load)
 * bsnes_hd_beta_libretro.dll.zip  (incomplete controllers)
-* bsnes_libretro.dll.zip (broken color format)
 * bsnes2014_accuracy_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_balanced_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_performance_libretro.dll.zip  (incomplete controllers)
@@ -29,6 +25,15 @@ Tested cores (known to load and play games, might not be problem-free):
 * bsnes_mercury_performance_libretro.dll.zip  (incomplete controllers)
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
+* yabasanshiro_libretro.dll.zip (incomplete controllers)
+* yabause_libretro.dll.zip (incomplete controllers)
+* kronos_libretro.dll.zip (incomplete controllers)
+* mesen_libretro.dll.zip  (incomplete controllers)
+
+Tested cores (not working):
+* mednafen_supafaust_libretro.dll.zip (crashes on load)
+* mednafen_saturn_libretro.dll.zip (crashes on load)
+* bsnes_libretro.dll.zip (broken color format)
 
 Recommended cores (runs perfectly):
 
@@ -109,7 +114,6 @@ mednafen_ngp_libretro.dll.zip
 mednafen_pce_fast_libretro.dll.zip
 mednafen_pce_libretro.dll.zip
 mednafen_pcfx_libretro.dll.zip
-mednafen_saturn_libretro.dll.zip
 mednafen_supergrafx_libretro.dll.zip
 mednafen_vb_libretro.dll.zip
 mednafen_wswan_libretro.dll.zip
@@ -176,5 +180,3 @@ vitaquake3_libretro.dll.zip
 wasm4_libretro.dll.zip
 x1_libretro.dll.zip
 xrick_libretro.dll.zip
-yabasanshiro_libretro.dll.zip
-yabause_libretro.dll.zip
