@@ -28,9 +28,6 @@ Tested cores (known to load and play games, might not be problem-free):
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
 
-
-
-
 Recommended cores (run perfectly):
 
 * gearboy_libretro.dll.zip
@@ -41,8 +38,8 @@ Recommended cores (run perfectly):
 * vbam_libretro.dll.zip
 * vba_next_libretro.dll.zip
 * mednafen_gba_libretro.dll.zip
-* meteor_libretro.dll.zip
 * quicknes_libretro.dll.zip
+* meteor_libretro.dll.zip
 
 Untested cores:
 ========================================
