@@ -21,6 +21,6 @@ endif
 dir_base = meson.current_source_dir()
 dir_install = join_paths(dir_base, 'compile_dir')
 
-executable('demo',install: true,install_dir: dir_install,include_directories : [inc,inc_imgui,inc_deps,inc_stb],sources : [src],dependencies : [sdl2dep,dl_dep]
+executable('wtfweg',install: true,install_dir: dir_install,include_directories : [inc,inc_imgui,inc_deps,inc_stb],sources : [src],dependencies : [sdl2dep,dl_dep]
 )
 
