@@ -48,6 +48,7 @@ Recommended cores (runs perfectly):
 * meteor_libretro.dll.zip
 * quicknes_libretro.dll.zip
 * fixnes_libretro.dll.zip
+* mednafen_wswan_libretro.dll.zip
 
 Untested cores:
 ========================================
@@ -116,7 +117,6 @@ mednafen_pce_libretro.dll.zip
 mednafen_pcfx_libretro.dll.zip
 mednafen_supergrafx_libretro.dll.zip
 mednafen_vb_libretro.dll.zip
-mednafen_wswan_libretro.dll.zip
 melonds_libretro.dll.zip
 minivmac_libretro.dll.zip
 mrboom_libretro.dll.zip
