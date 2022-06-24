@@ -26,6 +26,13 @@ void main() {
 FragColor = texture(u_tex, o_coord);
 })";
 
+struct vp {
+	unsigned x;
+	unsigned y;
+	unsigned width;
+	unsigned height;
+};
+
 struct
 {
 	GLuint tex_id;
@@ -52,19 +59,6 @@ struct
 
 	struct retro_hw_render_callback hw;
 	SDL_Window *sdl_context;
-
-	struct
-	{
-		GLuint vao;
-		GLuint vbo;
-		GLuint program;
-		GLuint fshader;
-		GLuint vshader;
-		GLint i_pos;
-		GLint i_coord;
-		GLint u_tex;
-		GLint u_mvp;
-	} g_shader = {0};
 } g_video = {0};
 
 void video_setsize(unsigned width, unsigned height)
@@ -98,120 +92,6 @@ bool video_set_pixelformat(retro_pixel_format fmt)
 	return true;
 }
 
-void ortho2d(float m[4][4], float left, float right, float bottom, float top)
-{
-	m[3][3] = 1;
-	m[0][0] = 2.0f / (right - left);
-	m[1][1] = 2.0f / (top - bottom);
-	m[2][2] = -1.0f;
-	m[3][0] = -(right + left) / (right - left);
-	m[3][1] = -(top + bottom) / (top - bottom);
-}
-
-static GLuint compile_shader(unsigned type, unsigned count, const char **strings)
-{
-	GLuint shader = glCreateShader(type);
-	glShaderSource(shader, count, strings, NULL);
-	glCompileShader(shader);
-
-	GLint status;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-
-	if (status == GL_FALSE)
-	{
-		char buffer[4096];
-		glGetShaderInfoLog(shader, sizeof(buffer), NULL, buffer);
-	}
-
-	return shader;
-}
-
-void init_shaders()
-{
-	GLuint vshader = compile_shader(GL_VERTEX_SHADER, 1, &g_vshader_src);
-	GLuint fshader = compile_shader(GL_FRAGMENT_SHADER, 1, &g_fshader_src);
-	GLuint program = glCreateProgram();
-
-	SDL_assert(program);
-
-	glAttachShader(program, vshader);
-	glAttachShader(program, fshader);
-	glLinkProgram(program);
-
-	glDeleteShader(vshader);
-	glDeleteShader(fshader);
-
-	glValidateProgram(program);
-
-	GLint status;
-	glGetProgramiv(program, GL_LINK_STATUS, &status);
-
-	if (status == GL_FALSE)
-	{
-		char buffer[4096] = {0};
-		glGetProgramInfoLog(program, sizeof(buffer), NULL, buffer);
-	}
-
-	g_video.g_shader.program = program;
-	g_video.g_shader.i_pos = glGetAttribLocation(program, "i_pos");
-	g_video.g_shader.i_coord = glGetAttribLocation(program, "i_coord");
-	g_video.g_shader.u_tex = glGetUniformLocation(program, "u_tex");
-	g_video.g_shader.u_mvp = glGetUniformLocation(program, "u_mvp");
-
-	glGenVertexArrays(1, &g_video.g_shader.vao);
-	glGenBuffers(1, &g_video.g_shader.vbo);
-
-	glUseProgram(g_video.g_shader.program);
-
-	float m[4][4] = {0};
-	if (g_video.hw.bottom_left_origin)
-		ortho2d(m, -1, 1, 1, -1);
-	else
-		ortho2d(m, -1, 1, -1, 1);
-
-	glUniformMatrix4fv(g_video.g_shader.u_mvp, 1, GL_FALSE, (float *)m);
-
-	glUseProgram(0);
-}
-
-void refresh_vertex_data()
-{
-
-	float bottom = (float)g_video.base_h / g_video.tex_h;
-	float right = (float)g_video.base_w / g_video.tex_w;
-
-	typedef struct
-	{
-		float x;
-		float y;
-		float s;
-		float t;
-	} vertex_data;
-
-	vertex_data vert[] = {
-		// pos, coord
-		-1.0f, -1.0f, 0.0f, bottom, // left-bottom
-		-1.0f, 1.0f, 0.0f, 0.0f,	// left-top
-		1.0f, -1.0f, right, bottom, // right-bottom
-		1.0f, 1.0f, right, 0.0f,	// right-top
-	};
-
-	glBindVertexArray(g_video.g_shader.vao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, g_video.g_shader.vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data) * 4, vert, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(g_video.g_shader.i_pos);
-	glEnableVertexAttribArray(g_video.g_shader.i_coord);
-	glVertexAttribPointer(g_video.g_shader.i_pos, 2, GL_FLOAT, GL_FALSE,
-						  sizeof(vertex_data), (void *)offsetof(vertex_data, x));
-	glVertexAttribPointer(g_video.g_shader.i_coord, 2, GL_FLOAT, GL_FALSE,
-						  sizeof(vertex_data), (void *)offsetof(vertex_data, s));
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	
-}
-
 uintptr_t video_get_fb()
 {
 	return g_video.fbo_id;
@@ -225,8 +105,6 @@ void video_bindfb()
 	glViewport(0, 0, g_video.tex_w, g_video.tex_h);
 	glScissor(0, 0, g_video.tex_w, g_video.tex_h);
 	}
-	  
-	
 }
 
 void video_unbindfb()
@@ -259,6 +137,8 @@ void init_framebuffer(int width, int height)
 	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
 						   g_video.tex_id, 0);
+	
+
 	if (g_video.hw.depth)
 	{
 		glGenRenderbuffers(1, &g_video.rbo_id);
@@ -272,37 +152,40 @@ void init_framebuffer(int width, int height)
 													 : GL_DEPTH_ATTACHMENT,
 								  GL_RENDERBUFFER, g_video.rbo_id);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		
 	}
-	glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
 
-int greatestCommonFactor(int width, int height) {
-    return (height == 0) ? width : greatestCommonFactor(height, width % height);
+	glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	glBindTexture(GL_TEXTURE_2D,0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 {
-	g_video.g_shader = {0};
-
 	g_video.software_rast = !g_video.hw.context_reset;
 	g_video.sdl_context = context;
-	init_shaders();
 
 	if (g_video.tex_id)
 		glDeleteTextures(1, &g_video.tex_id);
 
 	g_video.tex_id = 0;
 
+    if(g_video.software_rast)
+	{
 	if (!g_video.pixformat.pixfmt)
 	{
 		g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_1_5_5_5_REV;
 		g_video.pixformat.pixtype = GL_BGRA;
 		g_video.pixformat.bpp = sizeof(uint16_t);
 	}
-		
+	}
+	else
+	{
+		g_video.pixformat.pixfmt = GL_UNSIGNED_BYTE;
+		g_video.pixformat.pixtype = GL_RGBA;
+		g_video.pixformat.bpp = sizeof(uint16_t);
+	}
+	
 
 	glGenTextures(1, &g_video.tex_id);
 
@@ -316,9 +199,8 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, geom->max_width, geom->max_height, 0,
 				 g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
-
 	init_framebuffer(geom->max_width, geom->max_height);
+
 
 	g_video.tex_w = geom->max_width;
 	g_video.tex_h = geom->max_height;
@@ -326,7 +208,6 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 	g_video.base_h = geom->base_height;
 	g_video.aspect = geom->aspect_ratio;
 
-	refresh_vertex_data();
 	if (g_video.hw.context_reset)
 		g_video.hw.context_reset();
 
@@ -352,8 +233,9 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 	return true;
 }
 
-void resize_cb()
+vp resize_cb()
 {
+	vp vp_ = {0};
 	float aspect = g_video.aspect;
 	if (aspect <= 0)
 	{
@@ -368,9 +250,10 @@ void resize_cb()
 	}
 	unsigned x = (g_video.rend_width - width) / 2;
 	unsigned y = (g_video.rend_height - height) / 2;
-	glViewport(x, y, width, height);
-	glScissor(0, 0, g_video.rend_width, g_video.rend_height);
+    vp_ = {x,y,width,height};
+	return vp_;
 }
+
 
 static inline unsigned get_alignment(unsigned pitch)
 {
@@ -386,37 +269,17 @@ static inline unsigned get_alignment(unsigned pitch)
 void video_render()
 {
 	video_unbindfb();
-	
+	vp vpx = resize_cb();
+	glBindTexture(GL_TEXTURE_2D,g_video.tex_id);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	if(!g_video.software_rast)
-	{
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBlitFramebuffer(0, 0, g_video.base_w, g_video.base_h,  0, 0, g_video.rend_width,
-		g_video.rend_height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	}
+	glBlitFramebuffer(0,0, g_video.base_w,g_video.base_h,vpx.x,vpx.y,
+    vpx.width,vpx.height, GL_COLOR_BUFFER_BIT,GL_NEAREST);
 	else
-	{
-	resize_cb();
-	refresh_vertex_data();
-	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-	glUseProgram(g_video.g_shader.program);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-	glUniform1i(g_video.g_shader.u_tex, 0);
-	glBindVertexArray(g_video.g_shader.vao);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	GLenum error = glGetError();
-	if (error != GL_NO_ERROR)
-	{
-		//   std::cerr << error << std::endl;
-		return;
-	}
-	glBindVertexArray(0);
-	glUseProgram(0);
-
-	}
-	
-
+	glBlitFramebuffer(0,g_video.base_h,g_video.base_w,0,vpx.x,vpx.y,
+    vpx.width,vpx.height, GL_COLOR_BUFFER_BIT,GL_NEAREST);
 }
 
 void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch)
@@ -464,17 +327,4 @@ void video_deinit()
 		glDeleteRenderbuffers(1, &g_video.rbo_id);
 		g_video.rbo_id = 0;
 	}
-
-	if (g_video.g_shader.vbo)
-	{
-		glDeleteBuffers(1, &g_video.g_shader.vbo);
-		glDeleteVertexArrays(1, &g_video.g_shader.vao);
-	}
-
-	if (g_video.g_shader.program)
-		glDeleteProgram(g_video.g_shader.program);
-	if (g_video.g_shader.fshader)
-		glDeleteShader(g_video.g_shader.fshader);
-	if (g_video.g_shader.vshader)
-		glDeleteShader(g_video.g_shader.vshader);
 }
