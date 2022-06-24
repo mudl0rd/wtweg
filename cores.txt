@@ -25,7 +25,9 @@ Tested cores (known to load and play games, might not be problem-free):
 * bsnes_mercury_accuracy_libretro.dll.zip  (incomplete controllers)
 * bsnes_mercury_balanced_libretro.dll.zip  (incomplete controllers)
 * bsnes_mercury_performance_libretro.dll.zip  (incomplete controllers)
-* meteor_libretro.dll.zip (not sure if no config options, but runs great otherwise!)
+* fceumm_libretro.dll.zip (incomplete controllers)
+* nestopia_libretro.dll.zip (incomplete controllers)
+
 
 
 
@@ -39,6 +41,8 @@ Recommended cores (run perfectly):
 * vbam_libretro.dll.zip
 * vba_next_libretro.dll.zip
 * mednafen_gba_libretro.dll.zip
+* meteor_libretro.dll.zip
+* quicknes_libretro.dll.zip
 
 Untested cores:
 ========================================
@@ -77,7 +81,6 @@ fbalpha2012_libretro.dll.zip
 fbalpha2012_neogeo_libretro.dll.zip
 fbalpha_libretro.dll.zip
 fbneo_libretro.dll.zip
-fceumm_libretro.dll.zip
 fmsx_libretro.dll.zip
 freechaf_libretro.dll.zip
 freeintv_libretro.dll.zip
@@ -119,7 +122,6 @@ mrboom_libretro.dll.zip
 mu_libretro.dll.zip
 nekop2_libretro.dll.zip
 neocd_libretro.dll.zip
-nestopia_libretro.dll.zip
 np2kai_libretro.dll.zip
 nxengine_libretro.dll.zip
 o2em_libretro.dll.zip
@@ -139,7 +141,6 @@ puae2021_libretro.dll.zip
 puae_libretro.dll.zip
 px68k_libretro.dll.zip
 quasi88_libretro.dll.zip
-quicknes_libretro.dll.zip
 race_libretro.dll.zip
 reminiscence_libretro.dll.zip
 retro8_libretro.dll.zip
