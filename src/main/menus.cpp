@@ -72,6 +72,19 @@ bool loadfile(CLibretro *instance, const char *file, const char* core_file,bool 
   }
 }
 
+
+void popup_widget(bool *flag, const char* title, const char *msg)
+{
+  ImGui::OpenPopup(title);
+       if (ImGui::BeginPopupModal(title, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
+            {
+                ImGui::Text(msg);
+                ImGui::Separator();
+                if (ImGui::Button("OK", ImVec2(120,0))) { ImGui::CloseCurrentPopup();  *flag = false;}
+                ImGui::EndPopup();
+            }
+}
+
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_in, bool *isselected_inp)
 {
 
@@ -150,11 +163,9 @@ static bool aboutbox = false;
 
   if (coreselect)
   {
-    ImGui::OpenPopup("Select a core");
-    if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-      std::vector<core_info> cores_info;
+     std::vector<core_info> cores_info;
       cores_info.clear();
+      bool found = false;
       for (auto &core : instance->cores)
       {
         std::string core_ext = core.core_extensions;
@@ -163,8 +174,20 @@ static bool aboutbox = false;
         if (core_ext.find(ext) != std::string::npos)
         {
           cores_info.push_back(core);
+          found=true;
         }
       }
+    if(!found)
+    {
+
+      popup_widget(&coreselect, "Core Load Error", "There is no core to load this particular bit of content.");
+      return;
+    }
+    else
+    ImGui::OpenPopup("Select a core");
+    if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+     
       static int listbox_item_current = 0;
       ImGui::PushItemWidth(200);
       ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
@@ -212,9 +235,17 @@ static bool aboutbox = false;
   {
     ImGui::PushItemWidth(200);
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
+
+    if(!instance->core_inputbinds.size())
+    {
+      popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
+      return;
+    }
+
+
     ImGui::OpenPopup("Input Settings");
 
-    if (ImGui::BeginPopupModal("Input Settings", &inputsettings))
+    if (ImGui::BeginPopupModal("Input Settings", &inputsettings,ImGuiWindowFlags_AlwaysAutoResize))
     {
 
       std::string str2;
@@ -292,9 +323,17 @@ Genju
   {
     ImGui::PushItemWidth(200);
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
+
+    if(!instance->core_variables.size())
+    {
+      popup_widget(&coresettings, "No core settings", "There is no core settings for this particular core.");
+      return;
+    }
+
+
     ImGui::OpenPopup("Core Settings");
 
-    if (ImGui::BeginPopupModal("Core Settings", &coresettings))
+    if (ImGui::BeginPopupModal("Core Settings", &coresettings,ImGuiWindowFlags_AlwaysAutoResize))
     {
       for (auto &bind : instance->core_variables)
       {
