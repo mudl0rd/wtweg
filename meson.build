@@ -12,7 +12,7 @@ glob = run_command('python3', 'src_batch.py')
 src = glob.stdout().strip().split('\n')
 
 if host_machine.system() == 'linux'
-    dl_dep = meson.get_compiler('cpp').find_library('dl', required: true, method : 'auto')
+    dl_dep = meson.get_compiler('cpp').find_library('dl', required: true)
 else
     dl_dep = dependency('', required: false)
 endif
