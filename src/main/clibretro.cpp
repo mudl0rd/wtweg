@@ -53,25 +53,21 @@ bool CLibretro::core_saveram(const char *filename, bool save)
   if (lr_isrunning)
   {
     size_t size = retro.retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
-    if (size)
-    {
-      uint8_t *Memory = (uint8_t *)retro.retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
-      if (Memory != NULL)
-      {
-        if (save)
-          return save_data(Memory, size, filename);
-        else
-        {
-          unsigned sz;
-          std::vector<uint8_t> save_data = load_data(filename, &sz);
-          if (save_data.empty())
-            return false;
-          if(sz != size)return false;
-          memcpy(Memory,save_data.data(), sz);
-          return true;
-        }
+    uint8_t *Memory = (uint8_t *)retro.retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+    if (!size || !Memory)
+		return false;
+     if (save)
+     return save_data(Memory, size, filename);
+     else
+     {
+      unsigned sz;
+      std::vector<uint8_t> save_data = load_data(filename, &sz);
+      if (save_data.empty())
+      return false;
+      if(sz != size)return false;
+      memcpy(Memory,save_data.data(), sz);
+      return true;
       }
-    }
   }
   return false;
 }
