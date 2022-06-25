@@ -6,43 +6,25 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 * **x86 CPUs w/SSE4.1 and above**.
 * **ARM+NEON CPUs around RPI4 level and above**.
-* **OGL 3.3/OGLESv2 and above**
+* **OGL 4.6/OGLESv2 and above**
 * **Win7 and above/Linux**
 * **GCC/G++ with C++17 support**
 
 
 ## Where?
 
-[Builds compiled every Sunday, my time are here](https://www.mediafire.com/file/rp9ykqbevyobxa4/WTFweg.zip)
+**Note that these builds are radioactive-waste quality, beware!**
 
-**Note these are pre-alpha so if you use them, use at own risk**
+[Cores can be grabbed here](http://buildbot.libretro.com/nightly/windows/x86_64/latest/)
 
-## How?
+[A list of tested cores is here](https://raw.githubusercontent.com/mudlord/WTFweg/master/cores.txt)
+
+[Releases compiled every Sunday, my time are here](https://www.mediafire.com/file/rp9ykqbevyobxa4/WTFweg.zip)
 
 * "cores" is where all libretro cores go
 * "saves" is where all saves are
 * "system" is where all BIOSes/system files go
 
-
-## [Tested cores](http://buildbot.libretro.com/nightly/windows/x86_64/latest/):
-
-```
-flycast_libretro.dll
-gambatte_libretro.dll
-gearboy_libretro.dll
-genesis_plus_gx_libretro.dll
-kronos_libretro.dll
-mesen_libretro.dll
-mgba_libretro.dll
-mupen64plus_next_libretro.dll
-parallel_n64_libretro.dll
-sameboy_libretro.dll
-snes9x2002_libretro.dll
-snes9x2005_libretro.dll
-snes9x_libretro.dll
-swanstation_libretro.dll
-vbam_libretro.dll
-```
 
 ## With?
 
