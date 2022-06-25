@@ -13,7 +13,9 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 ## Where?
 
-[Releases compiled every Sunday, my time are here](https://www.mediafire.com/file/rp9ykqbevyobxa4/WTFweg.zip)
+[Builds compiled every Sunday, my time are here](https://www.mediafire.com/file/rp9ykqbevyobxa4/WTFweg.zip)
+
+**Note these are pre-alpha so if you use them, use at own risk**
 
 ## How?
 
