@@ -362,15 +362,6 @@ void init_inp()
     Joystick = SDL_GameControllerOpen(0);
 }
 
-const char *axis_arr[] =
-    {
-        "Left Stick X",
-        "Left Stick Y",
-        "Right Stick X",
-        "Right Stick Y",
-        "L Trigger",
-        "R Trigger"};
-
 struct axisarrdig
 {
     const char *name;
@@ -379,14 +370,14 @@ struct axisarrdig
 
 
 axisarrdig arr_dig[] = {
-    {"Left Stick Right", SDL_CONTROLLER_AXIS_LEFTX},
-    {"Left Stick Left", SDL_CONTROLLER_AXIS_LEFTX},
-    {"Left Stick Down", SDL_CONTROLLER_AXIS_LEFTY},
-    {"Left Stick Up", SDL_CONTROLLER_AXIS_LEFTY},
-    {"Right Stick Right", SDL_CONTROLLER_AXIS_RIGHTX},
-    {"Right Stick Left", SDL_CONTROLLER_AXIS_RIGHTX},
-    {"Right Stick Down", SDL_CONTROLLER_AXIS_RIGHTY},
-    {"Right Stick Up", SDL_CONTROLLER_AXIS_RIGHTY},
+    {"lsright", SDL_CONTROLLER_AXIS_LEFTX},
+    {"lsleft", SDL_CONTROLLER_AXIS_LEFTX},
+    {"lsdown", SDL_CONTROLLER_AXIS_LEFTY},
+    {"lsup", SDL_CONTROLLER_AXIS_LEFTY},
+    {"rsright", SDL_CONTROLLER_AXIS_RIGHTX},
+    {"rsleft", SDL_CONTROLLER_AXIS_RIGHTX},
+    {"rsdown", SDL_CONTROLLER_AXIS_RIGHTY},
+    {"rsup", SDL_CONTROLLER_AXIS_RIGHTY},
 };
 
 const int Masks[] = {SDL_HAT_UP, SDL_HAT_RIGHT, SDL_HAT_DOWN, SDL_HAT_LEFT};
@@ -461,7 +452,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                     {
                         if (axis > JOYSTICK_DEAD_ZONE)
                         {
-                            bind.joykey_desc = (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT) ? "L Trigger" : "R Trigger";
+                            bind.joykey_desc = (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT) ? "ltrigger" : "rtrigger";
                             bind.config.bits.sdl_id = a;
                             bind.val = 0;
                             bind.config.bits.joytype = joytype_::joystick_;
