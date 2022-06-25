@@ -137,14 +137,13 @@ vp resize_cb()
 	vp vp_ = {0};
 	float aspect = g_video.aspect;
 	if (aspect <= 0)
-	{
 		aspect = (float)g_video.base_w / (float)g_video.base_h;
-	}
+	
 	unsigned height = g_video.rend_height;
 	unsigned width = height * aspect;
 	if (width > g_video.rend_width)
 	{
-		height = (float)g_video.rend_width / aspect;
+		height = g_video.rend_width / aspect;
 		width = g_video.rend_width;
 	}
 	unsigned x = (g_video.rend_width - width) / 2;

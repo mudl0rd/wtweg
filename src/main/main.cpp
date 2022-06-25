@@ -107,10 +107,15 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
       }
       if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
       {
+         int w;
+          int h;
+          SDL_GL_GetDrawableSize(window, &w,
+                            &h);
         if (instance->core_isrunning())
-          video_setsize(event.window.data1, event.window.data2);
-        glViewport(0, 0, event.window.data1, event.window.data2);
-        glScissor(0, 0, event.window.data1, event.window.data2);
+          video_setsize(w, h);
+         
+        glViewport(0, 0, w, h);
+        glScissor(0, 0, w, h);
       }
       if (event.type == SDL_DROPFILE)
       {

@@ -70,6 +70,7 @@ struct retro_core{
     		{	
          	uint8_t sdl_id;
         	uint8_t joytype;
+			int16_t axistrigger;
     		} bits;
 			} config;
       };

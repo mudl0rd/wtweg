@@ -204,6 +204,7 @@ bool load_inpcfg(retro_input_descriptor *var)
 
                 bind.isanalog = (uint8_t) true;
                 bind.retro_id = axistocheck;
+                bind.config.bits.axistrigger = 0;
                 settings.bits.sdl_id = 0;
                 settings.bits.joytype = (uint8_t)joytype_::keyboard;
                 bind.val = 0;
@@ -213,6 +214,7 @@ bool load_inpcfg(retro_input_descriptor *var)
             {
                 bind.isanalog = (uint8_t) false;
                 bind.retro_id = var->id;
+                bind.config.bits.axistrigger = 0;
                 settings.bits.sdl_id = 0;
                 settings.bits.joytype = (uint8_t)joytype_::keyboard;
                 bind.val = 0;
@@ -244,6 +246,11 @@ bool load_inpcfg(retro_input_descriptor *var)
             std::string keydesc = bind.description + "_keydesc";
             ini_property_add(ini, section, (char *)keydesc.c_str(), keydesc.length(),
                              (char *)bind.joykey_desc.c_str(), bind.joykey_desc.length());
+
+            val = std::to_string(bind.config.bits.axistrigger);
+             keydesc = bind.description + "_anatrig";
+            ini_property_add(ini, section, (char *) keydesc.c_str(),  keydesc.length(),
+                             (char *)val.c_str(), val.length());
         }
         std::string numvars = std::to_string(lib->core_inputbinds.size());
         ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
@@ -275,6 +282,13 @@ bool load_inpcfg(retro_input_descriptor *var)
             int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(), keydesc.length());
             std::string keyval = ini_property_value(ini, section, pro1);
             bind.joykey_desc = keyval;
+
+
+             keydesc = bind.description + "_anatrig";
+             idx = ini_find_property(ini, section, keydesc.c_str(),
+                                        keydesc.length());
+            value = ini_property_value(ini, section, idx);
+            bind.config.bits.axistrigger = static_cast<int16_t>(std::stoi(value));
         }
     }
     ini_destroy(ini);
@@ -301,6 +315,12 @@ bool save_inpcfg()
             std::string keydesc = bind.description + "_keydesc";
             int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(), keydesc.length());
             ini_property_value_set(ini, section, pro1, bind.joykey_desc.c_str(), bind.joykey_desc.length());
+
+             keydesc = bind.description + "_anatrig";
+             idx = ini_find_property(ini, section, keydesc.c_str(),
+                                        keydesc.length());
+           value = std::to_string(bind.config.bits.axistrigger);
+           ini_property_value_set(ini, section, idx, value.c_str(), value.length());
         }
         std::string numvars = std::to_string(lib->core_inputbinds.size());
         int idx = ini_find_property(ini, section,
@@ -428,6 +448,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                         bind.joykey_desc = (axis > JOYSTICK_DEAD_ZONE) ? arr_dig[i].name : arr_dig[i + 1].name;
                         bind.config.bits.sdl_id = a;
                         bind.val = 0;
+                        bind.config.bits.axistrigger =  (axis > JOYSTICK_DEAD_ZONE) ? 0x4000:-0x4000;
                         bind.config.bits.joytype = joytype_::joystick_;
                         *isselected_inp = false;
                         ImGui::SetWindowFocus(NULL);
@@ -531,20 +552,17 @@ void poll_lr()
 
             Sint16 axis = SDL_JoystickGetAxis(Joystick, bind.config.bits.sdl_id);
             const int JOYSTICK_DEAD_ZONE = 0x4000;
-            if (bind.config.bits.sdl_id < 4)
-            {
-                if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
-                    bind.val = (bind.isanalog) ? axis : 1;
+                if(bind.isanalog)
+                bind.val = (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE) ? axis:0;
                 else
-                    bind.val = 0;
-            }
-            else
-            {
-                if (axis > JOYSTICK_DEAD_ZONE)
-                    bind.val = (bind.isanalog) ? axis : 1;
-                else
-                    bind.val = 0;
-            }
+                {
+                   if(bind.config.bits.axistrigger < 0)
+                    bind.val =(axis<-JOYSTICK_DEAD_ZONE)?1:0;
+                  else if(bind.config.bits.axistrigger > 0)
+                    bind.val =(axis>JOYSTICK_DEAD_ZONE)?1:0;
+                  else
+                  bind.val = 0;
+                }
         }
         else if (bind.config.bits.joytype == joytype_::hat)
             bind.val = SDL_JoystickGetHat(Joystick, 0) & bind.config.bits.sdl_id;
