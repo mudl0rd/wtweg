@@ -170,7 +170,7 @@ static bool key_pressed(int key)
     return keymap[sym];
 }
 
-SDL_Joystick *Joystick = NULL;
+SDL_GameController *Joystick = NULL;
 
 bool load_inpcfg(retro_input_descriptor *var)
 {
@@ -339,14 +339,14 @@ void close_inp()
 {
     if (Joystick)
     {
-        SDL_JoystickClose(Joystick);
+        SDL_GameControllerClose(Joystick);
         Joystick = nullptr;
     }
 }
 void init_inp()
 {
     if (Joystick)
-        SDL_JoystickClose(Joystick);
+        SDL_GameControllerClose(Joystick);
 
     int num = SDL_NumJoysticks();
     if (num < 1)
@@ -354,7 +354,12 @@ void init_inp()
         Joystick = nullptr;
         return;
     }
-    Joystick = SDL_JoystickOpen(0);
+
+    std::filesystem::path p(get_wtfwegname());
+    std::filesystem::path path = p / "gamecontrollerdb.txt";
+    std::string filepath = std::filesystem::absolute(path).string();
+    SDL_GameControllerAddMappingsFromFile(filepath.c_str());
+    Joystick = SDL_GameControllerOpen(0);
 }
 
 const char *axis_arr[] =
@@ -372,15 +377,16 @@ struct axisarrdig
     int axis;
 };
 
+
 axisarrdig arr_dig[] = {
-    {"Left Stick Right", 0},
-    {"Left Stick Left", 0},
-    {"Left Stick Down", 1},
-    {"Left Stick Up", 1},
-    {"Right Stick Right", 2},
-    {"Right Stick Left", 2},
-    {"Right Stick Down", 3},
-    {"Right Stick Up", 3},
+    {"Left Stick Right", SDL_CONTROLLER_AXIS_LEFTX},
+    {"Left Stick Left", SDL_CONTROLLER_AXIS_LEFTX},
+    {"Left Stick Down", SDL_CONTROLLER_AXIS_LEFTY},
+    {"Left Stick Up", SDL_CONTROLLER_AXIS_LEFTY},
+    {"Right Stick Right", SDL_CONTROLLER_AXIS_RIGHTX},
+    {"Right Stick Left", SDL_CONTROLLER_AXIS_RIGHTX},
+    {"Right Stick Down", SDL_CONTROLLER_AXIS_RIGHTY},
+    {"Right Stick Up", SDL_CONTROLLER_AXIS_RIGHTY},
 };
 
 const int Masks[] = {SDL_HAT_UP, SDL_HAT_RIGHT, SDL_HAT_DOWN, SDL_HAT_LEFT};
@@ -390,8 +396,6 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
 {
     auto lib = CLibretro::get_classinstance();
     std::string name;
-
-    int axesCount = SDL_JoystickNumAxes(Joystick);
     auto &bind = lib->core_inputbinds[selected_inp];
 
     int numkeys = 0;
@@ -410,21 +414,19 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         }
     }
 
-    for (int a = 0; a < axesCount; a++)
+    for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
     {
 
         if (bind.isanalog)
         {
             Sint16 axis = 0;
-            if (a > 4)
-                return false;
-            axis = SDL_JoystickGetAxis(Joystick, a);
-            const int JOYSTICK_DEAD_ZONE = 0x1000;
-            if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
+            axis = SDL_GameControllerGetAxis(Joystick, (SDL_GameControllerAxis) a);
+            const int JOYSTICK_DEAD_ZONE = 0x4000;
+            if (abs(axis) < JOYSTICK_DEAD_ZONE)
+            continue;
+            else
             {
-                if (a < 4)
-                {
-                    name = axis_arr[a];
+                    name = SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)a);
                     bind.joykey_desc = name;
                     bind.config.bits.sdl_id = a;
                     bind.val = 0;
@@ -432,16 +434,17 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                     *isselected_inp = false;
                     ImGui::SetWindowFocus(NULL);
                     return true;
-                }
             }
         }
         else
         {
-            Sint16 axis = SDL_JoystickGetAxis(Joystick, a);
+            Sint16 axis =SDL_GameControllerGetAxis(Joystick, (SDL_GameControllerAxis)a);
             const int JOYSTICK_DEAD_ZONE = 0x4000;
-            if (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE)
+            if (abs(axis) < JOYSTICK_DEAD_ZONE)
+            continue;
+            else
             {
-                for (int i = 0; i < 7; i++)
+                for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX+1; i++)
                 {
                     if (a == arr_dig[i].axis)
                     {
@@ -454,11 +457,11 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                         ImGui::SetWindowFocus(NULL);
                         return true;
                     }
-                    if (a >= 4)
+                    if (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT ||a == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
                     {
                         if (axis > JOYSTICK_DEAD_ZONE)
                         {
-                            bind.joykey_desc = (a > 4) ? "R Trigger" : "L Trigger";
+                            bind.joykey_desc = (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT) ? "L Trigger" : "R Trigger";
                             bind.config.bits.sdl_id = a;
                             bind.val = 0;
                             bind.config.bits.joytype = joytype_::joystick_;
@@ -472,15 +475,13 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         }
     }
 
-    int buttonsCount = SDL_JoystickNumButtons(Joystick);
 
-    for (int b = 0; b < buttonsCount; b++)
+    for (int b = 0; b < SDL_CONTROLLER_BUTTON_MAX; b++)
     {
-        int btn = SDL_JoystickGetButton(Joystick, b);
-
-        if (btn)
+        int btn =SDL_GameControllerGetButton(Joystick, (SDL_GameControllerButton) b);
+        if (btn == SDL_PRESSED)
         {
-            name += "Button " + std::to_string(b);
+            name += SDL_GameControllerGetStringForButton((SDL_GameControllerButton)b);
             bind.joykey_desc = name;
             bind.config.bits.sdl_id = b;
             bind.val = 0;
@@ -490,30 +491,6 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
             return true;
         }
     }
-
-    int hatsCount = SDL_JoystickNumHats(Joystick);
-    if (hatsCount != 1)
-        return true;
-
-    for (int h = 0; h < hatsCount; h++)
-    {
-        int hat = SDL_JoystickGetHat(Joystick, h);
-        for (size_t i = 0; i < sizeof(Masks) / sizeof(Masks[0]); i++)
-        {
-            if (hat & Masks[i])
-            {
-                name = "Hat ";
-                name += Names[i];
-                bind.joykey_desc = name;
-                bind.config.bits.sdl_id = hat;
-                bind.val = 0;
-                bind.config.bits.joytype = joytype_::hat;
-                *isselected_inp = false;
-                ImGui::SetWindowFocus(NULL);
-                return true;
-            }
-        }
-    }
     return true;
 }
 
@@ -521,11 +498,11 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 {
     if (*isselected_inp)
     {
-        if (!SDL_JoystickGetAttached(Joystick))
+        if (!SDL_GameControllerGetAttached(Joystick))
         {
             close_inp();
             init_inp();
-            SDL_JoystickUpdate();
+            SDL_GameControllerUpdate();
         }
         return checkbuttons_forui(selected_inp, isselected_inp);
     }
@@ -537,11 +514,11 @@ void poll_lr()
 {
     auto lib = CLibretro::get_classinstance();
     SDL_JoystickUpdate();
-    if (!SDL_JoystickGetAttached(Joystick))
+    if (!SDL_GameControllerGetAttached(Joystick))
     {
         close_inp();
         init_inp();
-        SDL_JoystickUpdate();
+        SDL_GameControllerUpdate();
     }
 
     for (auto &bind : lib->core_inputbinds)
@@ -549,25 +526,29 @@ void poll_lr()
 
         if (bind.config.bits.joytype == joytype_::joystick_)
         {
-
-            Sint16 axis = SDL_JoystickGetAxis(Joystick, bind.config.bits.sdl_id);
+            Sint16 axis = SDL_GameControllerGetAxis(Joystick,(SDL_GameControllerAxis) bind.config.bits.sdl_id);
             const int JOYSTICK_DEAD_ZONE = 0x4000;
                 if(bind.isanalog)
-                bind.val = (axis < -JOYSTICK_DEAD_ZONE || axis > JOYSTICK_DEAD_ZONE) ? axis:0;
+                {
+                    if (abs(axis) < JOYSTICK_DEAD_ZONE) bind.val = 0;
+                    else
+                    bind.val = axis;
+                    continue;
+                }
                 else
                 {
-                   if(bind.config.bits.axistrigger < 0)
+                    if (abs(axis) < JOYSTICK_DEAD_ZONE) bind.val = 0;
+                    else{
+                    if(bind.config.bits.axistrigger < 0)
                     bind.val =(axis<-JOYSTICK_DEAD_ZONE)?1:0;
-                  else if(bind.config.bits.axistrigger > 0)
+                    if(bind.config.bits.axistrigger > 0)
                     bind.val =(axis>JOYSTICK_DEAD_ZONE)?1:0;
-                  else
-                  bind.val = 0;
+                    }
+                    continue;
                 }
         }
-        else if (bind.config.bits.joytype == joytype_::hat)
-            bind.val = SDL_JoystickGetHat(Joystick, 0) & bind.config.bits.sdl_id;
         else if (bind.config.bits.joytype == joytype_::button)
-            bind.val = SDL_JoystickGetButton(Joystick, bind.config.bits.sdl_id);
+            bind.val = SDL_GameControllerGetButton(Joystick, (SDL_GameControllerButton)bind.config.bits.sdl_id);
         else if (bind.config.bits.joytype == joytype_::keyboard)
             bind.val = SDL_GetKeyboardState(NULL)[bind.config.bits.sdl_id];
     }
