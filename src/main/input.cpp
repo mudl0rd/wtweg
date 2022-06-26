@@ -381,9 +381,6 @@ axisarrdig arr_dig[] = {
     {"rsup", SDL_CONTROLLER_AXIS_RIGHTY},
 };
 
-const int Masks[] = {SDL_HAT_UP, SDL_HAT_RIGHT, SDL_HAT_DOWN, SDL_HAT_LEFT};
-const char *Names[] = {"Up", "Right", "Down", "Left"};
-
 bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
 {
     auto lib = CLibretro::get_classinstance();
@@ -453,6 +450,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                         if (axis > JOYSTICK_DEAD_ZONE)
                         {
                             bind.joykey_desc = (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT) ? "ltrigger" : "rtrigger";
+                            bind.config.bits.axistrigger =0x4000;
                             bind.config.bits.sdl_id = a;
                             bind.val = 0;
                             bind.config.bits.joytype = joytype_::joystick_;
@@ -530,16 +528,12 @@ void poll_lr()
         if (bind.config.bits.joytype == joytype_::joystick_)
         {
             Sint16 axis = SDL_GameControllerGetAxis(Joystick,(SDL_GameControllerAxis) bind.config.bits.sdl_id);
-            const int JOYSTICK_DEAD_ZONE = 0x4000;
+            
                 if(bind.isanalog)
-                {
-                    if (abs(axis) < JOYSTICK_DEAD_ZONE) bind.val = 0;
-                    else
                     bind.val = axis;
-                    continue;
-                }
                 else
                 {
+                    const int JOYSTICK_DEAD_ZONE = 0x4000;
                     if (abs(axis) < JOYSTICK_DEAD_ZONE) bind.val = 0;
                     else{
                     if(bind.config.bits.axistrigger < 0)
