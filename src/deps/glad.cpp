@@ -643,9 +643,6 @@
 static void* get_proc(const char *namez);
 #include <SDL2/SDL.h>
 
-typedef void* (APIENTRYP PFNWGLGETPROCADDRESSPROC_PRIVATE)(const char*);
-static PFNWGLGETPROCADDRESSPROC_PRIVATE gladGetProcAddressPtr;
-
 static
 void* get_proc(const char *namez) {
     return SDL_GL_GetProcAddress(namez);

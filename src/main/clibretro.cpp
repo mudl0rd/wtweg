@@ -268,6 +268,10 @@ CLibretro::~CLibretro()
 
 bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath)
 {
+  if (lr_isrunning)
+    core_unload();
+
+
   std::filesystem::path romzpath = ROM;
   std::filesystem::path core_path_ = corepath;
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
@@ -290,8 +294,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     
   core_config = std::filesystem::absolute(save_path).string();
 
-  if (lr_isrunning)
-    core_unload();
+  
 
   void *hDLL = SDL_LoadObject((const char *)corepath);
   if (!hDLL)
