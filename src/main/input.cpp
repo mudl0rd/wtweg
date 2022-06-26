@@ -354,10 +354,9 @@ void init_inp()
         Joystick = nullptr;
         return;
     }
-
     std::filesystem::path p(get_wtfwegname());
-    std::filesystem::path path = p / "gamecontrollerdb.txt";
-    std::filesystem::path path2 = p / "mudmaps.txt";
+    std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
+    std::filesystem::path path2 =  p.parent_path() / "mudmaps.txt";
     std::filesystem::absolute(path).string();
     SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
     SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
@@ -488,12 +487,14 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 {
     if (*isselected_inp)
     {
+        
         if (!SDL_GameControllerGetAttached(Joystick))
         {
             close_inp();
             init_inp();
             SDL_GameControllerUpdate();
         }
+        SDL_GameControllerUpdate();
         return checkbuttons_forui(selected_inp, isselected_inp);
     }
     else
@@ -503,13 +504,13 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 void poll_lr()
 {
     auto lib = CLibretro::get_classinstance();
-    SDL_JoystickUpdate();
     if (!SDL_GameControllerGetAttached(Joystick))
     {
         close_inp();
         init_inp();
         SDL_GameControllerUpdate();
     }
+    SDL_GameControllerUpdate();
 
     for (auto &bind : lib->core_inputbinds)
     {
