@@ -406,6 +406,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         }
     }
 
+    if(Joystick){
     for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
     {
 
@@ -480,6 +481,8 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
             return true;
         }
     }
+
+    }
     return true;
 }
 
@@ -487,7 +490,7 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 {
     if (*isselected_inp)
     {
-        
+        if(Joystick){
         if (!SDL_GameControllerGetAttached(Joystick))
         {
             close_inp();
@@ -495,6 +498,8 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
             SDL_GameControllerUpdate();
         }
         SDL_GameControllerUpdate();
+        }
+        
         return checkbuttons_forui(selected_inp, isselected_inp);
     }
     else
@@ -504,6 +509,11 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 void poll_lr()
 {
     auto lib = CLibretro::get_classinstance();
+
+    if(Joystick)
+    {
+
+    
     if (!SDL_GameControllerGetAttached(Joystick))
     {
         close_inp();
@@ -511,10 +521,12 @@ void poll_lr()
         SDL_GameControllerUpdate();
     }
     SDL_GameControllerUpdate();
+    }
 
     for (auto &bind : lib->core_inputbinds)
     {
 
+        if(Joystick){
         if (bind.config.bits.joytype == joytype_::joystick_)
         {
             Sint16 axis = SDL_GameControllerGetAxis(Joystick,(SDL_GameControllerAxis) bind.config.bits.sdl_id);
@@ -540,7 +552,8 @@ void poll_lr()
         }
         else if (bind.config.bits.joytype == joytype_::button)
             bind.val = SDL_GameControllerGetButton(Joystick, (SDL_GameControllerButton)bind.config.bits.sdl_id);
-        else if (bind.config.bits.joytype == joytype_::keyboard)
+        }
+        if (bind.config.bits.joytype == joytype_::keyboard)
             bind.val = SDL_GetKeyboardState(NULL)[bind.config.bits.sdl_id];
     }
 }

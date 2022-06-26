@@ -255,7 +255,8 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 			g_video.pitch = pitch;
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(width * g_video.pixformat.bpp));
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
-		glTexImage2D(GL_TEXTURE_2D, 0, g_video.pixformat.pixtype, width, height, 0, g_video.pixformat.pixtype, g_video.pixformat.pixfmt, data);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
+						g_video.pixformat.pixfmt, data);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
 }
