@@ -357,8 +357,10 @@ void init_inp()
 
     std::filesystem::path p(get_wtfwegname());
     std::filesystem::path path = p / "gamecontrollerdb.txt";
-    std::string filepath = std::filesystem::absolute(path).string();
-    SDL_GameControllerAddMappingsFromFile(filepath.c_str());
+    std::filesystem::path path2 = p / "mudmaps.txt";
+    std::filesystem::absolute(path).string();
+    SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
+    SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
     Joystick = SDL_GameControllerOpen(0);
 }
 
@@ -388,7 +390,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
     auto lib = CLibretro::get_classinstance();
     std::string name;
     auto &bind = lib->core_inputbinds[selected_inp];
-
+    const int JOYSTICK_DEAD_ZONE = 0x4000;
     int numkeys = 0;
     const Uint8 *keyboard = SDL_GetKeyboardState(&numkeys);
     for (int i = 0; i < numkeys; i++)
@@ -412,7 +414,6 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         {
             Sint16 axis = 0;
             axis = SDL_GameControllerGetAxis(Joystick, (SDL_GameControllerAxis) a);
-            const int JOYSTICK_DEAD_ZONE = 0x4000;
             if (abs(axis) < JOYSTICK_DEAD_ZONE)
             continue;
             else
@@ -430,7 +431,6 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         else
         {
             Sint16 axis =SDL_GameControllerGetAxis(Joystick, (SDL_GameControllerAxis)a);
-            const int JOYSTICK_DEAD_ZONE = 0x4000;
             if (abs(axis) < JOYSTICK_DEAD_ZONE)
             continue;
             else
@@ -465,7 +465,6 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
             }
         }
     }
-
 
     for (int b = 0; b < SDL_CONTROLLER_BUTTON_MAX; b++)
     {
