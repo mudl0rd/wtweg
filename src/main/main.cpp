@@ -91,7 +91,6 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
     // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
     SDL_Event event;
-
     while (SDL_PollEvent(&event) != 0)
     {
       
@@ -100,11 +99,38 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         done = true;
       if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
         done = true;
+      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F12)
+      {
+       static bool window_fs = false;
+       if(!window_fs)
+       {
+       SDL_SetWindowResizable(window, SDL_FALSE);
+       SDL_SetWindowPosition(window, 0, 0);
+       SDL_SetWindowSize(window, dm.w, dm.h);
+    }
+    else
+    {
+      if(instance->core_isrunning())
+      {
+        video_restoresz();
+      }
+      else
+      SDL_SetWindowSize(window, 1280, 720);
+      SDL_SetWindowResizable(window, SDL_TRUE);
+      SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+
+    }
+    window_fs= !window_fs;
+        break;
+      }
+
+
       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
       {
         show_menu = !show_menu;
         break;
       }
+
       if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
       {
          int w;

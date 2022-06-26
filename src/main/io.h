@@ -14,6 +14,7 @@ void audio_destroy();
 void video_render();
 void video_bindfb();
 void video_unbindfb();
+void video_restoresz();
 bool video_init(const struct retro_game_geometry* geom, SDL_Window *window);
 void video_refresh(const void* data, unsigned width, unsigned height, unsigned pitch);
 void video_setsize(unsigned width,unsigned height);

@@ -202,14 +202,26 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 		g_video.hw.context_reset();
 
 	if (!g_video.rend_width)
-		SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
+	SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
 	vp vpx = resize_cb();
 
 	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, vpx.width,
 					  vpx.height);
+
 	return true;
+}
+
+
+void video_restoresz()
+{
+	g_video.rend_width = 1280;
+	g_video.rend_height=720;
+	vp vpx = resize_cb();
+	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, vpx.width,
+					  vpx.height);
+	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 }
 
 
