@@ -507,11 +507,6 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 void poll_lr()
 {
     auto lib = CLibretro::get_classinstance();
-
-    if(Joystick)
-    {
-
-    
     if (!SDL_GameControllerGetAttached(Joystick))
     {
         close_inp();
@@ -519,7 +514,6 @@ void poll_lr()
         SDL_GameControllerUpdate();
     }
     SDL_GameControllerUpdate();
-    }
 
     for (auto &bind : lib->core_inputbinds)
     {
