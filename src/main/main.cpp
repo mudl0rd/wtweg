@@ -101,24 +101,23 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         done = true;
       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F12)
       {
-       static bool window_fs = false;
-       if(!window_fs)
+        if(instance->core_isrunning())
+        {
+        static bool window_fs = false;
+        if(!window_fs)
        {
        SDL_SetWindowResizable(window, SDL_FALSE);
        SDL_SetWindowPosition(window, 0, 0);
        SDL_SetWindowSize(window, dm.w, dm.h);
-    }
+      }
     else
     {
-      if(instance->core_isrunning())
-        video_restoresz();
-      else
-      SDL_SetWindowSize(window, 1280, 720);
+      video_restoresz();
       SDL_SetWindowResizable(window, SDL_TRUE);
       SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-
     }
-    window_fs= !window_fs;
+     window_fs= !window_fs;
+        }
         break;
     }
 
