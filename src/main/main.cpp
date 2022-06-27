@@ -99,29 +99,27 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         done = true;
       if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
         done = true;
-      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F12)
+      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2)
       {
        static bool window_fs = false;
-       if(!window_fs)
-       {
-       SDL_SetWindowResizable(window, SDL_FALSE);
-       SDL_SetWindowPosition(window, 0, 0);
-       SDL_SetWindowSize(window, dm.w, dm.h);
-    }
-    else
-    {
       if(instance->core_isrunning())
       {
+         if(!window_fs)
+       {
+        SDL_SetWindowResizable(window, SDL_FALSE);
+       SDL_SetWindowPosition(window, 0, 0);
+       SDL_SetWindowSize(window, dm.w, dm.h);
         video_restoresz();
-      }
+       }
       else
+      {
       SDL_SetWindowSize(window, 1280, 720);
       SDL_SetWindowResizable(window, SDL_TRUE);
       SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-
+       window_fs= !window_fs;
+      }
     }
-    window_fs= !window_fs;
-        break;
+    break;
       }
 
 
@@ -133,10 +131,8 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 
       if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
       {
-         int w;
-          int h;
-          SDL_GL_GetDrawableSize(window, &w,
-                            &h);
+         int w = event.window.data1;
+        int h= event.window.data2;
         if (instance->core_isrunning())
           video_setsize(w, h);
          

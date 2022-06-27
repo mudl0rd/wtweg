@@ -136,9 +136,6 @@ vp resize_cb()
 {
 	vp vp_ = {0};
 	float aspect = g_video.aspect;
-	if (aspect <= 0)
-		aspect = (float)g_video.base_w / (float)g_video.base_h;
-	
 	unsigned height = g_video.rend_height;
 	unsigned width = height * aspect;
 	if (width > g_video.rend_width)
@@ -219,8 +216,7 @@ void video_restoresz()
 	g_video.rend_width = 1280;
 	g_video.rend_height=720;
 	vp vpx = resize_cb();
-	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, vpx.width,
-					  vpx.height);
+	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, vpx.width,vpx.height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 }
 
