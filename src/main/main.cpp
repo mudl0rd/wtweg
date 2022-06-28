@@ -17,26 +17,6 @@ bool isselected_inp = false;
 SDL_DisplayMode dm;
 
 
-bool fulls(bool fs, SDL_Window *window){
-  #ifdef _WIN32
-  //DWM fucks with Windows 10/11 so do this.
-    if(fs){
-       SDL_SetWindowResizable(window, SDL_FALSE);
-       SDL_SetWindowPosition(window, 0, 0);
-       SDL_SetWindowSize(window, dm.w, dm.h);
-      }
-    else
-    {
-      video_restoresz();
-      SDL_SetWindowResizable(window, SDL_TRUE);
-      SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    }
-  #else
-  SDL_SetWindowFullscreen(window,fs?SDL_WINDOW_FULLSCREEN_DESKTOP:0);
-  #endif
-}
-
-
 
 void rendermenu(CLibretro *instance,SDL_Window *window, bool show_menu)
 {
@@ -125,8 +105,18 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         if(instance->core_isrunning())
         {
         static bool window_fs = false;
+        if(!window_fs){
+       SDL_SetWindowResizable(window, SDL_FALSE);
+       SDL_SetWindowPosition(window, 0, 0);
+       SDL_SetWindowSize(window, dm.w, dm.h);
+      }
+    else
+    {
+      video_restoresz();
+      SDL_SetWindowResizable(window, SDL_TRUE);
+      SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    }
         window_fs= !window_fs;
-        fulls(window_fs,window);
         }
         break;
     }
