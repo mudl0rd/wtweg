@@ -14,6 +14,27 @@
 #define HEIGHT 720
 int selected_inp = 0;
 bool isselected_inp = false;
+SDL_DisplayMode dm;
+
+
+bool fulls(bool fs, SDL_Window *window){
+  #ifdef _WIN32
+  //DWM fucks with Windows 10/11 so do this.
+    if(fs){
+       SDL_SetWindowResizable(window, SDL_FALSE);
+       SDL_SetWindowPosition(window, 0, 0);
+       SDL_SetWindowSize(window, dm.w, dm.h);
+      }
+    else
+    {
+      video_restoresz();
+      SDL_SetWindowResizable(window, SDL_TRUE);
+      SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    }
+  #else
+  SDL_SetWindowFullscreen(window,fs?SDL_WINDOW_FULLSCREEN_DESKTOP:0);
+  #endif
+}
 
 
 
@@ -52,7 +73,7 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   SDL_GL_MakeCurrent(window, gl_context);
   gladLoadGL();
 
-  SDL_DisplayMode dm;
+  
   SDL_GetDesktopDisplayMode(0, &dm);
   int swap=1;
   swap = (int)dm.refresh_rate / (int)60;
@@ -104,19 +125,8 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         if(instance->core_isrunning())
         {
         static bool window_fs = false;
-        if(!window_fs)
-       {
-       SDL_SetWindowResizable(window, SDL_FALSE);
-       SDL_SetWindowPosition(window, 0, 0);
-       SDL_SetWindowSize(window, dm.w, dm.h);
-      }
-    else
-    {
-      video_restoresz();
-      SDL_SetWindowResizable(window, SDL_TRUE);
-      SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    }
-     window_fs= !window_fs;
+        window_fs= !window_fs;
+        fulls(window_fs,window);
         }
         break;
     }

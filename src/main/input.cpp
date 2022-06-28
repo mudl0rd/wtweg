@@ -497,7 +497,6 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
         }
         SDL_GameControllerUpdate();
         }
-        
         return checkbuttons_forui(selected_inp, isselected_inp);
     }
     else
