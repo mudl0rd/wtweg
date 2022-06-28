@@ -367,7 +367,7 @@ Genju
 
             int total_w = descript.length();
             ImGui::Text("%s", descript.c_str());
-            ImGui::SameLine(450);
+            ImGui::SameLine(650 - 200);
             ImGui::SetNextItemWidth(total_w);
             if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
             {
