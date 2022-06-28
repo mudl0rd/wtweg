@@ -48,23 +48,22 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-  float ddpi, hdpi, vdpi;
-   SDL_GetDisplayDPI(0, &ddpi, &hdpi, &vdpi); 
-   float dpi_scaling = ddpi / 72.f;
-    SDL_Rect display_bounds;
-    SDL_GetDisplayUsableBounds(0, &display_bounds);
-    int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI|SDL_WINDOW_RESIZABLE);
-  SDL_Window *window = SDL_CreateWindow("WTFweg", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, win_w, win_h, window_flags);
+  SDL_Window *window = SDL_CreateWindow("WTFweg", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
   gladLoadGL();
 
-
-   
+  int window_indx = SDL_GetWindowDisplayIndex(window);
+   float ddpi, hdpi, vdpi;
+   SDL_GetDisplayDPI(window_indx, &ddpi, &hdpi, &vdpi); 
+   float dpi_scaling = ddpi / 72.f;
+    SDL_Rect display_bounds;
+    SDL_GetDisplayUsableBounds(window_indx, &display_bounds);
+    int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
 
   
-  SDL_GetDesktopDisplayMode(0, &dm);
+  SDL_GetDesktopDisplayMode(window_indx, &dm);
   int swap=1;
   swap = (int)dm.refresh_rate / (int)60;
   float refreshtarget = dm.refresh_rate/swap;
@@ -78,14 +77,12 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   ImGuiIO &io = ImGui::GetIO();
   (void)io;
   ImGui::StyleColorsDark();
-  ImFont* font = io.Fonts->AddFontFromMemoryTTF((void*)Roboto_Regular_ttf,1048576, dpi_scaling * 12.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-
-
+  io.Fonts->AddFontFromMemoryTTF((void*)Roboto_Regular_ttf,1048576, dpi_scaling*12.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+  ImGuiStyle * style = &ImGui::GetStyle();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
+  style->ScaleAllSizes(dpi_scaling);
   auto instance = CLibretro::get_classinstance(window);
-
-  
 
   // Main loop
 
