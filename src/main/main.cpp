@@ -55,13 +55,17 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   gladLoadGL();
 
   int window_indx = SDL_GetWindowDisplayIndex(window);
-   float ddpi, hdpi, vdpi;
+  float ddpi=-1, hdpi=-1, vdpi=-1;
+ SDL_DisplayMode DM;
+SDL_GetCurrentDisplayMode(window_indx, &DM);
+
+
+
    SDL_GetDisplayDPI(window_indx, &ddpi, &hdpi, &vdpi); 
-   float dpi_scaling = ddpi / 72.f;
+   float dpi_scaling = hdpi / 72.f;
     SDL_Rect display_bounds;
     SDL_GetDisplayUsableBounds(window_indx, &display_bounds);
     int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
-
   
   SDL_GetDesktopDisplayMode(window_indx, &dm);
   int swap=1;
