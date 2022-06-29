@@ -34,6 +34,57 @@ void rendermenu(CLibretro *instance,SDL_Window *window, bool show_menu)
   SDL_GL_SwapWindow(window);
 }
 
+#ifndef _WIN32
+
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/Xresource.h>
+
+
+double GetMonitorDPI(SDL_window* monitor)
+{
+     SDL_SysWMinfo info;
+SDL_GetWindowWMInfo( monitor, &info);
+    char *resourceString = XResourceManagerString(info.x11.display);
+    XrmDatabase db;
+    XrmValue value;
+    char *type = NULL;
+    double dpi = 0.0;
+
+    XrmInitialize(); /* Need to initialize the DB before calling Xrm* functions */
+
+    db = XrmGetStringDatabase(resourceString);
+
+    if (resourceString) {
+        printf("Entire DB:\n%s\n", resourceString);
+        if (XrmGetResource(db, "Xft.dpi", "String", &type, &value) == True) {
+            if (value.addr) {
+                dpi = atof(value.addr);
+            }
+        }
+    }
+
+    printf("DPI: %f\n", dpi);
+    return dpi;
+}
+#endif
+
+void GetDisplayDPI(SDL_Window* window, float* dpi)
+{
+    float kSysDefaultDpi =
+#if defined(_WIN32)
+       96.0;
+#else
+        GetMonitorDPI(monitor);
+#endif
+ 
+    if (SDL_GetDisplayDPI(0, NULL, dpi, NULL) != 0)
+    {
+        // Failed to get DPI, so just return the default value.
+        if (dpi) *dpi = kSysDefaultDpi;
+    }
+}
+
 int main2(const char* rom, const char* core,bool pergame)
 {
 if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
@@ -55,14 +106,12 @@ if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   gladLoadGL();
 
   int window_indx = SDL_GetWindowDisplayIndex(window);
-  float ddpi=-1, hdpi=-1, vdpi=-1;
+  float ddpi=-1;
  SDL_DisplayMode DM;
 SDL_GetCurrentDisplayMode(window_indx, &DM);
+GetDisplayDPI(window, &ddpi);
 
-
-
-   SDL_GetDisplayDPI(window_indx, &ddpi, &hdpi, &vdpi); 
-   float dpi_scaling = hdpi / 72.f;
+   float dpi_scaling = ddpi / 72.f;
     SDL_Rect display_bounds;
     SDL_GetDisplayUsableBounds(window_indx, &display_bounds);
     int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
@@ -81,7 +130,7 @@ SDL_GetCurrentDisplayMode(window_indx, &DM);
   ImGuiIO &io = ImGui::GetIO();
   (void)io;
   ImGui::StyleColorsDark();
-  io.Fonts->AddFontFromMemoryTTF((void*)Roboto_Regular_ttf,1048576, dpi_scaling*12.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+  io.Fonts->AddFontFromMemoryTTF((void*)Roboto_Regular_ttf,sizeof(Roboto_Regular_ttf), dpi_scaling*12.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
   ImGuiStyle * style = &ImGui::GetStyle();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
