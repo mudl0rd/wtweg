@@ -191,7 +191,8 @@ bool load_inpcfg(retro_input_descriptor *var)
     while (var->description != NULL && var->port == 0)
     {
 
-        if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD))
+        if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD) ||
+            (var->device == RETRO_DEVICE_KEYBOARD))
         {
 
             coreinput_bind bind;
@@ -220,7 +221,7 @@ bool load_inpcfg(retro_input_descriptor *var)
                 bind.val = 0;
                 bind.joykey_desc = "None";
             }
-            else if (var->device == RETRO_DEVICE_JOYPAD)
+            else if (var->device == RETRO_DEVICE_JOYPAD || var->device == RETRO_DEVICE_KEYBOARD)
             {
                 bind.isanalog = (uint8_t) false;
                 bind.retro_id = var->id;
