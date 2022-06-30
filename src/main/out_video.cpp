@@ -193,7 +193,10 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 	g_video.tex_h = geom->max_height;
 	g_video.base_w = geom->base_width;
 	g_video.base_h = geom->base_height;
-	g_video.aspect = geom->aspect_ratio;
+	if (geom->aspect_ratio == 0)
+		g_video.aspect = geom->base_width / geom->base_height;
+	else
+		g_video.aspect = geom->aspect_ratio;
 
 	if (g_video.hw.context_reset)
 		g_video.hw.context_reset();
@@ -249,6 +252,8 @@ void video_render()
 
 void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch)
 {
+	if (data == NULL)
+		return;
 	if (g_video.base_w != width || g_video.base_h != height)
 	{
 		g_video.base_h = height;
