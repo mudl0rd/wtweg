@@ -265,6 +265,12 @@ CLibretro::~CLibretro()
   core_unload();
 }
 
+void CLibretro::core_changinpt(int dev)
+{
+  if (lr_isrunning)
+    retro.retro_set_controller_port_device(0, dev);
+}
+
 bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath)
 {
   if (lr_isrunning)
@@ -355,9 +361,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
     return false;
   }
-
+  core_changinpt(RETRO_DEVICE_JOYPAD);
   retro.retro_get_system_info(&system);
-  retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   retro.retro_get_system_av_info(&av);
 
   SDL_DisplayMode dm;

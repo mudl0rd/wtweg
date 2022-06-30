@@ -21,6 +21,16 @@ struct key_map
     enum retro_key rk;
 };
 
+struct mousiebind
+{
+    int rel_x;
+    int rel_y;
+    int abs_x;
+    int abs_y;
+    Uint32 buttons;
+};
+mousiebind mousiez = {0};
+
 const struct key_map key_map_[] = {
     {SDLK_BACKSPACE, RETROK_BACKSPACE},
     {SDLK_TAB, RETROK_TAB},
@@ -248,8 +258,8 @@ bool load_inpcfg(retro_input_descriptor *var)
                              (char *)bind.joykey_desc.c_str(), bind.joykey_desc.length());
 
             val = std::to_string(bind.config.bits.axistrigger);
-             keydesc = bind.description + "_anatrig";
-            ini_property_add(ini, section, (char *) keydesc.c_str(),  keydesc.length(),
+            keydesc = bind.description + "_anatrig";
+            ini_property_add(ini, section, (char *)keydesc.c_str(), keydesc.length(),
                              (char *)val.c_str(), val.length());
         }
         std::string numvars = std::to_string(lib->core_inputbinds.size());
@@ -283,10 +293,9 @@ bool load_inpcfg(retro_input_descriptor *var)
             std::string keyval = ini_property_value(ini, section, pro1);
             bind.joykey_desc = keyval;
 
-
-             keydesc = bind.description + "_anatrig";
-             idx = ini_find_property(ini, section, keydesc.c_str(),
-                                        keydesc.length());
+            keydesc = bind.description + "_anatrig";
+            idx = ini_find_property(ini, section, keydesc.c_str(),
+                                    keydesc.length());
             value = ini_property_value(ini, section, idx);
             bind.config.bits.axistrigger = static_cast<int16_t>(std::stoi(value));
         }
@@ -316,11 +325,11 @@ bool save_inpcfg()
             int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(), keydesc.length());
             ini_property_value_set(ini, section, pro1, bind.joykey_desc.c_str(), bind.joykey_desc.length());
 
-             keydesc = bind.description + "_anatrig";
-             idx = ini_find_property(ini, section, keydesc.c_str(),
-                                        keydesc.length());
-           value = std::to_string(bind.config.bits.axistrigger);
-           ini_property_value_set(ini, section, idx, value.c_str(), value.length());
+            keydesc = bind.description + "_anatrig";
+            idx = ini_find_property(ini, section, keydesc.c_str(),
+                                    keydesc.length());
+            value = std::to_string(bind.config.bits.axistrigger);
+            ini_property_value_set(ini, section, idx, value.c_str(), value.length());
         }
         std::string numvars = std::to_string(lib->core_inputbinds.size());
         int idx = ini_find_property(ini, section,
@@ -356,7 +365,7 @@ void init_inp()
     }
     std::filesystem::path p(get_wtfwegname());
     std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
-    std::filesystem::path path2 =  p.parent_path() / "mudmaps.txt";
+    std::filesystem::path path2 = p.parent_path() / "mudmaps.txt";
     std::filesystem::absolute(path).string();
     SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
     SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
@@ -368,7 +377,6 @@ struct axisarrdig
     const char *name;
     int axis;
 };
-
 
 axisarrdig arr_dig[] = {
     {"lsright", SDL_CONTROLLER_AXIS_LEFTX},
@@ -403,18 +411,19 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
         }
     }
 
-    if(Joystick){
-    for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
+    if (Joystick)
     {
-
-        if (bind.isanalog)
+        for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
         {
-            Sint16 axis = 0;
-            axis = SDL_GameControllerGetAxis(Joystick, (SDL_GameControllerAxis) a);
-            if (abs(axis) < JOYSTICK_DEAD_ZONE)
-            continue;
-            else
+
+            if (bind.isanalog)
             {
+                Sint16 axis = 0;
+                axis = SDL_GameControllerGetAxis(Joystick, (SDL_GameControllerAxis)a);
+                if (abs(axis) < JOYSTICK_DEAD_ZONE)
+                    continue;
+                else
+                {
                     name = SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)a);
                     bind.joykey_desc = name;
                     bind.config.bits.sdl_id = a;
@@ -423,63 +432,62 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp)
                     *isselected_inp = false;
                     ImGui::SetWindowFocus(NULL);
                     return true;
+                }
             }
-        }
-        else
-        {
-            Sint16 axis =SDL_GameControllerGetAxis(Joystick, (SDL_GameControllerAxis)a);
-            if (abs(axis) < JOYSTICK_DEAD_ZONE)
-            continue;
             else
             {
-                for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX+1; i++)
+                Sint16 axis = SDL_GameControllerGetAxis(Joystick, (SDL_GameControllerAxis)a);
+                if (abs(axis) < JOYSTICK_DEAD_ZONE)
+                    continue;
+                else
                 {
-                    if (a == arr_dig[i].axis)
+                    for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX + 1; i++)
                     {
-                        bind.joykey_desc = (axis > JOYSTICK_DEAD_ZONE) ? arr_dig[i].name : arr_dig[i + 1].name;
-                        bind.config.bits.sdl_id = a;
-                        bind.val = 0;
-                        bind.config.bits.axistrigger =  (axis > JOYSTICK_DEAD_ZONE) ? 0x4000:-0x4000;
-                        bind.config.bits.joytype = joytype_::joystick_;
-                        *isselected_inp = false;
-                        ImGui::SetWindowFocus(NULL);
-                        return true;
-                    }
-                    if (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT ||a == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-                    {
-                        if (axis > JOYSTICK_DEAD_ZONE)
+                        if (a == arr_dig[i].axis)
                         {
-                            bind.joykey_desc = (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT) ? "ltrigger" : "rtrigger";
-                            bind.config.bits.axistrigger =0x4000;
+                            bind.joykey_desc = (axis > JOYSTICK_DEAD_ZONE) ? arr_dig[i].name : arr_dig[i + 1].name;
                             bind.config.bits.sdl_id = a;
                             bind.val = 0;
+                            bind.config.bits.axistrigger = (axis > JOYSTICK_DEAD_ZONE) ? 0x4000 : -0x4000;
                             bind.config.bits.joytype = joytype_::joystick_;
                             *isselected_inp = false;
                             ImGui::SetWindowFocus(NULL);
                             return true;
                         }
+                        if (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT || a == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+                        {
+                            if (axis > JOYSTICK_DEAD_ZONE)
+                            {
+                                bind.joykey_desc = (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT) ? "ltrigger" : "rtrigger";
+                                bind.config.bits.axistrigger = 0x4000;
+                                bind.config.bits.sdl_id = a;
+                                bind.val = 0;
+                                bind.config.bits.joytype = joytype_::joystick_;
+                                *isselected_inp = false;
+                                ImGui::SetWindowFocus(NULL);
+                                return true;
+                            }
+                        }
                     }
                 }
             }
         }
-    }
 
-    for (int b = 0; b < SDL_CONTROLLER_BUTTON_MAX; b++)
-    {
-        int btn =SDL_GameControllerGetButton(Joystick, (SDL_GameControllerButton) b);
-        if (btn == SDL_PRESSED)
+        for (int b = 0; b < SDL_CONTROLLER_BUTTON_MAX; b++)
         {
-            name += SDL_GameControllerGetStringForButton((SDL_GameControllerButton)b);
-            bind.joykey_desc = name;
-            bind.config.bits.sdl_id = b;
-            bind.val = 0;
-            bind.config.bits.joytype = joytype_::button;
-            *isselected_inp = false;
-            ImGui::SetWindowFocus(NULL);
-            return true;
+            int btn = SDL_GameControllerGetButton(Joystick, (SDL_GameControllerButton)b);
+            if (btn == SDL_PRESSED)
+            {
+                name += SDL_GameControllerGetStringForButton((SDL_GameControllerButton)b);
+                bind.joykey_desc = name;
+                bind.config.bits.sdl_id = b;
+                bind.val = 0;
+                bind.config.bits.joytype = joytype_::button;
+                *isselected_inp = false;
+                ImGui::SetWindowFocus(NULL);
+                return true;
+            }
         }
-    }
-
     }
     return true;
 }
@@ -488,14 +496,15 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
 {
     if (*isselected_inp)
     {
-        if(Joystick){
-        if (!SDL_GameControllerGetAttached(Joystick))
+        if (Joystick)
         {
-            close_inp();
-            init_inp();
+            if (!SDL_GameControllerGetAttached(Joystick))
+            {
+                close_inp();
+                init_inp();
+                SDL_GameControllerUpdate();
+            }
             SDL_GameControllerUpdate();
-        }
-        SDL_GameControllerUpdate();
         }
         return checkbuttons_forui(selected_inp, isselected_inp);
     }
@@ -514,31 +523,37 @@ void poll_lr()
     }
     SDL_GameControllerUpdate();
 
+    mousiez.buttons = SDL_GetRelativeMouseState(&mousiez.rel_x, &mousiez.rel_y);
+    SDL_GetMouseState(&mousiez.abs_x, &mousiez.abs_y);
+
     for (auto &bind : lib->core_inputbinds)
     {
 
-        if(Joystick){
-        if (bind.config.bits.joytype == joytype_::joystick_)
+        if (Joystick)
         {
-            Sint16 axis = SDL_GameControllerGetAxis(Joystick,(SDL_GameControllerAxis) bind.config.bits.sdl_id);
-            
-                if(bind.isanalog)
+            if (bind.config.bits.joytype == joytype_::joystick_)
+            {
+                Sint16 axis = SDL_GameControllerGetAxis(Joystick, (SDL_GameControllerAxis)bind.config.bits.sdl_id);
+
+                if (bind.isanalog)
                     bind.val = axis;
                 else
                 {
                     const int JOYSTICK_DEAD_ZONE = 0x4000;
-                    if (abs(axis) < JOYSTICK_DEAD_ZONE) bind.val = 0;
-                    else{
-                    if(bind.config.bits.axistrigger < 0)
-                    bind.val =(axis<-JOYSTICK_DEAD_ZONE)?1:0;
-                    if(bind.config.bits.axistrigger > 0)
-                    bind.val =(axis>JOYSTICK_DEAD_ZONE)?1:0;
+                    if (abs(axis) < JOYSTICK_DEAD_ZONE)
+                        bind.val = 0;
+                    else
+                    {
+                        if (bind.config.bits.axistrigger < 0)
+                            bind.val = (axis < -JOYSTICK_DEAD_ZONE) ? 1 : 0;
+                        if (bind.config.bits.axistrigger > 0)
+                            bind.val = (axis > JOYSTICK_DEAD_ZONE) ? 1 : 0;
                     }
                     continue;
                 }
-        }
-        else if (bind.config.bits.joytype == joytype_::button)
-            bind.val = SDL_GameControllerGetButton(Joystick, (SDL_GameControllerButton)bind.config.bits.sdl_id);
+            }
+            else if (bind.config.bits.joytype == joytype_::button)
+                bind.val = SDL_GameControllerGetButton(Joystick, (SDL_GameControllerButton)bind.config.bits.sdl_id);
         }
         if (bind.config.bits.joytype == joytype_::keyboard)
             bind.val = SDL_GetKeyboardState(NULL)[bind.config.bits.sdl_id];
@@ -552,11 +567,9 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         return 0;
     auto lib = CLibretro::get_classinstance();
 
-    if (device == RETRO_DEVICE_MOUSE)
+    if (device == RETRO_DEVICE_MOUSE || device == RETRO_DEVICE_LIGHTGUN)
     {
-        int x = 0;
-        int y = 0;
-        Uint8 btn = SDL_GetRelativeMouseState(&x, &y);
+        Uint8 btn = mousiez.buttons;
         switch (id)
         {
         case RETRO_DEVICE_ID_MOUSE_LEFT:
@@ -564,9 +577,9 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         case RETRO_DEVICE_ID_MOUSE_RIGHT:
             return (SDL_BUTTON(SDL_BUTTON_RIGHT) & btn);
         case RETRO_DEVICE_ID_MOUSE_X:
-            return x;
+            return mousiez.rel_x;
         case RETRO_DEVICE_ID_MOUSE_Y:
-            return y;
+            return mousiez.rel_y;
         case RETRO_DEVICE_ID_MOUSE_MIDDLE:
             return (SDL_BUTTON(SDL_BUTTON_MIDDLE) & btn);
         case RETRO_DEVICE_ID_MOUSE_BUTTON_4:
@@ -575,6 +588,35 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
             return (SDL_BUTTON(SDL_BUTTON_X2) & btn);
         default:
             return 0;
+        }
+    }
+
+    if (device == RETRO_DEVICE_POINTER)
+    {
+        vp widthheight = resize_cb();
+
+        const int edge_detect = 32700;
+        int scaled_x = -0x8000; /* OOB */
+        int scaled_y = -0x8000; /* OOB */
+        bool inside = false;
+        if (mousiez.abs_x >= 0 && mousiez.abs_x <= widthheight.width)
+            scaled_x = ((2 * mousiez.abs_x * 0x7fff) / widthheight.width) - 0x7fff;
+        if (mousiez.abs_y >= 0 && mousiez.abs_y <= widthheight.height)
+            scaled_y = ((2 * mousiez.abs_y * 0x7fff) / widthheight.height) - 0x7fff;
+        mousiez.abs_x -= widthheight.x;
+        mousiez.abs_y -= widthheight.y;
+        inside = (scaled_x >= -edge_detect) && (scaled_y >= -edge_detect) &&
+                 (scaled_x <= edge_detect) && (scaled_y <= edge_detect);
+        switch (id)
+        {
+        case RETRO_DEVICE_ID_POINTER_X:
+            return scaled_x;
+        case RETRO_DEVICE_ID_POINTER_Y:
+            return scaled_y;
+        case RETRO_DEVICE_ID_POINTER_PRESSED:
+            return (SDL_BUTTON(SDL_BUTTON_LEFT) & mousiez.buttons);
+        case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
+            return !inside;
         }
     }
 
@@ -599,7 +641,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
                 return bind.val;
         }
     }
-    else if (device == RETRO_DEVICE_JOYPAD)
+    if (device == RETRO_DEVICE_JOYPAD)
     {
         for (auto &bind : lib->core_inputbinds)
         {

@@ -143,6 +143,7 @@ public:
 
 	void poll();
 
+	void core_changinpt(int dev);
 	bool core_isrunning();
 	bool core_load(char *ROM, bool game_specific_settings, char *corepath);
 	void core_unload();

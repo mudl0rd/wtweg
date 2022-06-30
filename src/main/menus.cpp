@@ -21,7 +21,9 @@ enum
   digi_pad,
   ana_pad,
   mousie,
-  keyboard
+  input_keyboard,
+  lightgun,
+  pointer
 };
 int controller_type = digi_pad;
 
@@ -132,18 +134,39 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
       ImGui::Separator();
       if (ImGui::BeginMenu("Input device"))
       {
-        if (ImGui::BeginMenu("Joypad"))
+        if (ImGui::MenuItem("Analog joypad", nullptr, controller_type == ana_pad))
         {
-          if (ImGui::MenuItem("Analog", nullptr, controller_type == ana_pad))
-            controller_type = ana_pad;
-          if (ImGui::MenuItem("Digital", nullptr, controller_type == digi_pad))
-            controller_type = digi_pad;
-          ImGui::EndMenu();
+          controller_type = ana_pad;
+          instance->core_changinpt(controller_type);
         }
+
+        if (ImGui::MenuItem("Digital joypad", nullptr, controller_type == digi_pad))
+        {
+          controller_type = digi_pad;
+          instance->core_changinpt(controller_type);
+        }
+
         if (ImGui::MenuItem("Mouse", nullptr, controller_type == mousie))
+        {
           controller_type = mousie;
-        if (ImGui::MenuItem("Keyboard", nullptr, controller_type == mousie))
-          controller_type = keyboard;
+          instance->core_changinpt(controller_type);
+        }
+        if (ImGui::MenuItem("Keyboard", nullptr, controller_type == input_keyboard))
+        {
+          controller_type = input_keyboard;
+          instance->core_changinpt(controller_type);
+        }
+        if (ImGui::MenuItem("Lightgun", nullptr, controller_type == lightgun))
+        {
+          controller_type = lightgun;
+          instance->core_changinpt(controller_type);
+        }
+        if (ImGui::MenuItem("Pointer/Stylus", nullptr, controller_type == pointer))
+        {
+          controller_type = pointer;
+          instance->core_changinpt(controller_type);
+        }
+
         ImGui::EndMenu();
       }
       ImGui::EndMenu();

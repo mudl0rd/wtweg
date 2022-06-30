@@ -4,14 +4,6 @@
 #include "glad.h"
 #include <vector>
 
-struct vp
-{
-	unsigned x;
-	unsigned y;
-	unsigned width;
-	unsigned height;
-};
-
 struct
 {
 	GLuint tex_id;
