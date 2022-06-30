@@ -1,4 +1,4 @@
-
+#define IMGUI_DISABLE_DEMO_WINDOWS
 #include "imgui.h"
 #include "ImGuiFileDialog.h"
 #include "ImGuiFileDialogConfig.h"
@@ -30,7 +30,6 @@ const char *true_vals[] = {"enabled", "true", "on"};
 static bool coreselect = false;
 static std::string filenamepath;
 
-
 static auto vector_getter = [](void *data, int n, const char **out_text)
 {
   const std::vector<core_info> *v = (std::vector<core_info> *)data;
@@ -38,13 +37,13 @@ static auto vector_getter = [](void *data, int n, const char **out_text)
   return true;
 };
 
-bool loadfile(CLibretro *instance, const char *file, const char* core_file,bool pergame)
+bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame)
 {
   int hits = 0;
   int selected_core = 0;
-  if(core_file != NULL)
+  if (core_file != NULL)
   {
-    instance->core_load((char *)file, pergame, (char*)core_file);
+    instance->core_load((char *)file, pergame, (char *)core_file);
     return false;
   }
   for (size_t i = 0; i < instance->cores.size(); i++)
@@ -72,26 +71,28 @@ bool loadfile(CLibretro *instance, const char *file, const char* core_file,bool 
   }
 }
 
-
-void popup_widget(bool *flag, const char* title, const char *msg)
+void popup_widget(bool *flag, const char *title, const char *msg)
 {
   ImGui::OpenPopup(title);
-       if (ImGui::BeginPopupModal(title, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
-            {
-                ImGui::Text(msg);
-                ImGui::Separator();
-                if (ImGui::Button("OK", ImVec2(120,0))) { ImGui::CloseCurrentPopup();  *flag = false;}
-                ImGui::EndPopup();
-            }
+  if (ImGui::BeginPopupModal(title, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
+  {
+    ImGui::Text(msg);
+    ImGui::Separator();
+    if (ImGui::Button("OK", ImVec2(120, 0)))
+    {
+      ImGui::CloseCurrentPopup();
+      *flag = false;
+    }
+    ImGui::EndPopup();
+  }
 }
 
 void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_in, bool *isselected_inp)
 {
 
-static bool inputsettings = false;
-static bool coresettings = false;
-static bool aboutbox = false;
-
+  static bool inputsettings = false;
+  static bool coresettings = false;
+  static bool aboutbox = false;
 
   if (ImGui::BeginMainMenuBar())
   {
@@ -154,7 +155,7 @@ static bool aboutbox = false;
     {
       std::string filePathName = romloader.GetFilePathName();
       std::string filePath = romloader.GetCurrentPath();
-      coreselect = loadfile(instance, (char *)filePathName.c_str(),NULL,false);
+      coreselect = loadfile(instance, (char *)filePathName.c_str(), NULL, false);
       filenamepath = filePathName;
     }
 
@@ -163,31 +164,30 @@ static bool aboutbox = false;
 
   if (coreselect)
   {
-     std::vector<core_info> cores_info;
-      cores_info.clear();
-      bool found = false;
-      for (auto &core : instance->cores)
+    std::vector<core_info> cores_info;
+    cores_info.clear();
+    bool found = false;
+    for (auto &core : instance->cores)
+    {
+      std::string core_ext = core.core_extensions;
+      std::string ext = filenamepath;
+      ext = ext.substr(ext.find_last_of(".") + 1);
+      if (core_ext.find(ext) != std::string::npos)
       {
-        std::string core_ext = core.core_extensions;
-        std::string ext = filenamepath;
-        ext = ext.substr(ext.find_last_of(".") + 1);
-        if (core_ext.find(ext) != std::string::npos)
-        {
-          cores_info.push_back(core);
-          found=true;
-        }
+        cores_info.push_back(core);
+        found = true;
       }
-    if(!found)
+    }
+    if (!found)
     {
 
       popup_widget(&coreselect, "Core Load Error", "There is no core to load this particular bit of content.");
       return;
     }
     else
-    ImGui::OpenPopup("Select a core");
+      ImGui::OpenPopup("Select a core");
     if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
     {
-     
       static int listbox_item_current = 0;
       ImGui::PushItemWidth(200);
       ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
@@ -198,7 +198,7 @@ static bool aboutbox = false;
         instance->core_load((char *)filenamepath.c_str(), false, (char *)cores_info.at(listbox_item_current).core_path.c_str());
         coreselect = false;
       }
-      ImGui::BulletText("WTFwegerrat couldn't determine the core to use.");
+      ImGui::BulletText("WTFweg couldn't determine the core to use.");
       ImGui::BulletText("Choose the specific core to load the ROM/ISO wanted.");
       ImGui::EndPopup();
     }
@@ -231,21 +231,26 @@ static bool aboutbox = false;
     romloader.Close();
   }
 
-  if (inputsettings && instance->core_isrunning())
+  if (inputsettings)
   {
     ImGui::PushItemWidth(200);
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
 
-    if(!instance->core_inputbinds.size())
+    if (!instance->core_isrunning())
+    {
+      popup_widget(&inputsettings, "Core not running", "There is no core running!");
+      return;
+    }
+
+    if (!instance->core_inputbinds.size())
     {
       popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
       return;
     }
 
-
     ImGui::OpenPopup("Input Settings");
 
-    if (ImGui::BeginPopupModal("Input Settings", &inputsettings,ImGuiWindowFlags_AlwaysAutoResize))
+    if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
 
       std::string str2;
@@ -281,33 +286,18 @@ static bool aboutbox = false;
   if (aboutbox)
   {
     ImGui::PushItemWidth(200);
-    ImGui::OpenPopup("About WTFgerrat");
-    if (ImGui::BeginPopupModal("About WTFgerrat", &aboutbox, ImGuiWindowFlags_AlwaysAutoResize))
+    ImGui::OpenPopup("About WTFweg");
+    if (ImGui::BeginPopupModal("About WTFweg", &aboutbox, ImGuiWindowFlags_AlwaysAutoResize))
     {
       std::string date = "Built on " __DATE__ " at " __TIME__ " (GMT+10)\n\n";
       ImGui::Text("%s", date.c_str());
-      ImGui::BulletText("WTFwegerrat is for personal use.");
-      ImGui::BulletText("Support for all libretro cores is not expected.");
-      ImGui::BulletText("Support/bug reports will be ignored.");
       std::string greetz =
 
           R"foo(
-
 Greetz:
 
-Higor Eurípedes
-Andre Leiradella
-Andrés Suárez
-Brad Parker
-Chris Snowhill
-Hunter Kaller
-Alfred Agrell
-Lars Viklund
-Samuel Neves
-Peter Pawlowski
-Gian-Carlo Pascutto
-Chastity
-Genju
+the peeps in the invader cabal
+the peeps in the FB2K cabal
 )foo";
       ImGui::Text("%s", greetz.c_str());
 
@@ -319,21 +309,26 @@ Genju
     }
   }
 
-  if (coresettings && instance->core_isrunning())
+  if (coresettings)
   {
     ImGui::PushItemWidth(200);
     ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
 
-    if(!instance->core_variables.size())
+    if (!instance->core_isrunning())
+    {
+      popup_widget(&coresettings, "Core not running", "There is no core running!");
+      return;
+    }
+
+    if (!instance->core_variables.size())
     {
       popup_widget(&coresettings, "No core settings", "There is no core settings for this particular core.");
       return;
     }
 
-
     ImGui::OpenPopup("Core Settings");
 
-    if (ImGui::BeginPopupModal("Core Settings", &coresettings,ImGuiWindowFlags_AlwaysAutoResize))
+    if (ImGui::BeginPopupModal("Core Settings", &coresettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
       for (auto &bind : instance->core_variables)
       {
@@ -387,7 +382,7 @@ Genju
             {
               for (size_t n = 0; n < bind.config_vals.size(); n++)
               {
-                bool is_selected = (bind.sel_idx ==n); // You can store your selection however you want, outside or inside your objects
+                bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
                 if (ImGui::Selectable(bind.config_vals[n].c_str(), is_selected))
                 {
                   bind.sel_idx = n;

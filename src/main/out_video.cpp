@@ -199,7 +199,7 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 		g_video.hw.context_reset();
 
 	if (!g_video.rend_width)
-	SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
+		SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
 	vp vpx = resize_cb();
@@ -210,18 +210,15 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 	return true;
 }
 
-
 void video_restoresz()
 {
 	SDL_Rect display_bounds;
-    SDL_GetDisplayUsableBounds(0, &display_bounds);
-    g_video.rend_width = display_bounds.w * 7 / 8, g_video.rend_height = display_bounds.h * 7 / 8;
+	SDL_GetDisplayUsableBounds(0, &display_bounds);
+	g_video.rend_width = display_bounds.w * 7 / 8, g_video.rend_height = display_bounds.h * 7 / 8;
 	vp vpx = resize_cb();
-	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, vpx.width,vpx.height);
+	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, vpx.width, vpx.height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 }
-
-
 
 static inline unsigned get_alignment(unsigned pitch)
 {
@@ -267,10 +264,9 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
 						g_video.pixformat.pixfmt, data);
 
-
-      //  glTexImage2D(GL_TEXTURE_2D, 0, g_video.pixformat.pixtype, width, height, 0,
+		//  glTexImage2D(GL_TEXTURE_2D, 0, g_video.pixformat.pixtype, width, height, 0,
 		//		 g_video.pixformat.pixtype, g_video.pixformat.pixfmt, data);
-		
+
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
 }

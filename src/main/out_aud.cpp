@@ -176,7 +176,6 @@ void audio_mix(const int16_t *samples, size_t size)
 
 bool audio_init(float refreshra, float input_srate, float fps)
 {
-
     unsigned swap = 1;
     if (refreshra > fps)
         swap = refreshra / (unsigned)fps;

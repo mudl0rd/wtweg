@@ -39,7 +39,7 @@ bool CLibretro::core_savestate(const char *filename, bool save)
         std::vector<uint8_t> save_data = load_data(filename, &sz);
         if (save_data.empty())
           return false;
-        memcpy(Memory.get(),save_data.data(), sz);
+        memcpy(Memory.get(), save_data.data(), sz);
         retro.retro_unserialize(Memory.get(), sz);
       }
       return true;
@@ -55,19 +55,20 @@ bool CLibretro::core_saveram(const char *filename, bool save)
     size_t size = retro.retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
     uint8_t *Memory = (uint8_t *)retro.retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
     if (!size || !Memory)
-		return false;
-     if (save)
-     return save_data(Memory, size, filename);
-     else
-     {
+      return false;
+    if (save)
+      return save_data(Memory, size, filename);
+    else
+    {
       unsigned sz;
       std::vector<uint8_t> save_data = load_data(filename, &sz);
       if (save_data.empty())
-      return false;
-      if(sz != size)return false;
-      memcpy(Memory,save_data.data(), sz);
+        return false;
+      if (sz != size)
+        return false;
+      memcpy(Memory, save_data.data(), sz);
       return true;
-      }
+    }
   }
   return false;
 }
@@ -193,7 +194,6 @@ const char *CLibretro::load_corevars(retro_variable *var)
 {
   for (size_t i = 0; i < core_variables.size(); i++)
   {
-
     if (strcmp(core_variables[i].name.c_str(), var->key) == 0)
       return core_variables[i].var.c_str();
   }
@@ -250,7 +250,7 @@ bool CLibretro::init_configvars(retro_variable *var)
   return true;
 }
 
-CLibretro::CLibretro(SDL_Window *window,char *exepath)
+CLibretro::CLibretro(SDL_Window *window, char *exepath)
 {
   std::filesystem::path p(get_wtfwegname());
   exe_path = p.parent_path().string();
@@ -271,7 +271,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   if (lr_isrunning)
     core_unload();
 
-
   std::filesystem::path romzpath = ROM;
   std::filesystem::path core_path_ = corepath;
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
@@ -280,7 +279,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   saves_path = std::filesystem::absolute(save_path_).string();
   std::filesystem::path save_path = save_path_ / (romzpath.stem().string() + ".sram");
   romsavesstatespath = std::filesystem::absolute(save_path).string();
-  
+
   if (game_specific_settings)
   {
     save_path = std::filesystem::absolute(save_path_).string();
@@ -288,13 +287,11 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   }
   else
   {
-    save_path = std::filesystem::absolute(system_path_) / 
-    (core_path_.stem().string() + ".corecfg");
+    save_path = std::filesystem::absolute(system_path_) /
+                (core_path_.stem().string() + ".corecfg");
   }
-    
-  core_config = std::filesystem::absolute(save_path).string();
 
-  
+  core_config = std::filesystem::absolute(save_path).string();
 
   void *hDLL = SDL_LoadObject((const char *)corepath);
   if (!hDLL)
@@ -322,9 +319,9 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   load_retro_sym(retro_serialize_size);
   load_retro_sym(retro_get_memory_size);
   load_retro_sym(retro_get_memory_data);
-  load_envsymb(retro.handle,true);
+  load_envsymb(retro.handle, true);
   retro.retro_init();
-  load_envsymb(retro.handle,false);
+  load_envsymb(retro.handle, false);
 
   struct retro_system_info system = {0};
   retro_system_av_info av = {0};
@@ -358,14 +355,14 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   retro.retro_get_system_info(&system);
   retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   retro.retro_get_system_av_info(&av);
-  
+
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
   audio_init((float)60, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, sdl_window);
   lr_isrunning = true;
   core_saveram(romsavesstatespath.c_str(), false);
- 
+
   return true;
 }
 
@@ -377,8 +374,6 @@ bool CLibretro::core_isrunning()
 void CLibretro::core_run()
 {
   retro.retro_run();
-   
-
 }
 
 void CLibretro::core_unload()
@@ -386,18 +381,18 @@ void CLibretro::core_unload()
   if (lr_isrunning)
   {
     core_saveram(romsavesstatespath.c_str(), true);
-    if(retro.handle != NULL)
+    if (retro.handle != NULL)
     {
-    audio_destroy();
-    video_deinit();
-    retro.retro_unload_game();
-    retro.retro_deinit();
-    SDL_UnloadObject(retro.handle);
-    retro.handle = NULL;
-    memset((retro_core *)&retro, 0, sizeof(retro_core));
+      audio_destroy();
+      video_deinit();
+      retro.retro_unload_game();
+      retro.retro_deinit();
+      SDL_UnloadObject(retro.handle);
+      retro.handle = NULL;
+      memset((retro_core *)&retro, 0, sizeof(retro_core));
     }
-  
-  lr_isrunning = false;  
+
+    lr_isrunning = false;
   }
 }
 
@@ -433,7 +428,6 @@ void CLibretro::get_cores()
         cores.push_back(entry);
         SDL_UnloadObject(hDLL);
       }
-      
     }
   }
   coreexts = "All supported {.";
