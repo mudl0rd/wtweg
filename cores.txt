@@ -46,6 +46,7 @@ Recommended cores (runs perfectly):
 * xrick_libretro.dll.zip
 * nxengine_libretro.dll.zip
 * dinothawr_libretro.dll.zip
+* prboom_libretro.dll.zip
 
 Untested cores:
 ========================================
@@ -133,7 +134,6 @@ pocketcdg_libretro.dll.zip
 pokemini_libretro.dll.zip
 potator_libretro.dll.zip
 ppsspp_libretro.dll.zip
-prboom_libretro.dll.zip
 prosystem_libretro.dll.zip
 puae2021_libretro.dll.zip
 puae_libretro.dll.zip

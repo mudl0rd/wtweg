@@ -271,11 +271,50 @@ void CLibretro::core_changinpt(int dev)
     retro.retro_set_controller_port_device(0, dev);
 }
 
+bool no_roms2;
+static bool no_roms(unsigned cmd, void *data)
+{
+  if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
+  {
+    bool *bval = (bool *)data;
+    no_roms2 = bval;
+    return true;
+  }
+  return false;
+}
+
 bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath)
 {
   if (lr_isrunning)
     core_unload();
-  contentless = false;
+
+  contentless = (ROM == NULL);
+  std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
+  std::filesystem::path core_path_ = corepath;
+  std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
+  std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
+  std::filesystem::path save_path;
+  if (contentless)
+    save_path = save_path_ / (core_path_.stem().string() + ".sram");
+  else
+    save_path = save_path_ / (romzpath.stem().string() + ".sram");
+  saves_path = std::filesystem::absolute(save_path_).string();
+  system_path = std::filesystem::absolute(system_path_).string();
+
+  romsavesstatespath = std::filesystem::absolute(save_path).string();
+
+  if (game_specific_settings)
+  {
+    save_path = std::filesystem::absolute(save_path_).string();
+    save_path.replace_filename(romzpath.stem().string() + ".corecfg");
+  }
+  else
+  {
+    save_path = std::filesystem::absolute(system_path_) /
+                (core_path_.stem().string() + ".corecfg");
+  }
+
+  core_config = std::filesystem::absolute(save_path).string();
 
   void *hDLL = SDL_LoadObject((const char *)corepath);
   if (!hDLL)
@@ -306,33 +345,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   load_envsymb(retro.handle, true);
   retro.retro_init();
   load_envsymb(retro.handle, false);
-
-  std::filesystem::path romzpath = ROM;
-  std::filesystem::path core_path_ = corepath;
-  std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
-  std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
-  std::filesystem::path save_path;
-  if (contentless)
-    save_path = save_path_ / (core_path_.stem().string() + ".sram");
-  else
-    save_path = save_path_ / (romzpath.stem().string() + ".sram");
-  saves_path = std::filesystem::absolute(save_path_).string();
-  system_path = std::filesystem::absolute(system_path_).string();
-
-  romsavesstatespath = std::filesystem::absolute(save_path).string();
-
-  if (game_specific_settings)
-  {
-    save_path = std::filesystem::absolute(save_path_).string();
-    save_path.replace_filename(romzpath.stem().string() + ".corecfg");
-  }
-  else
-  {
-    save_path = std::filesystem::absolute(system_path_) /
-                (core_path_.stem().string() + ".corecfg");
-  }
-
-  core_config = std::filesystem::absolute(save_path).string();
 
   struct retro_game_info info = {0};
   struct retro_system_info system = {0};
@@ -410,18 +422,6 @@ void CLibretro::core_unload()
   }
 }
 
-bool no_roms2;
-static bool no_roms(unsigned cmd, void *data)
-{
-  if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
-  {
-    bool *bval = (bool *)data;
-    no_roms2 = bval;
-    return true;
-  }
-  return false;
-}
-
 void CLibretro::get_cores()
 {
   std::filesystem::path p(exe_path);
@@ -447,16 +447,15 @@ void CLibretro::get_cores()
       if (getinfo)
       {
         getinfo(&system);
-        core_info entry;
-        entry.fps = 60;
-        entry.samplerate = 44100;
-        entry.aspect_ratio = 4 / 3;
-        entry.core_name = system.library_name;
-        std::string ext = system.valid_extensions;
-        entry.core_extensions = ext;
-        entry.core_path = str;
-        entry.no_roms = no_roms2;
-        cores.push_back(entry);
+        core_info entry_;
+        entry_.fps = 60;
+        entry_.samplerate = 44100;
+        entry_.aspect_ratio = 4 / 3;
+        entry_.core_name = system.library_name;
+        entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
+        entry_.core_path = str;
+        entry_.no_roms = no_roms2;
+        cores.push_back(entry_);
         SDL_UnloadObject(hDLL);
       }
     }

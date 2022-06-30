@@ -287,7 +287,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load((char *)filenamepath.c_str(), false, (char *)cores_info.at(listbox_item_current).core_path.c_str());
+        instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str());
         load_core = false;
       }
       ImGui::BulletText("Choose the specific core to load.");

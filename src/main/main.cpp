@@ -64,7 +64,6 @@ int main2(const char *rom, const char *core, bool pergame)
   int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
   SDL_SetWindowSize(window, win_w, win_h);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-
   SDL_GetDesktopDisplayMode(window_indx, &dm);
   int swap = 1;
   swap = (int)dm.refresh_rate / (int)60;
@@ -135,6 +134,8 @@ int main2(const char *rom, const char *core, bool pergame)
             SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
           }
           window_fs = !window_fs;
+          SDL_SetRelativeMouseMode(window_fs ? SDL_TRUE : SDL_FALSE);
+          show_menu = !window_fs;
         }
         break;
       }

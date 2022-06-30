@@ -568,6 +568,8 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         return 0;
     auto lib = CLibretro::get_classinstance();
 
+  
+
     if (device == RETRO_DEVICE_MOUSE || device == RETRO_DEVICE_LIGHTGUN)
     {
         Uint8 btn = mousiez.buttons;
