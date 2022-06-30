@@ -93,6 +93,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
   static bool inputsettings = false;
   static bool coresettings = false;
   static bool aboutbox = false;
+  static bool load_core = false;
 
   if (ImGui::BeginMainMenuBar())
   {
@@ -100,6 +101,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     {
       if (ImGui::MenuItem("Load ROM/ISO"))
         romloader.OpenModal("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
+
+      if (ImGui::MenuItem("Load contentless libretro core"))
+        load_core = true;
 
       ImGui::Separator();
 
@@ -142,9 +146,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
       ImGui::EndMenu();
     }
 
-    if (ImGui::MenuItem("About..."))
-      aboutbox = true;
-
     ImGui::EndMainMenuBar();
   }
 
@@ -169,6 +170,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     bool found = false;
     for (auto &core : instance->cores)
     {
+      if (core.no_roms)
+        continue;
       std::string core_ext = core.core_extensions;
       std::string ext = filenamepath;
       ext = ext.substr(ext.find_last_of(".") + 1);
@@ -180,7 +183,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     }
     if (!found)
     {
-
       popup_widget(&coreselect, "Core Load Error", "There is no core to load this particular bit of content.");
       return;
     }
@@ -231,6 +233,43 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     romloader.Close();
   }
 
+  if (load_core)
+  {
+    std::vector<core_info> cores_info;
+    cores_info.clear();
+    bool found = false;
+    for (auto &core : instance->cores)
+      if (core.no_roms)
+      {
+        cores_info.push_back(core);
+        found = true;
+      }
+
+    if (!found)
+    {
+      popup_widget(&load_core, "No contentless core", "There is no contentless core detected.");
+      return;
+    }
+
+    ImGui::OpenPopup("Select a contentless core to load");
+    if (ImGui::BeginPopupModal("Select a contentless core to load", &load_core, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+      static int listbox_item_current = 0;
+      ImGui::PushItemWidth(200);
+      ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
+      ImGui::ListBox("Select a contentless core",
+                     &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
+      if (ImGui::Button("OK"))
+      {
+        instance->core_load((char *)filenamepath.c_str(), false, (char *)cores_info.at(listbox_item_current).core_path.c_str());
+        load_core = false;
+      }
+      ImGui::BulletText("Choose the specific core to load.");
+      ImGui::BulletText("These are ones that load their own assets.");
+      ImGui::EndPopup();
+    }
+  }
+
   if (inputsettings)
   {
     ImGui::PushItemWidth(200);
@@ -278,32 +317,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         inputsettings = false;
         *isselected_inp = false;
         save_inpcfg();
-      }
-      ImGui::EndPopup();
-    }
-  }
-
-  if (aboutbox)
-  {
-    ImGui::PushItemWidth(200);
-    ImGui::OpenPopup("About WTFweg");
-    if (ImGui::BeginPopupModal("About WTFweg", &aboutbox, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-      std::string date = "Built on " __DATE__ " at " __TIME__ " (GMT+10)\n\n";
-      ImGui::Text("%s", date.c_str());
-      std::string greetz =
-
-          R"foo(
-Greetz:
-
-the peeps in the invader cabal
-the peeps in the FB2K cabal
-)foo";
-      ImGui::Text("%s", greetz.c_str());
-
-      if (ImGui::Button("OK"))
-      {
-        aboutbox = false;
       }
       ImGui::EndPopup();
     }

@@ -258,7 +258,6 @@ CLibretro::CLibretro(SDL_Window *window, char *exepath)
   get_cores();
   sdl_window = window;
   lr_isrunning = false;
-  info = {0};
 }
 
 CLibretro::~CLibretro()
@@ -270,14 +269,15 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 {
   if (lr_isrunning)
     core_unload();
+  contentless = false;
 
   std::filesystem::path romzpath = ROM;
   std::filesystem::path core_path_ = corepath;
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
-  system_path = std::filesystem::absolute(system_path_).string();
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
-  saves_path = std::filesystem::absolute(save_path_).string();
   std::filesystem::path save_path = save_path_ / (romzpath.stem().string() + ".sram");
+  saves_path = std::filesystem::absolute(save_path_).string();
+  system_path = std::filesystem::absolute(system_path_).string();
   romsavesstatespath = std::filesystem::absolute(save_path).string();
 
   if (game_specific_settings)
@@ -323,35 +323,39 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   retro.retro_init();
   load_envsymb(retro.handle, false);
 
+  struct retro_game_info info = {0};
   struct retro_system_info system = {0};
   retro_system_av_info av = {0};
-  info = {ROM, 0};
-  info.path = ROM;
-  info.data = NULL;
-  info.size = get_filesize(ROM);
-  info.meta = "";
-
-  if (!system.need_fullpath)
+  if (!contentless)
   {
-    std::ifstream ifs;
-    ifs.open(ROM, ios::binary);
-    if (!ifs.good())
+    info = {ROM, 0};
+    info.path = ROM;
+    info.data = NULL;
+    info.size = get_filesize(ROM);
+    info.meta = "";
+    if (!system.need_fullpath)
     {
-    fail:
-      printf("FAILED TO LOAD ROMz!!!!!!!!!!!!!!!!!!");
-      return false;
+      std::ifstream ifs;
+      ifs.open(ROM, ios::binary);
+      if (!ifs.good())
+      {
+      fail:
+        printf("FAILED TO LOAD ROMz!!!!!!!!!!!!!!!!!!");
+        return false;
+      }
+      info.data = malloc(info.size);
+      if (!info.data)
+        goto fail;
+      ifs.read((char *)info.data, info.size);
     }
-    info.data = malloc(info.size);
-    if (!info.data)
-      goto fail;
-    ifs.read((char *)info.data, info.size);
   }
 
-  if (!retro.retro_load_game(&info))
+  if (!retro.retro_load_game(contentless ? NULL : &info))
   {
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
     return false;
   }
+
   retro.retro_get_system_info(&system);
   retro.retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
   retro.retro_get_system_av_info(&av);
@@ -361,7 +365,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   audio_init((float)60, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, sdl_window);
   lr_isrunning = true;
-  core_saveram(romsavesstatespath.c_str(), false);
+  if (!contentless)
+    core_saveram(romsavesstatespath.c_str(), false);
 
   return true;
 }
@@ -380,7 +385,8 @@ void CLibretro::core_unload()
 {
   if (lr_isrunning)
   {
-    core_saveram(romsavesstatespath.c_str(), true);
+    if (!contentless)
+      core_saveram(romsavesstatespath.c_str(), true);
     if (retro.handle != NULL)
     {
       audio_destroy();
@@ -394,6 +400,18 @@ void CLibretro::core_unload()
 
     lr_isrunning = false;
   }
+}
+
+bool no_roms2;
+static bool no_roms(unsigned cmd, void *data)
+{
+  if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
+  {
+    bool *bval = (bool *)data;
+    no_roms2 = bval;
+    return true;
+  }
+  return false;
 }
 
 void CLibretro::get_cores()
@@ -414,6 +432,10 @@ void CLibretro::get_cores()
         continue;
       }
       getinfo = (retro_get_system_info)SDL_LoadFunction(hDLL, "retro_get_system_info");
+      void (*set_environment)(retro_environment_t) =
+          (void (*)(retro_environment_t))SDL_LoadFunction(hDLL, "retro_set_environment");
+      no_roms2 = false;
+      set_environment(no_roms);
       if (getinfo)
       {
         getinfo(&system);
@@ -425,6 +447,7 @@ void CLibretro::get_cores()
         std::string ext = system.valid_extensions;
         entry.core_extensions = ext;
         entry.core_path = str;
+        entry.no_roms = no_roms2;
         cores.push_back(entry);
         SDL_UnloadObject(hDLL);
       }
@@ -433,12 +456,15 @@ void CLibretro::get_cores()
   coreexts = "All supported {.";
   for (auto &corez : cores)
   {
-    std::stringstream test(corez.core_extensions);
-    std::string segment;
-    std::vector<std::string> seglist;
-    while (std::getline(test, segment, '|'))
-      if (coreexts.find(segment) == std::string::npos)
-        coreexts += segment + ",.";
+    if (!corez.no_roms)
+    {
+      std::stringstream test(corez.core_extensions);
+      std::string segment;
+      std::vector<std::string> seglist;
+      while (std::getline(test, segment, '|'))
+        if (coreexts.find(segment) == std::string::npos)
+          coreexts += segment + ",.";
+    }
   }
   coreexts.resize(coreexts.size() - 2);
   coreexts += "}";

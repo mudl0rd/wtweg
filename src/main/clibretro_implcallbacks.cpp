@@ -50,6 +50,14 @@ static bool core_environment(unsigned cmd, void *data)
 
   switch (cmd)
   {
+
+  case RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME:
+  {
+    bool *bval = (bool *)data;
+    retro->contentless = bval;
+    return true;
+  }
+
   case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
   {
     struct retro_log_callback *cb = (struct retro_log_callback *)data;
@@ -83,10 +91,11 @@ static bool core_environment(unsigned cmd, void *data)
     bval = (bool *)data;
     *bval = true;
     return true;
+  case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
-   {
+  {
     std::string str = retro->system_path;
-    static char *sys_path = strdup((const char*)str.c_str());
+    static char *sys_path = strdup((const char *)str.c_str());
     char **ppDir = (char **)data;
     *ppDir = sys_path;
     return true;
@@ -95,7 +104,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
     std::string str = retro->saves_path;
-    static char *sys_path = strdup((const char*)str.c_str());
+    static char *sys_path = strdup((const char *)str.c_str());
     char **ppDir = (char **)data;
     *ppDir = sys_path;
     return true;
@@ -135,23 +144,40 @@ static bool core_environment(unsigned cmd, void *data)
   }
   break;
 
-  case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
-  {
-    enum retro_pixel_format *fmt = (enum retro_pixel_format *)data;
-    return video_set_pixelformat(*fmt);
-  }
-  default:
-    core_log(RETRO_LOG_DEBUG, "Unhandled env #%u", cmd);
+  case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION:
+    *(unsigned *)data = 1;
+    return true;
+    break;
+
+  case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
+    return true;
+    break;
+
+    case RETRO_ENVIRONMENT_SET_MESSAGE:
+    {
+      const struct retro_message *msg = (const struct retro_message *)data;
+      core_log(RETRO_LOG_DEBUG, "%s", msg);
+      return true;
+      break;
+    }
+
+    case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
+    {
+      enum retro_pixel_format *fmt = (enum retro_pixel_format *)data;
+      return video_set_pixelformat(*fmt);
+    }
+    default:
+      core_log(RETRO_LOG_DEBUG, "Unhandled env #%u", cmd);
+      return false;
+    }
     return false;
-  }
-  return false;
 }
 
 static void core_video_refresh(const void *data, unsigned width,
                                unsigned height, size_t pitch)
 {
   auto retro = CLibretro::get_classinstance();
-  if(retro->core_isrunning())
+  if (retro->core_isrunning())
     video_refresh(data, width, height, pitch);
 }
 
@@ -167,33 +193,33 @@ static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
                      id);
 }
 
-void CLibretro::load_envsymb(void *handle,bool first)
+void CLibretro::load_envsymb(void *handle, bool first)
 {
 #define libload(name) SDL_LoadFunction(handle, name)
 #define load_sym(V, name) if (!(*(void **)(&V) = (void *)libload(#name)))
 
-if(first)
-{
-  void (*set_environment)(retro_environment_t) = NULL;
-  load_sym(set_environment, retro_set_environment);
-  set_environment(core_environment);
-}
-else
-{
-  void (*set_video_refresh)(retro_video_refresh_t) = NULL;
-  void (*set_input_poll)(retro_input_poll_t) = NULL;
-  void (*set_input_state)(retro_input_state_t) = NULL;
-  void (*set_audio_sample)(retro_audio_sample_t) = NULL;
-  void (*set_audio_sample_batch)(retro_audio_sample_batch_t) = NULL;
-  load_sym(set_video_refresh, retro_set_video_refresh);
-  load_sym(set_input_poll, retro_set_input_poll);
-  load_sym(set_input_state, retro_set_input_state);
-  load_sym(set_audio_sample, retro_set_audio_sample);
-  load_sym(set_audio_sample_batch, retro_set_audio_sample_batch);
-  set_video_refresh(core_video_refresh);
-  set_input_poll(core_input_poll);
-  set_input_state(core_input_state);
-  set_audio_sample(core_audio_sample);
-  set_audio_sample_batch(core_audio_sample_batch);
-}
+  if (first)
+  {
+    void (*set_environment)(retro_environment_t) = NULL;
+    load_sym(set_environment, retro_set_environment);
+    set_environment(core_environment);
+  }
+  else
+  {
+    void (*set_video_refresh)(retro_video_refresh_t) = NULL;
+    void (*set_input_poll)(retro_input_poll_t) = NULL;
+    void (*set_input_state)(retro_input_state_t) = NULL;
+    void (*set_audio_sample)(retro_audio_sample_t) = NULL;
+    void (*set_audio_sample_batch)(retro_audio_sample_batch_t) = NULL;
+    load_sym(set_video_refresh, retro_set_video_refresh);
+    load_sym(set_input_poll, retro_set_input_poll);
+    load_sym(set_input_state, retro_set_input_state);
+    load_sym(set_audio_sample, retro_set_audio_sample);
+    load_sym(set_audio_sample_batch, retro_set_audio_sample_batch);
+    set_video_refresh(core_video_refresh);
+    set_input_poll(core_input_poll);
+    set_input_state(core_input_state);
+    set_audio_sample(core_audio_sample);
+    set_audio_sample_batch(core_audio_sample_batch);
+  }
 }

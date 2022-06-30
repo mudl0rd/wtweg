@@ -26,6 +26,7 @@ struct core_info
 	float aspect_ratio;
 	float samplerate;
 	float fps;
+	bool no_roms;
 };
 
 struct retro_core
@@ -125,7 +126,6 @@ class CLibretro
 {
 private:
 	retro_core retro;
-	struct retro_game_info info;
 	void load_envsymb(void *handle, bool first);
 	SDL_Window *sdl_window;
 
@@ -162,6 +162,7 @@ public:
 	std::vector<coreinput_bind> core_inputbinds;
 	std::vector<loadedcore_configvars> core_variables;
 	bool variables_changed;
+	bool contentless;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
 	std::string core_config;
