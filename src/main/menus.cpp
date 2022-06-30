@@ -20,7 +20,8 @@ enum
 {
   digi_pad,
   ana_pad,
-  mousie
+  mousie,
+  keyboard
 };
 int controller_type = digi_pad;
 
@@ -141,6 +142,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         }
         if (ImGui::MenuItem("Mouse", nullptr, controller_type == mousie))
           controller_type = mousie;
+        if (ImGui::MenuItem("Keyboard", nullptr, controller_type == mousie))
+          controller_type = keyboard;
         ImGui::EndMenu();
       }
       ImGui::EndMenu();
