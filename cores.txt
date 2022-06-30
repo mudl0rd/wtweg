@@ -45,6 +45,7 @@ Recommended cores (runs perfectly):
 * mednafen_psx_libretro.dll.zip
 * xrick_libretro.dll.zip
 * nxengine_libretro.dll.zip
+* dinothawr_libretro.dll.zip
 
 Untested cores:
 ========================================
@@ -68,7 +69,6 @@ craft_libretro.dll.zip
 crocods_libretro.dll.zip
 desmume2015_libretro.dll.zip
 desmume_libretro.dll.zip
-dinothawr_libretro.dll.zip
 dolphin_libretro.dll.zip
 dosbox_core_libretro.dll.zip
 dosbox_pure_libretro.dll.zip

@@ -277,28 +277,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     core_unload();
   contentless = false;
 
-  std::filesystem::path romzpath = ROM;
-  std::filesystem::path core_path_ = corepath;
-  std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
-  std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
-  std::filesystem::path save_path = save_path_ / (romzpath.stem().string() + ".sram");
-  saves_path = std::filesystem::absolute(save_path_).string();
-  system_path = std::filesystem::absolute(system_path_).string();
-  romsavesstatespath = std::filesystem::absolute(save_path).string();
-
-  if (game_specific_settings)
-  {
-    save_path = std::filesystem::absolute(save_path_).string();
-    save_path.replace_filename(romzpath.stem().string() + ".corecfg");
-  }
-  else
-  {
-    save_path = std::filesystem::absolute(system_path_) /
-                (core_path_.stem().string() + ".corecfg");
-  }
-
-  core_config = std::filesystem::absolute(save_path).string();
-
   void *hDLL = SDL_LoadObject((const char *)corepath);
   if (!hDLL)
     return false;
@@ -328,6 +306,33 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   load_envsymb(retro.handle, true);
   retro.retro_init();
   load_envsymb(retro.handle, false);
+
+  std::filesystem::path romzpath = ROM;
+  std::filesystem::path core_path_ = corepath;
+  std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
+  std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
+  std::filesystem::path save_path;
+  if (contentless)
+    save_path = save_path_ / (core_path_.stem().string() + ".sram");
+  else
+    save_path = save_path_ / (romzpath.stem().string() + ".sram");
+  saves_path = std::filesystem::absolute(save_path_).string();
+  system_path = std::filesystem::absolute(system_path_).string();
+
+  romsavesstatespath = std::filesystem::absolute(save_path).string();
+
+  if (game_specific_settings)
+  {
+    save_path = std::filesystem::absolute(save_path_).string();
+    save_path.replace_filename(romzpath.stem().string() + ".corecfg");
+  }
+  else
+  {
+    save_path = std::filesystem::absolute(system_path_) /
+                (core_path_.stem().string() + ".corecfg");
+  }
+
+  core_config = std::filesystem::absolute(save_path).string();
 
   struct retro_game_info info = {0};
   struct retro_system_info system = {0};
@@ -370,8 +375,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   audio_init((float)60, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, sdl_window);
   lr_isrunning = true;
-  if (!contentless)
-    core_saveram(romsavesstatespath.c_str(), false);
+  core_saveram(romsavesstatespath.c_str(), false);
 
   return true;
 }
@@ -390,8 +394,7 @@ void CLibretro::core_unload()
 {
   if (lr_isrunning)
   {
-    if (!contentless)
-      core_saveram(romsavesstatespath.c_str(), true);
+    core_saveram(romsavesstatespath.c_str(), true);
     if (retro.handle != NULL)
     {
       audio_destroy();
