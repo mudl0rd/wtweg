@@ -290,6 +290,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   // Assume "RetroPad"....fuck me
   core_inputbinds.clear();
+  core_variables.clear();
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
   std::filesystem::path core_path_ = corepath;
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
