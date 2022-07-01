@@ -170,16 +170,6 @@ const struct key_map key_map_[] = {
     {0, RETROK_UNKNOWN},
 };
 
-static bool key_pressed(int key)
-{
-    int num_keys;
-    const uint8_t *keymap = SDL_GetKeyboardState(&num_keys);
-    unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)key_map_[(enum retro_key)key].sym);
-    if (sym >= (unsigned)num_keys)
-        return false;
-    return keymap[sym];
-}
-
 SDL_GameController *Joystick = NULL;
 
 bool loadinpconf()
@@ -517,6 +507,16 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
         return false;
 }
 
+const uint8_t *keymap;
+int num_keys_km;
+static bool key_pressed(int key)
+{
+    unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)key_map_[(enum retro_key)key].sym);
+    if (sym >= (unsigned)num_keys_km)
+        return false;
+    return keymap[sym];
+}
+
 void poll_lr()
 {
     auto lib = CLibretro::get_classinstance();
@@ -527,6 +527,8 @@ void poll_lr()
         SDL_GameControllerUpdate();
     }
     SDL_GameControllerUpdate();
+
+    keymap = SDL_GetKeyboardState(&num_keys_km);
 
     mousiez.buttons = SDL_GetRelativeMouseState(&mousiez.rel_x, &mousiez.rel_y);
     SDL_GetMouseState(&mousiez.abs_x, &mousiez.abs_y);
