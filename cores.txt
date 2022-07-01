@@ -19,6 +19,7 @@ Broken/incomplete-supported cores:
 * bsnes_mercury_performance_libretro.dll.zip  (incomplete controllers)
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
+* jumpnbump_libretro.dll.zip (needs multiple controller support)
 
 Tested cores (known to load/play/save games, might not be problem-free)
 
@@ -47,7 +48,9 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * 2048_libretro.dll.zip (no known problems)
 * kronos_libretro.dll.zip (no known problems)
 * yabasanshiro_libretro.dll.zip (no known problems)
+* pokemini_libretro.dll.zip (no known problems)
 * yabause_libretro.dll.zip (no known problems)
+* gong_libretro.dll.zip (no human player 2)
 * snes9x_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
 * snes9x2002_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
 * snes9x2005_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
@@ -100,13 +103,11 @@ gearcoleco_libretro.dll.zip
 gearsystem_libretro.dll.zip
 genesis_plus_gx_wide_libretro.dll.zip
 gme_libretro.dll.zip
-gong_libretro.dll.zip
 gpsp_libretro.dll.zip
 gw_libretro.dll.zip
 handy_libretro.dll.zip
 hatari_libretro.dll.zip
 jaxe_libretro.dll.zip
-jumpnbump_libretro.dll.zip
 lowresnx_libretro.dll.zip
 lutro_libretro.dll.zip
 mame2000_libretro.dll.zip
@@ -138,7 +139,6 @@ pcsx_rearmed_libretro.dll.zip
 picodrive_libretro.dll.zip
 play_libretro.dll.zip
 pocketcdg_libretro.dll.zip
-pokemini_libretro.dll.zip
 potator_libretro.dll.zip
 ppsspp_libretro.dll.zip
 prosystem_libretro.dll.zip
