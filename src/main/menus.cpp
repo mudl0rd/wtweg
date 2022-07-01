@@ -31,6 +31,7 @@ const char *checkbox_allowable[] = {"enabled|disabled", "disabled|enabled", "Tru
 const char *true_vals[] = {"enabled", "true", "on"};
 
 static bool coreselect = false;
+bool pergame_ = false;
 static std::string filenamepath;
 
 static auto vector_getter = [](void *data, int n, const char **out_text)
@@ -42,32 +43,14 @@ static auto vector_getter = [](void *data, int n, const char **out_text)
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame)
 {
-  int hits = 0;
-  int selected_core = 0;
   if (core_file != NULL)
   {
     instance->core_load((char *)file, pergame, (char *)core_file, false);
     return false;
   }
-  for (size_t i = 0; i < instance->cores.size(); i++)
-  {
-    auto &core = instance->cores.at(i);
-    std::string core_ext = core.core_extensions;
-    std::string ext = file;
-    ext = ext.substr(ext.find_last_of(".") + 1);
-    if (core_ext.find(ext) != std::string::npos)
-    {
-      hits++;
-      selected_core = i;
-    }
-  }
-  if (hits == 1)
-  {
-    instance->core_load((char *)file, pergame, (char *)instance->cores.at(selected_core).core_path.c_str(), false);
-    return false;
-  }
   else
   {
+    pergame_ = pergame;
     filenamepath = file;
     coreselect = true;
     return true;
@@ -171,25 +154,40 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
   if (coreselect)
   {
+    int hits = 0;
+    int selected_core = 0;
+    int iter = 0;
     std::vector<core_info> cores_info;
     cores_info.clear();
     bool found = false;
     for (auto &core : instance->cores)
     {
+
       if (core.no_roms)
         continue;
+
       std::string core_ext = core.core_extensions;
       std::string ext = filenamepath;
       ext = ext.substr(ext.find_last_of(".") + 1);
       if (core_ext.find(ext) != std::string::npos)
       {
+        hits++;
+        selected_core = iter;
         cores_info.push_back(core);
         found = true;
       }
+      iter++;
+    }
+    if (hits == 1 && found)
+    {
+      instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(0).core_path.c_str(), false);
+      coreselect = false;
+      return;
     }
     if (!found)
     {
       popup_widget(&coreselect, "Core Load Error", "There is no core to load this particular bit of content.");
+      coreselect = false;
       return;
     }
     else
@@ -203,7 +201,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load((char *)filenamepath.c_str(), false, (char *)cores_info.at(listbox_item_current).core_path.c_str(), false);
+        instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(listbox_item_current).core_path.c_str(), false);
         coreselect = false;
       }
       ImGui::BulletText("WTFweg couldn't determine the core to use.");
