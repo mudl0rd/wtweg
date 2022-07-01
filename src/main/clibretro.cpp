@@ -437,8 +437,9 @@ void CLibretro::core_unload()
       retro.handle = NULL;
       memset((retro_core *)&retro, 0, sizeof(retro_core));
     }
-
     lr_isrunning = false;
+    core_inputbinds.clear();
+    core_variables.clear();
   }
 }
 
