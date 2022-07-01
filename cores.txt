@@ -49,10 +49,10 @@ Recommended cores (runs perfectly):
 * prboom_libretro.dll.zip
 * mrboom_libretro.dll.zip
 * craft_libretro.dll.zip
+* 2048_libretro.dll.zip
 
 Untested cores:
 ========================================
-2048_libretro.dll.zip
 81_libretro.dll.zip
 a5200_libretro.dll.zip
 arduous_libretro.dll.zip
