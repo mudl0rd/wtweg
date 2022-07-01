@@ -30,6 +30,7 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 * [Dynamic rate control](https://docs.libretro.com/development/cores/dynamic-rate-control/).
 * Support for GL-based libretro cores.
+* Support for contentless libretro cores (like game engine reimplementations)
 * Savestates/SRAM saving/loading.
 * [dear-imgui based UI](https://github.com/ocornut/imgui).
 * Commandline support for debugging cores with GDB.
