@@ -52,6 +52,7 @@ void video_setsize(unsigned width, unsigned height);
 bool video_sethw(struct retro_hw_render_callback *hw);
 void video_deinit();
 uintptr_t video_get_fb();
+static retro_keyboard_event_t inp_keys;
 bool video_set_pixelformat(retro_pixel_format fmt);
 bool loadinpconf();
 void init_inp();

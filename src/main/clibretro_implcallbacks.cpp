@@ -43,6 +43,33 @@ static void core_log(enum retro_log_level level, const char *fmt, ...)
   fprintf(stdout, "[%s] %s", levelstr[level], buffer);
 }
 
+static void core_kb_callback(retro_keyboard_event_t e)
+{
+  inp_keys = e;
+}
+
+static bool core_controller_info(struct retro_controller_info *info)
+{
+  if (!info)
+    return false;
+  auto retro = CLibretro::get_classinstance();
+
+  retro->core_inputdesc.clear();
+
+  for (unsigned i = 0; i < info->num_types; i++)
+  {
+    const struct retro_controller_description d = info->types[i];
+    if (d.desc)
+    {
+      coreinput_desc desc;
+      desc.desc = d.desc;
+      desc.id = d.id;
+      retro->core_inputdesc.push_back(desc);
+    }
+  }
+  return true;
+}
+
 static bool core_environment(unsigned cmd, void *data)
 {
   bool *bval;
@@ -62,6 +89,11 @@ static bool core_environment(unsigned cmd, void *data)
     struct retro_log_callback *cb = (struct retro_log_callback *)data;
     cb->log = core_log;
     return true;
+  }
+
+  case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
+  {
+    return core_controller_info((struct retro_controller_info *)data);
   }
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
@@ -106,6 +138,14 @@ static bool core_environment(unsigned cmd, void *data)
     static char *sys_path = strdup((const char *)str.c_str());
     char **ppDir = (char **)data;
     *ppDir = sys_path;
+    return true;
+    break;
+  }
+
+  case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
+  {
+    const struct retro_keyboard_callback *callback = (const struct retro_keyboard_callback *)data;
+    core_kb_callback(callback->callback);
     return true;
     break;
   }

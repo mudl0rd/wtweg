@@ -95,8 +95,6 @@ int main2(const char *rom, const char *core, bool pergame)
   bool done = false;
   bool show_menu = true;
 
-  init_inp();
-
   if (rom && core)
     loadfile(instance.get(), rom, core, pergame);
 
@@ -187,7 +185,6 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_GL_DeleteContext(gl_context);
   SDL_GL_UnloadLibrary();
   SDL_DestroyWindow(window);
-  close_inp();
   SDL_Quit();
   return 0;
 }

@@ -58,6 +58,11 @@ enum joytype_
 	hat
 };
 
+struct coreinput_desc{
+	std::string desc;
+	unsigned id;
+};
+
 struct coreinput_bind
 {
 	std::string description;
@@ -162,6 +167,7 @@ public:
 
 	std::vector<coreinput_bind> core_inputbinds;
 	std::vector<loadedcore_configvars> core_variables;
+	std::vector<coreinput_desc> core_inputdesc;
 	bool variables_changed;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;

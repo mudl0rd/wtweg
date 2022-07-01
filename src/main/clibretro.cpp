@@ -258,6 +258,9 @@ CLibretro::CLibretro(SDL_Window *window, char *exepath)
   get_cores();
   sdl_window = window;
   lr_isrunning = false;
+  core_inputbinds.clear();
+  core_variables.clear();
+  core_inputdesc.clear();
 }
 
 CLibretro::~CLibretro()
@@ -288,9 +291,12 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   if (lr_isrunning)
     core_unload();
 
+  init_inp();
+
   // Assume "RetroPad"....fuck me
   core_inputbinds.clear();
   core_variables.clear();
+  core_inputdesc.clear();
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
   std::filesystem::path core_path_ = corepath;
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
@@ -440,6 +446,8 @@ void CLibretro::core_unload()
     lr_isrunning = false;
     core_inputbinds.clear();
     core_variables.clear();
+    core_inputdesc.clear();
+    close_inp();
   }
 }
 

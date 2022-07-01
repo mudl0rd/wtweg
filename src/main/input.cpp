@@ -27,7 +27,13 @@ struct mousiebind
     int rel_y;
     int abs_x;
     int abs_y;
-    Uint32 buttons;
+    int l;
+    int r;
+    int m;
+    int b4;
+    int b5;
+    int wu;
+    int wd;
 };
 mousiebind mousiez = {0};
 
@@ -169,7 +175,6 @@ const struct key_map key_map_[] = {
 
     {0, RETROK_UNKNOWN},
 };
-
 SDL_GameController *Joystick = NULL;
 
 bool loadinpconf()
@@ -248,6 +253,7 @@ bool loadinpconf()
 bool load_inpcfg(retro_input_descriptor *var)
 {
     auto lib = CLibretro::get_classinstance();
+    lib->core_inputbinds.clear();
 
     while (var->description != NULL && var->port == 0)
     {
@@ -346,9 +352,11 @@ void close_inp()
         SDL_GameControllerClose(Joystick);
         Joystick = nullptr;
     }
+    inp_keys = NULL;
 }
 void init_inp()
 {
+    inp_keys = NULL;
     if (Joystick)
         SDL_GameControllerClose(Joystick);
 
@@ -507,13 +515,14 @@ bool poll_inp(int selected_inp, bool *isselected_inp)
         return false;
 }
 
-const uint8_t *keymap;
-int num_keys_km;
 static bool key_pressed(int key)
 {
-    unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)key_map_[(enum retro_key)key].sym);
-    if (sym >= (unsigned)num_keys_km)
-        return false;
+    const Uint8 *keymap = SDL_GetKeyboardState(NULL);
+    struct key_map *map = (key_map *)key_map_;
+    for (; map->rk != RETROK_UNKNOWN; map++)
+        if (map->rk == (retro_key)key)
+            break;
+    unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)map->sym);
     return keymap[sym];
 }
 
@@ -528,10 +537,29 @@ void poll_lr()
     }
     SDL_GameControllerUpdate();
 
-    keymap = SDL_GetKeyboardState(&num_keys_km);
+    if (inp_keys)
+    {
+        int num_keys_km;
+        const Uint8 *keymap = SDL_GetKeyboardState(&num_keys_km);
+        for (int i = 0; i < num_keys_km; i++)
+        {
+            struct key_map *map = (key_map *)key_map_;
+            for (; map->rk != RETROK_UNKNOWN; map++)
+            {
+                unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)map->sym);
+                inp_keys(keymap[sym], map->rk, 0, 0);
+            }
+        }
+    }
 
-    mousiez.buttons = SDL_GetRelativeMouseState(&mousiez.rel_x, &mousiez.rel_y);
+    memset(&mousiez, 0, sizeof(mousiebind));
+    Uint8 btn = SDL_GetRelativeMouseState(&mousiez.rel_x, &mousiez.rel_y);
     SDL_GetMouseState(&mousiez.abs_x, &mousiez.abs_y);
+    mousiez.l = (SDL_BUTTON(SDL_BUTTON_LEFT) & btn) ? 1 : 0;
+    mousiez.r = (SDL_BUTTON(SDL_BUTTON_RIGHT) & btn) ? 1 : 0;
+    mousiez.m = (SDL_BUTTON(SDL_BUTTON_MIDDLE) & btn) ? 1 : 0;
+    mousiez.b4 = (SDL_BUTTON(SDL_BUTTON_X1) & btn) ? 1 : 0;
+    mousiez.b5 = (SDL_BUTTON(SDL_BUTTON_X2) & btn) ? 1 : 0;
 
     for (auto &bind : lib->core_inputbinds)
     {
@@ -576,7 +604,6 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
 
     if (device == RETRO_DEVICE_MOUSE || device == RETRO_DEVICE_LIGHTGUN)
     {
-        Uint8 btn = mousiez.buttons;
         switch (id)
         {
         case RETRO_DEVICE_ID_MOUSE_X:
@@ -584,17 +611,17 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         case RETRO_DEVICE_ID_MOUSE_Y:
             return mousiez.rel_y;
         case RETRO_DEVICE_ID_MOUSE_LEFT:
-            return (SDL_BUTTON(SDL_BUTTON_LEFT) & btn);
+            return mousiez.l;
         case RETRO_DEVICE_ID_MOUSE_RIGHT:
-            return (SDL_BUTTON(SDL_BUTTON_RIGHT) & btn);
+            return mousiez.r;
         case RETRO_DEVICE_ID_MOUSE_MIDDLE:
-            return (SDL_BUTTON(SDL_BUTTON_MIDDLE) & btn);
+            return mousiez.m;
         case RETRO_DEVICE_ID_MOUSE_BUTTON_4:
         case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
-            return (SDL_BUTTON(SDL_BUTTON_X1) & btn);
+            return mousiez.b4;
         case RETRO_DEVICE_ID_MOUSE_BUTTON_5:
         case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
-            return (SDL_BUTTON(SDL_BUTTON_X2) & btn);
+            return mousiez.b5;
         default:
             return 0;
         }
@@ -623,7 +650,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         case RETRO_DEVICE_ID_POINTER_Y:
             return scaled_y;
         case RETRO_DEVICE_ID_POINTER_PRESSED:
-            return (SDL_BUTTON(SDL_BUTTON_LEFT) & mousiez.buttons);
+            return (SDL_BUTTON(SDL_BUTTON_LEFT) & mousiez.l);
         case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
             return !inside;
         }

@@ -131,43 +131,23 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
       if (ImGui::MenuItem("Input Settings..."))
         inputsettings = true;
 
-      ImGui::Separator();
-      if (ImGui::BeginMenu("Input device"))
+      if (instance->core_inputdesc.size())
       {
-        if (ImGui::MenuItem("Analog joypad", nullptr, controller_type == ana_pad))
+        ImGui::Separator();
+        if (ImGui::BeginMenu("Input device"))
         {
-          controller_type = ana_pad;
-          instance->core_changinpt(controller_type);
+          for (int i = 0; i < instance->core_inputdesc.size(); i++)
+          {
+            const char *label = instance->core_inputdesc[i].desc.c_str();
+            if (ImGui::MenuItem(label, nullptr,
+                                controller_type == instance->core_inputdesc[i].id))
+            {
+              controller_type = instance->core_inputdesc[i].id;
+              instance->core_changinpt(controller_type);
+            }
+          }
+          ImGui::EndMenu();
         }
-
-        if (ImGui::MenuItem("Digital joypad", nullptr, controller_type == digi_pad))
-        {
-          controller_type = digi_pad;
-          instance->core_changinpt(controller_type);
-        }
-
-        if (ImGui::MenuItem("Mouse", nullptr, controller_type == mousie))
-        {
-          controller_type = mousie;
-          instance->core_changinpt(controller_type);
-        }
-        if (ImGui::MenuItem("Keyboard", nullptr, controller_type == input_keyboard))
-        {
-          controller_type = input_keyboard;
-          instance->core_changinpt(controller_type);
-        }
-        if (ImGui::MenuItem("Lightgun", nullptr, controller_type == lightgun))
-        {
-          controller_type = lightgun;
-          instance->core_changinpt(controller_type);
-        }
-        if (ImGui::MenuItem("Pointer/Stylus", nullptr, controller_type == pointer))
-        {
-          controller_type = pointer;
-          instance->core_changinpt(controller_type);
-        }
-
-        ImGui::EndMenu();
       }
       ImGui::EndMenu();
     }
