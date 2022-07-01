@@ -1,20 +1,10 @@
-Tested cores (known to load and play games, might not be problem-free):
-
+Broken/incomplete-supported cores:
+* tyrquake_libretro.dll.zip (incomplete controllers)
 * mesen_libretro.dll.zip  (incomplete controllers)
-* kronos_libretro.dll.zip (needs to be further tested)
-* mupen64plus_next_libretro.dll.zip (no Vulkan)
-* flycast_libretro.dll.zip (no Vulkan) 
-* parallel_n64_libretro.dll.zip (no Vulkan)
-* swanstation_libretro.dll.zip (no Vulkan)
 * genesis_plus_gx_libretro.dll.zip (possibly incomplete controllers)
 * mesen-s_libretro.dll.zip (incomplete controllers)
 * mesen_libretro.dll.zip (incomplete controllers)
-* snes9x_libretro.dll.zip  (incomplete controllers)
 * mednafen_psx_hw_libretro.dll.zip (broken GL context when changing from GL4+ cores?)
-* snes9x2002_libretro.dll.zip  (incomplete controllers)
-* snes9x2005_libretro.dll.zip  (incomplete controllers)
-* snes9x2005_plus_libretro.dll.zip  (incomplete controllers)
-* snes9x2010_libretro.dll.zip  (incomplete controllers)
 * mednafen_snes_libretro.dll.zip  (incomplete controllers)
 * mednafen_supafaust_libretro.dll.zip (crashes on load)
 * bsnes_hd_beta_libretro.dll.zip  (incomplete controllers)
@@ -28,28 +18,42 @@ Tested cores (known to load and play games, might not be problem-free):
 * bsnes_mercury_performance_libretro.dll.zip  (incomplete controllers)
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
+* vitaquake3_libretro.dll.zip (broken scaling)
 
-Recommended cores (runs perfectly):
-
-* gearboy_libretro.dll.zip
-* gambatte_libretro.dll.zip
-* fixgb_libretro.dll.zip
-* sameboy_libretro.dll.zip
-* mgba_libretro.dll.zip
-* vbam_libretro.dll.zip
-* vba_next_libretro.dll.zip
-* mednafen_gba_libretro.dll.zip
-* meteor_libretro.dll.zip
-* quicknes_libretro.dll.zip
-* fixnes_libretro.dll.zip
-* mednafen_psx_libretro.dll.zip
-* xrick_libretro.dll.zip
-* nxengine_libretro.dll.zip
-* dinothawr_libretro.dll.zip
-* prboom_libretro.dll.zip
-* mrboom_libretro.dll.zip
-* craft_libretro.dll.zip
-* 2048_libretro.dll.zip
+Tested cores (known to load/play/save games, might not be problem-free)
+* vitaquake2-rogue_libretro.dll.zip (no known problems)
+* vitaquake2-xatrix_libretro.dll.zip (no known problems)
+* vitaquake2-zaero_libretro.dll.zip (no known problems)
+* vitaquake2_libretro.dll.zip (no known problems)
+* gearboy_libretro.dll.zip (no known problems)
+* gambatte_libretro.dll.zip (no known problems)
+* fixgb_libretro.dll.zip (no known problems)
+* sameboy_libretro.dll.zip (no known problems)
+* mgba_libretro.dll.zip (no known problems)
+* vbam_libretro.dll.zip (no known problems)
+* vba_next_libretro.dll.zip (no known problems)
+* mednafen_gba_libretro.dll.zip (no known problems)
+* meteor_libretro.dll.zip (no known problems)
+* quicknes_libretro.dll.zip (no known problems)
+* fixnes_libretro.dll.zip (no known problems)
+* mednafen_psx_libretro.dll.zip (no known problems)
+* xrick_libretro.dll.zip (no known problems)
+* nxengine_libretro.dll.zip (no known problems)
+* dinothawr_libretro.dll.zip (no known problems)
+* prboom_libretro.dll.zip (no known problems)
+* mrboom_libretro.dll.zip (no known problems)
+* craft_libretro.dll.zip (no known problems)
+* 2048_libretro.dll.zip (no known problems)
+* kronos_libretro.dll.zip (no known problems)
+* snes9x_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* snes9x2002_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* snes9x2005_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* snes9x2005_plus_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* snes9x2010_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* mupen64plus_next_libretro.dll.zip (no Vulkan)
+* flycast_libretro.dll.zip (no Vulkan) 
+* parallel_n64_libretro.dll.zip (no Vulkan)
+* swanstation_libretro.dll.zip (no Vulkan/D3D)
 
 Untested cores:
 ========================================
@@ -154,7 +158,6 @@ tgbdual_libretro.dll.zip
 theodore_libretro.dll.zip
 thepowdertoy_libretro.dll.zip
 tic80_libretro.dll.zip
-tyrquake_libretro.dll.zip
 uzem_libretro.dll.zip
 vaporspec_libretro.dll.zip
 vecx_libretro.dll.zip
@@ -169,11 +172,6 @@ vice_xplus4_libretro.dll.zip
 vice_xscpu64_libretro.dll.zip
 vice_xvic_libretro.dll.zip
 virtualjaguar_libretro.dll.zip
-vitaquake2-rogue_libretro.dll.zip
-vitaquake2-xatrix_libretro.dll.zip
-vitaquake2-zaero_libretro.dll.zip
-vitaquake2_libretro.dll.zip
-vitaquake3_libretro.dll.zip
 wasm4_libretro.dll.zip
 x1_libretro.dll.zip
 yabasanshiro_libretro.dll.zip
