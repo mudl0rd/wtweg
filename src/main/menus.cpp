@@ -140,10 +140,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
           {
             const char *label = instance->core_inputdesc[i].desc.c_str();
             if (ImGui::MenuItem(label, nullptr,
-                                controller_type == instance->core_inputdesc[i].id))
+                                instance->controller_type == instance->core_inputdesc[i].id))
             {
-              controller_type = instance->core_inputdesc[i].id;
-              instance->core_changinpt(controller_type);
+              instance->controller_type = instance->core_inputdesc[i].id;
+              instance->core_changinpt(instance->controller_type);
             }
           }
           ImGui::EndMenu();

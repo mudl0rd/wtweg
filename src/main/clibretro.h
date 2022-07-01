@@ -58,7 +58,8 @@ enum joytype_
 	hat
 };
 
-struct coreinput_desc{
+struct coreinput_desc
+{
 	std::string desc;
 	unsigned id;
 };
@@ -135,6 +136,7 @@ private:
 	SDL_Window *sdl_window;
 
 public:
+	int controller_type;
 	bool lr_isrunning;
 	CLibretro(SDL_Window *window, char *exepath);
 	~CLibretro();

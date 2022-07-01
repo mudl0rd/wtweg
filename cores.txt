@@ -9,6 +9,7 @@ Broken/incomplete-supported cores:
 * mednafen_supafaust_libretro.dll.zip (crashes on load)
 * bsnes_hd_beta_libretro.dll.zip  (incomplete controllers)
 * bsnes_libretro.dll.zip (broken color format)
+* vitaquake3_libretro.dll.zip (broken scaling)
 * bsnes2014_accuracy_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_balanced_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_performance_libretro.dll.zip  (incomplete controllers)
@@ -18,9 +19,9 @@ Broken/incomplete-supported cores:
 * bsnes_mercury_performance_libretro.dll.zip  (incomplete controllers)
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
-* vitaquake3_libretro.dll.zip (broken scaling)
 
 Tested cores (known to load/play/save games, might not be problem-free)
+
 * vitaquake2-rogue_libretro.dll.zip (no known problems)
 * vitaquake2-xatrix_libretro.dll.zip (no known problems)
 * vitaquake2-zaero_libretro.dll.zip (no known problems)
@@ -45,6 +46,8 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * craft_libretro.dll.zip (no known problems)
 * 2048_libretro.dll.zip (no known problems)
 * kronos_libretro.dll.zip (no known problems)
+* yabasanshiro_libretro.dll.zip (no known problems)
+* yabause_libretro.dll.zip (no known problems)
 * snes9x_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
 * snes9x2002_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
 * snes9x2005_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
@@ -174,5 +177,3 @@ vice_xvic_libretro.dll.zip
 virtualjaguar_libretro.dll.zip
 wasm4_libretro.dll.zip
 x1_libretro.dll.zip
-yabasanshiro_libretro.dll.zip
-yabause_libretro.dll.zip

@@ -55,12 +55,18 @@ static bool core_controller_info(struct retro_controller_info *info)
   auto retro = CLibretro::get_classinstance();
 
   retro->core_inputdesc.clear();
+  bool cont_found = false;
 
   for (unsigned i = 0; i < info->num_types; i++)
   {
     const struct retro_controller_description d = info->types[i];
     if (d.desc)
     {
+      if (d.id == RETRO_DEVICE_JOYPAD && !cont_found)
+      {
+        cont_found = true;
+        retro->controller_type = d.id;
+      }
       coreinput_desc desc;
       desc.desc = d.desc;
       desc.id = d.id;

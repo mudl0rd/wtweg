@@ -271,7 +271,10 @@ CLibretro::~CLibretro()
 void CLibretro::core_changinpt(int dev)
 {
   if (lr_isrunning)
+  {
+    controller_type = dev;
     retro.retro_set_controller_port_device(0, dev);
+  }
 }
 
 bool no_roms2;
@@ -292,11 +295,30 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     core_unload();
 
   init_inp();
+  controller_type = RETRO_DEVICE_JOYPAD;
 
   // Assume "RetroPad"....fuck me
   core_inputbinds.clear();
   core_variables.clear();
   core_inputdesc.clear();
+
+  if (!core_inputbinds.size())
+  {
+    for (int i = 0; i < 20; i++)
+    {
+      coreinput_bind bind;
+      bind.isanalog = (i > 15);
+      bind.retro_id = i;
+      bind.config.bits.axistrigger = 0;
+      bind.config.bits.sdl_id = 0;
+      bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
+      bind.val = 0;
+      bind.description = retro_descripts[i];
+      bind.joykey_desc = "None";
+      core_inputbinds.push_back(bind);
+    }
+  }
+
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
   std::filesystem::path core_path_ = corepath;
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
@@ -386,27 +408,9 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
     return false;
   }
-  core_changinpt(RETRO_DEVICE_JOYPAD);
+  core_changinpt(controller_type);
   retro.retro_get_system_info(&system);
   retro.retro_get_system_av_info(&av);
-
-  if (!core_inputbinds.size())
-  {
-    for (int i = 0; i < 20; i++)
-    {
-      coreinput_bind bind;
-      bind.isanalog = (i > 15);
-      bind.retro_id = i;
-      bind.config.bits.axistrigger = 0;
-      bind.config.bits.sdl_id = 0;
-      bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
-      bind.val = 0;
-      bind.description = retro_descripts[i];
-      bind.joykey_desc = "None";
-      core_inputbinds.push_back(bind);
-    }
-    loadinpconf();
-  }
 
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
@@ -426,6 +430,12 @@ bool CLibretro::core_isrunning()
 void CLibretro::core_run()
 {
   retro.retro_run();
+  static bool connotset = true;
+  if (connotset)
+  {
+    core_changinpt(controller_type);
+    connotset = false;
+  }
 }
 
 void CLibretro::core_unload()
