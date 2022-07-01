@@ -48,6 +48,7 @@ Recommended cores (runs perfectly):
 * dinothawr_libretro.dll.zip
 * prboom_libretro.dll.zip
 * mrboom_libretro.dll.zip
+* craft_libretro.dll.zip
 
 Untested cores:
 ========================================
@@ -67,7 +68,6 @@ cdi2015_libretro.dll.zip
 chailove_libretro.dll.zip
 citra2018_libretro.dll.zip
 citra_libretro.dll.zip
-craft_libretro.dll.zip
 crocods_libretro.dll.zip
 desmume2015_libretro.dll.zip
 desmume_libretro.dll.zip
