@@ -16,6 +16,24 @@ struct vp
     unsigned height;
 };
 
+static const char *retro_descripts[] = {
+    "\"RetroPad\" B",
+    "\"RetroPad\" Y",
+    "\"RetroPad\" Select",
+    "\"RetroPad\" Start",
+    "\"RetroPad\" Up",
+    "\"RetroPad\" Down",
+    "\"RetroPad\" Left",
+    "\"RetroPad\" Right",
+    "\"RetroPad\" A",
+    "\"RetroPad\" X",
+    "\"RetroPad\" L",
+    "\"RetroPad\" R",
+    "\"RetroPad\" L2",
+    "\"RetroPad\" R2",
+    "\"RetroPad\" L3",
+    "\"RetroPad\" R3"};
+
 void audio_mix(const int16_t *samples, size_t size);
 bool audio_init(float refreshra, float input_srate, float fps);
 void audio_destroy();
@@ -31,7 +49,7 @@ bool video_sethw(struct retro_hw_render_callback *hw);
 void video_deinit();
 uintptr_t video_get_fb();
 bool video_set_pixelformat(retro_pixel_format fmt);
-
+bool loadinpconf();
 void init_inp();
 void close_inp();
 bool poll_inp(int selected_inp, bool *isselected_inp);

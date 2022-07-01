@@ -47,6 +47,7 @@ Recommended cores (runs perfectly):
 * nxengine_libretro.dll.zip
 * dinothawr_libretro.dll.zip
 * prboom_libretro.dll.zip
+* mrboom_libretro.dll.zip
 
 Untested cores:
 ========================================
@@ -118,7 +119,6 @@ mednafen_vb_libretro.dll.zip
 mednafen_wswan_libretro.dll.zip
 melonds_libretro.dll.zip
 minivmac_libretro.dll.zip
-mrboom_libretro.dll.zip
 mu_libretro.dll.zip
 nekop2_libretro.dll.zip
 neocd_libretro.dll.zip

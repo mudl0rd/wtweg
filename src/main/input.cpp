@@ -182,60 +182,10 @@ static bool key_pressed(int key)
 
 SDL_GameController *Joystick = NULL;
 
-bool load_inpcfg(retro_input_descriptor *var)
+bool loadinpconf()
 {
     auto lib = CLibretro::get_classinstance();
-    lib->core_inputbinds.clear();
     std::string core_config = lib->core_config;
-
-    while (var->description != NULL && var->port == 0)
-    {
-
-        if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD) ||
-            (var->device == RETRO_DEVICE_KEYBOARD))
-        {
-
-            coreinput_bind bind;
-
-            bind.description = var->description;
-            auto &settings = bind.config;
-
-            if (var->device == RETRO_DEVICE_ANALOG)
-            {
-                int var_index = var->index;
-                int axistocheck = var->id;
-                if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-                    axistocheck = joypad_analogx_l;
-                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-                    axistocheck = joypad_analogy_l;
-                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-                    axistocheck = joypad_analogx_r;
-                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-                    axistocheck = joypad_analogy_r;
-
-                bind.isanalog = (uint8_t) true;
-                bind.retro_id = axistocheck;
-                bind.config.bits.axistrigger = 0;
-                settings.bits.sdl_id = 0;
-                settings.bits.joytype = (uint8_t)joytype_::keyboard;
-                bind.val = 0;
-                bind.joykey_desc = "None";
-            }
-            else if (var->device == RETRO_DEVICE_JOYPAD || var->device == RETRO_DEVICE_KEYBOARD)
-            {
-                bind.isanalog = (uint8_t) false;
-                bind.retro_id = var->id;
-                bind.config.bits.axistrigger = 0;
-                settings.bits.sdl_id = 0;
-                settings.bits.joytype = (uint8_t)joytype_::keyboard;
-                bind.val = 0;
-                bind.joykey_desc = "None";
-            }
-            lib->core_inputbinds.push_back(bind);
-            var++;
-        }
-    }
-
     unsigned sz_coreconfig = get_filesize(core_config.c_str());
     unsigned size_;
     std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
@@ -302,8 +252,62 @@ bool load_inpcfg(retro_input_descriptor *var)
         }
     }
     ini_destroy(ini);
-
     return true;
+}
+
+bool load_inpcfg(retro_input_descriptor *var)
+{
+    auto lib = CLibretro::get_classinstance();
+
+    while (var->description != NULL && var->port == 0)
+    {
+
+        if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD) ||
+            (var->device == RETRO_DEVICE_KEYBOARD))
+        {
+
+            coreinput_bind bind;
+
+            bind.description = var->description;
+            auto &settings = bind.config;
+
+            if (var->device == RETRO_DEVICE_ANALOG)
+            {
+                int var_index = var->index;
+                int axistocheck = var->id;
+                if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+                    axistocheck = joypad_analogx_l;
+                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+                    axistocheck = joypad_analogy_l;
+                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+                    axistocheck = joypad_analogx_r;
+                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+                    axistocheck = joypad_analogy_r;
+
+                bind.isanalog = (uint8_t) true;
+                bind.retro_id = axistocheck;
+                bind.config.bits.axistrigger = 0;
+                settings.bits.sdl_id = 0;
+                settings.bits.joytype = (uint8_t)joytype_::keyboard;
+                bind.val = 0;
+                bind.joykey_desc = "None";
+            }
+            else if (var->device == RETRO_DEVICE_JOYPAD || var->device == RETRO_DEVICE_KEYBOARD)
+            {
+                bind.isanalog = (uint8_t) false;
+                bind.retro_id = var->id;
+                bind.config.bits.axistrigger = 0;
+                settings.bits.sdl_id = 0;
+                settings.bits.joytype = (uint8_t)joytype_::keyboard;
+                bind.val = 0;
+                bind.joykey_desc = "None";
+            }
+            lib->core_inputbinds.push_back(bind);
+            var++;
+        }
+    }
+
+    return loadinpconf();
 }
 bool save_inpcfg()
 {
@@ -567,8 +571,6 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
     if (port != 0)
         return 0;
     auto lib = CLibretro::get_classinstance();
-
-  
 
     if (device == RETRO_DEVICE_MOUSE || device == RETRO_DEVICE_LIGHTGUN)
     {

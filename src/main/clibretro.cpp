@@ -288,6 +288,9 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   if (lr_isrunning)
     core_unload();
 
+  // Assume "RetroPad"....fuck me
+  core_inputbinds.clear();
+
   contentless = (ROM == NULL);
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
   std::filesystem::path core_path_ = corepath;
@@ -381,6 +384,24 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   core_changinpt(RETRO_DEVICE_JOYPAD);
   retro.retro_get_system_info(&system);
   retro.retro_get_system_av_info(&av);
+
+  if (!core_inputbinds.size())
+  {
+    for (int i = 0; i < RETRO_DEVICE_ID_JOYPAD_R3 + 1; i++)
+    {
+      coreinput_bind bind;
+      bind.isanalog = false;
+      bind.retro_id = i;
+      bind.config.bits.axistrigger = 0;
+      bind.config.bits.sdl_id = 0;
+      bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
+      bind.val = 0;
+      bind.description = retro_descripts[i];
+      bind.joykey_desc = "None";
+      core_inputbinds.push_back(bind);
+    }
+    loadinpconf();
+  }
 
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
