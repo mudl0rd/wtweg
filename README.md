@@ -19,7 +19,7 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 
 [A list of tested cores is here](https://raw.githubusercontent.com/mudlord/WTFweg/master/cores.txt)
 
-[Releases compiled every Sunday, my time are here](https://www.mediafire.com/file/rp9ykqbevyobxa4/WTFweg.zip)
+[Releases compiled every Sunday, my time are here](https://www.mediafire.com/file/ntfxx0fnqjedy56/wtfweg.7z)
 
 * "cores" is where all libretro cores go
 * "saves" is where all saves are
