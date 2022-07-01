@@ -46,7 +46,7 @@ bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool
   int selected_core = 0;
   if (core_file != NULL)
   {
-    instance->core_load((char *)file, pergame, (char *)core_file);
+    instance->core_load((char *)file, pergame, (char *)core_file, false);
     return false;
   }
   for (size_t i = 0; i < instance->cores.size(); i++)
@@ -63,7 +63,7 @@ bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool
   }
   if (hits == 1)
   {
-    instance->core_load((char *)file, pergame, (char *)instance->cores.at(selected_core).core_path.c_str());
+    instance->core_load((char *)file, pergame, (char *)instance->cores.at(selected_core).core_path.c_str(), false);
     return false;
   }
   else
@@ -223,7 +223,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load((char *)filenamepath.c_str(), false, (char *)cores_info.at(listbox_item_current).core_path.c_str());
+        instance->core_load((char *)filenamepath.c_str(), false, (char *)cores_info.at(listbox_item_current).core_path.c_str(), false);
         coreselect = false;
       }
       ImGui::BulletText("WTFweg couldn't determine the core to use.");
@@ -287,7 +287,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str());
+        instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str(), true);
         load_core = false;
       }
       ImGui::BulletText("Choose the specific core to load.");

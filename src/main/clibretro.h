@@ -145,7 +145,7 @@ public:
 
 	void core_changinpt(int dev);
 	bool core_isrunning();
-	bool core_load(char *ROM, bool game_specific_settings, char *corepath);
+	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless);
 	void core_unload();
 	bool core_saveram(const char *filename, bool save);
 	bool core_savestate(const char *filename, bool save);
@@ -163,7 +163,6 @@ public:
 	std::vector<coreinput_bind> core_inputbinds;
 	std::vector<loadedcore_configvars> core_variables;
 	bool variables_changed;
-	bool contentless;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
 	std::string core_config;

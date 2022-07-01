@@ -54,7 +54,6 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME:
   {
     bool *bval = (bool *)data;
-    retro->contentless = bval;
     return true;
   }
 
@@ -153,24 +152,24 @@ static bool core_environment(unsigned cmd, void *data)
     return true;
     break;
 
-    case RETRO_ENVIRONMENT_SET_MESSAGE:
-    {
-      const struct retro_message *msg = (const struct retro_message *)data;
-      core_log(RETRO_LOG_DEBUG, "%s", msg);
-      return true;
-      break;
-    }
+  case RETRO_ENVIRONMENT_SET_MESSAGE:
+  {
+    const struct retro_message *msg = (const struct retro_message *)data;
+    core_log(RETRO_LOG_DEBUG, "%s", msg);
+    return true;
+    break;
+  }
 
-    case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
-    {
-      enum retro_pixel_format *fmt = (enum retro_pixel_format *)data;
-      return video_set_pixelformat(*fmt);
-    }
-    default:
-      core_log(RETRO_LOG_DEBUG, "Unhandled env #%u", cmd);
-      return false;
-    }
+  case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
+  {
+    enum retro_pixel_format *fmt = (enum retro_pixel_format *)data;
+    return video_set_pixelformat(*fmt);
+  }
+  default:
+    core_log(RETRO_LOG_DEBUG, "Unhandled env #%u", cmd);
     return false;
+  }
+  return false;
 }
 
 static void core_video_refresh(const void *data, unsigned width,

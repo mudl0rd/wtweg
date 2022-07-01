@@ -32,7 +32,11 @@ static const char *retro_descripts[] = {
     "\"RetroPad\" L2",
     "\"RetroPad\" R2",
     "\"RetroPad\" L3",
-    "\"RetroPad\" R3"};
+    "\"RetroPad\" R3",
+    "\"RetroPad\" Left Stick X Axis",
+    "\"RetroPad\" Left Stick Y Axis",
+    "\"RetroPad\" Right Stick X Axis",
+    "\"RetroPad\" Right Stick Y Axis"};
 
 void audio_mix(const int16_t *samples, size_t size);
 bool audio_init(float refreshra, float input_srate, float fps);

@@ -283,15 +283,13 @@ static bool no_roms(unsigned cmd, void *data)
   return false;
 }
 
-bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath)
+bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless)
 {
   if (lr_isrunning)
     core_unload();
 
   // Assume "RetroPad"....fuck me
   core_inputbinds.clear();
-
-  contentless = (ROM == NULL);
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
   std::filesystem::path core_path_ = corepath;
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
@@ -387,10 +385,10 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   if (!core_inputbinds.size())
   {
-    for (int i = 0; i < RETRO_DEVICE_ID_JOYPAD_R3 + 1; i++)
+    for (int i = 0; i < 20; i++)
     {
       coreinput_bind bind;
-      bind.isanalog = false;
+      bind.isanalog = (i > 15);
       bind.retro_id = i;
       bind.config.bits.axistrigger = 0;
       bind.config.bits.sdl_id = 0;

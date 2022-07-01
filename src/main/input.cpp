@@ -577,19 +577,21 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         Uint8 btn = mousiez.buttons;
         switch (id)
         {
-        case RETRO_DEVICE_ID_MOUSE_LEFT:
-            return (SDL_BUTTON(SDL_BUTTON_LEFT) & btn);
-        case RETRO_DEVICE_ID_MOUSE_RIGHT:
-            return (SDL_BUTTON(SDL_BUTTON_RIGHT) & btn);
         case RETRO_DEVICE_ID_MOUSE_X:
             return mousiez.rel_x;
         case RETRO_DEVICE_ID_MOUSE_Y:
             return mousiez.rel_y;
+        case RETRO_DEVICE_ID_MOUSE_LEFT:
+            return (SDL_BUTTON(SDL_BUTTON_LEFT) & btn);
+        case RETRO_DEVICE_ID_MOUSE_RIGHT:
+            return (SDL_BUTTON(SDL_BUTTON_RIGHT) & btn);
         case RETRO_DEVICE_ID_MOUSE_MIDDLE:
             return (SDL_BUTTON(SDL_BUTTON_MIDDLE) & btn);
         case RETRO_DEVICE_ID_MOUSE_BUTTON_4:
+        case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
             return (SDL_BUTTON(SDL_BUTTON_X1) & btn);
         case RETRO_DEVICE_ID_MOUSE_BUTTON_5:
+        case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
             return (SDL_BUTTON(SDL_BUTTON_X2) & btn);
         default:
             return 0;
