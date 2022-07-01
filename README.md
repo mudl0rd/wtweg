@@ -35,11 +35,10 @@ Personal [libretro](https://www.libretro.com) code playset for anything with:
 * Commandline support for debugging cores with GDB.
 * Per-game settings per-core.
 
+![cavestory](https://user-images.githubusercontent.com/56025978/176826673-3e7d9254-e6a6-4114-bb9c-81d0e26c0c1e.png)
+![dinothawr](https://user-images.githubusercontent.com/56025978/176826700-83e7d83e-58cc-4895-913b-60c0d09dc082.png)
+![xrick](https://user-images.githubusercontent.com/56025978/176826840-7c794157-6f74-4b68-8882-c89f0cb83b4e.png)
 
-
-![ss1](https://user-images.githubusercontent.com/56025978/163493614-c992cfd3-78d5-4579-87aa-53b580f70305.png)
-![ss2](https://user-images.githubusercontent.com/56025978/163493616-6dd1bae6-6aab-4a64-9c20-88ece03bdd52.png)
-![ss3](https://user-images.githubusercontent.com/56025978/163493617-5db73c9e-44f3-4caa-8283-57a17e90e0f3.png)
 
 ## How?
 
