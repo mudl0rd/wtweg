@@ -1,9 +1,7 @@
 Broken cores:
 
 * mednafen_psx_hw_libretro.dll.zip (broken GL context when changing from GL4+ cores?)
-* bsnes_libretro.dll.zip (broken color format)
 * vitaquake3_libretro.dll.zip (broken scaling)
-* mednafen_supafaust_libretro.dll.zip (crashes on load)
 * ecwolf_libretro.dll.zip (crashes on load)
 * jumpnbump_libretro.dll.zip (needs multiple controller support)
 * gw_libretro.dll.zip (black screen)
@@ -25,6 +23,7 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * bsnes_mercury_accuracy_libretro.dll.zip  (incomplete controllers)
 * bsnes_mercury_balanced_libretro.dll.zip  (incomplete controllers)
 * bsnes_mercury_performance_libretro.dll.zip  (incomplete controllers)
+* bsnes_libretro.dll.zip (incomplete controllers)
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
 * tyrquake_libretro.dll.zip (incomplete controllers)
@@ -72,7 +71,7 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * yabause_libretro.dll.zip (no known problems)
 * mednafen_wswan_libretro.dll.zip (no known problems)
 * gpsp_libretro.dll.zip (no known problems)
-
+* mednafen_supafaust_libretro.dll.zip (no known problems)
 
 Untested cores:
 ========================================

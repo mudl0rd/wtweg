@@ -21,7 +21,6 @@ struct
 		GLuint pixfmt;
 		GLuint pixtype;
 		GLuint bpp;
-
 	} pixformat;
 
 	struct retro_hw_render_callback hw;
@@ -168,9 +167,6 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 	}
 
 	glGenTextures(1, &g_video.tex_id);
-
-	g_video.pitch = geom->base_width * g_video.pixformat.bpp;
-
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -234,7 +230,6 @@ void video_render()
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
 	int dest_x0 = vpx.x;
 	int dest_x1 = vpx.x + vpx.width;
 	int dest_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
@@ -256,15 +251,10 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 	if (data && data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
 		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-		if (pitch != g_video.pitch)
-			g_video.pitch = pitch;
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(width * g_video.pixformat.bpp));
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
 						g_video.pixformat.pixfmt, data);
-
-		//  glTexImage2D(GL_TEXTURE_2D, 0, g_video.pixformat.pixtype, width, height, 0,
-		//		 g_video.pixformat.pixtype, g_video.pixformat.pixfmt, data);
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}

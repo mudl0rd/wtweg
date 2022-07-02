@@ -382,9 +382,9 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   if (!contentless)
   {
     info = {ROM, 0};
-    info.path = ROM;
+    info.path = system.need_fullpath ? ROM : NULL;
     info.data = NULL;
-    info.size = get_filesize(ROM);
+    info.size = system.need_fullpath ? 0 : get_filesize(ROM);
     info.meta = "";
     if (!system.need_fullpath)
     {

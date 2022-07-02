@@ -258,7 +258,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
     if (!found)
     {
-      popup_widget(&load_core, "No contentless core", "There is no contentless core detected.");
+      popup_widget(&load_core, "No contentless core", "There is no contentless cores detected.");
       return;
     }
 
