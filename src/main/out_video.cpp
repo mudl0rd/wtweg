@@ -69,8 +69,8 @@ void video_bindfb()
 	if (!g_video.software_rast)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
-		//	glViewport(0, 0, g_video.base_w, g_video.base_h);
-		// glScissor(0, 0, g_video.base_h, g_video.base_h);
+		glViewport(0, 0, g_video.base_w, g_video.base_h);
+		glScissor(0, 0, g_video.base_h, g_video.base_h);
 	}
 }
 
@@ -235,21 +235,22 @@ void video_render()
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
+	int dest_x0 = vpx.x;
+	int dest_x1 = vpx.x + vpx.width;
+	int dest_y0;
+	int dest_y1;
 	if (g_video.software_rast)
 	{
-		int dest_x0 = vpx.x;
-		int dest_x1 = vpx.x + vpx.width;
-		int dest_y0 = vpx.y + vpx.height;
-		int dest_y1 = vpx.y;
-		glBlitFramebuffer(0, 0, g_video.base_w, g_video.base_h,
-						  dest_x0, dest_y0, dest_x1, dest_y1,
-						  GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		dest_y0 = vpx.y + vpx.height;
+		dest_y1 = vpx.y;
 	}
 	else
 	{
-		glBlitFramebuffer(0, 0, g_video.base_w, g_video.base_h, vpx.x, vpx.y,
-						  vpx.width, vpx.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		dest_y0 = vpx.y;
+		dest_y1 = vpx.y + vpx.height;
 	}
+	glBlitFramebuffer(0, 0, g_video.base_w, g_video.base_h,
+					  dest_x0, dest_y0, dest_x1, dest_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
 
@@ -259,14 +260,8 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 		return;
 	if (g_video.base_w != width || g_video.base_h != height)
 	{
-		if (data == RETRO_HW_FRAME_BUFFER_VALID)
-		{
-			g_video.base_h = height;
-			g_video.base_w = width;
-			glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-			glTexImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-						 g_video.pixformat.pixfmt, NULL);
-		}
+		g_video.base_h = height;
+		g_video.base_w = width;
 	}
 	if (data && data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
