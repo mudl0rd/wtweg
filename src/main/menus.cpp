@@ -285,12 +285,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
   if (inputsettings)
   {
 
-    if (!instance->core_isrunning())
-    {
-      popup_widget(&inputsettings, "Core not running", "There is no core running!");
-      return;
-    }
-
     if (!instance->core_inputbinds.size())
     {
       popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
@@ -336,11 +330,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
   if (coresettings)
   {
-    if (!instance->core_isrunning())
-    {
-      popup_widget(&coresettings, "Core not running", "There is no core running!");
-      return;
-    }
 
     if (!instance->core_variables.size())
     {
