@@ -120,7 +120,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         if (ImGui::MenuItem("Input Settings..."))
           inputsettings = true;
 
-        if (instance->core_inputdesc.size())
+        if (instance->core_inputdesc.size() > 1)
         {
           ImGui::Separator();
           if (ImGui::BeginMenu("Input device"))

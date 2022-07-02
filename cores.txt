@@ -1,15 +1,19 @@
-Broken/incomplete-supported cores:
-* tyrquake_libretro.dll.zip (incomplete controllers)
-* mesen_libretro.dll.zip  (incomplete controllers)
-* genesis_plus_gx_libretro.dll.zip (possibly incomplete controllers)
-* mesen-s_libretro.dll.zip (incomplete controllers)
-* mesen_libretro.dll.zip (incomplete controllers)
+Broken cores:
+
 * mednafen_psx_hw_libretro.dll.zip (broken GL context when changing from GL4+ cores?)
-* mednafen_snes_libretro.dll.zip  (incomplete controllers)
-* mednafen_supafaust_libretro.dll.zip (crashes on load)
-* bsnes_hd_beta_libretro.dll.zip  (incomplete controllers)
 * bsnes_libretro.dll.zip (broken color format)
 * vitaquake3_libretro.dll.zip (broken scaling)
+* mednafen_supafaust_libretro.dll.zip (crashes on load)
+* jumpnbump_libretro.dll.zip (needs multiple controller support)
+
+Tested cores (known to load/play/save games, might not be problem-free)
+
+* mupen64plus_next_libretro.dll.zip (no Vulkan)
+* flycast_libretro.dll.zip (no Vulkan) 
+* parallel_n64_libretro.dll.zip (no Vulkan)
+* swanstation_libretro.dll.zip (no Vulkan/D3D)
+* mednafen_snes_libretro.dll.zip  (incomplete controllers)
+* bsnes_hd_beta_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_accuracy_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_balanced_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_performance_libretro.dll.zip  (incomplete controllers)
@@ -19,16 +23,28 @@ Broken/incomplete-supported cores:
 * bsnes_mercury_performance_libretro.dll.zip  (incomplete controllers)
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
-* jumpnbump_libretro.dll.zip (needs multiple controller support)
-
-Tested cores (known to load/play/save games, might not be problem-free)
-
+* tyrquake_libretro.dll.zip (incomplete controllers)
+* mesen_libretro.dll.zip  (incomplete controllers)
+* genesis_plus_gx_libretro.dll.zip (incomplete controllers)
+* genesis_plus_gx_wide_libretro.dll.zip (incomplete controllers)
+* mesen-s_libretro.dll.zip (incomplete controllers)
+* mesen_libretro.dll.zip (incomplete controllers)
+* snes9x_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* snes9x2002_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* snes9x2005_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* snes9x2005_plus_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* snes9x2010_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* gong_libretro.dll.zip (no human player 2)
+* gme_libretro.dll.zip (no known problems)
+* gearsystem_libretro.dll.zip (no known problems)
+* gearcoleco_libretro.dll.zip (no known problems)
 * vitaquake2-rogue_libretro.dll.zip (no known problems)
 * vitaquake2-xatrix_libretro.dll.zip (no known problems)
 * vitaquake2-zaero_libretro.dll.zip (no known problems)
 * vitaquake2_libretro.dll.zip (no known problems)
 * gearboy_libretro.dll.zip (no known problems)
 * gambatte_libretro.dll.zip (no known problems)
+* smsplus_libretro.dll.zip (no known problems)
 * fixgb_libretro.dll.zip (no known problems)
 * sameboy_libretro.dll.zip (no known problems)
 * mgba_libretro.dll.zip (no known problems)
@@ -50,16 +66,8 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * yabasanshiro_libretro.dll.zip (no known problems)
 * pokemini_libretro.dll.zip (no known problems)
 * yabause_libretro.dll.zip (no known problems)
-* gong_libretro.dll.zip (no human player 2)
-* snes9x_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
-* snes9x2002_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
-* snes9x2005_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
-* snes9x2005_plus_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
-* snes9x2010_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
-* mupen64plus_next_libretro.dll.zip (no Vulkan)
-* flycast_libretro.dll.zip (no Vulkan) 
-* parallel_n64_libretro.dll.zip (no Vulkan)
-* swanstation_libretro.dll.zip (no Vulkan/D3D)
+* mednafen_wswan_libretro.dll.zip (no known problems)
+
 
 Untested cores:
 ========================================
@@ -99,10 +107,6 @@ freechaf_libretro.dll.zip
 freeintv_libretro.dll.zip
 frodo_libretro.dll.zip
 fuse_libretro.dll.zip
-gearcoleco_libretro.dll.zip
-gearsystem_libretro.dll.zip
-genesis_plus_gx_wide_libretro.dll.zip
-gme_libretro.dll.zip
 gpsp_libretro.dll.zip
 gw_libretro.dll.zip
 handy_libretro.dll.zip
@@ -124,7 +128,6 @@ mednafen_pcfx_libretro.dll.zip
 mednafen_saturn_libretro.dll.zip
 mednafen_supergrafx_libretro.dll.zip
 mednafen_vb_libretro.dll.zip
-mednafen_wswan_libretro.dll.zip
 melonds_libretro.dll.zip
 minivmac_libretro.dll.zip
 mu_libretro.dll.zip
@@ -152,7 +155,6 @@ retro8_libretro.dll.zip
 sameduck_libretro.dll.zip
 same_cdi_libretro.dll.zip
 scummvm_libretro.dll.zip
-smsplus_libretro.dll.zip
 squirreljme_libretro.dll.zip
 stella2014_libretro.dll.zip
 stella_libretro.dll.zip
