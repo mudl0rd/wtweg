@@ -4,7 +4,10 @@ Broken cores:
 * bsnes_libretro.dll.zip (broken color format)
 * vitaquake3_libretro.dll.zip (broken scaling)
 * mednafen_supafaust_libretro.dll.zip (crashes on load)
+* ecwolf_libretro.dll.zip (crashes on load)
 * jumpnbump_libretro.dll.zip (needs multiple controller support)
+* gw_libretro.dll.zip (black screen)
+
 
 Tested cores (known to load/play/save games, might not be problem-free)
 
@@ -12,6 +15,7 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * flycast_libretro.dll.zip (no Vulkan) 
 * parallel_n64_libretro.dll.zip (no Vulkan)
 * swanstation_libretro.dll.zip (no Vulkan/D3D)
+* picodrive_libretro.dll.zip (various incomplete libretro intf's like disc change)
 * mednafen_snes_libretro.dll.zip  (incomplete controllers)
 * bsnes_hd_beta_libretro.dll.zip  (incomplete controllers)
 * bsnes2014_accuracy_libretro.dll.zip  (incomplete controllers)
@@ -67,6 +71,7 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * pokemini_libretro.dll.zip (no known problems)
 * yabause_libretro.dll.zip (no known problems)
 * mednafen_wswan_libretro.dll.zip (no known problems)
+* gpsp_libretro.dll.zip (no known problems)
 
 
 Untested cores:
@@ -94,7 +99,6 @@ dosbox_core_libretro.dll.zip
 dosbox_pure_libretro.dll.zip
 dosbox_svn_libretro.dll.zip
 easyrpg_libretro.dll.zip
-ecwolf_libretro.dll.zip
 fbalpha2012_cps1_libretro.dll.zip
 fbalpha2012_cps2_libretro.dll.zip
 fbalpha2012_cps3_libretro.dll.zip
@@ -107,8 +111,6 @@ freechaf_libretro.dll.zip
 freeintv_libretro.dll.zip
 frodo_libretro.dll.zip
 fuse_libretro.dll.zip
-gpsp_libretro.dll.zip
-gw_libretro.dll.zip
 handy_libretro.dll.zip
 hatari_libretro.dll.zip
 jaxe_libretro.dll.zip
@@ -139,7 +141,6 @@ oberon_libretro.dll.zip
 opera_libretro.dll.zip
 pcsx2_libretro.dll.zip
 pcsx_rearmed_libretro.dll.zip
-picodrive_libretro.dll.zip
 play_libretro.dll.zip
 pocketcdg_libretro.dll.zip
 potator_libretro.dll.zip
