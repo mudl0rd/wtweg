@@ -415,7 +415,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   retro.retro_get_system_av_info(&av);
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
-  audio_init((float)60, av.timing.sample_rate, av.timing.fps);
+  audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, sdl_window);
   lr_isrunning = true;
   core_saveram(romsavesstatespath.c_str(), false);

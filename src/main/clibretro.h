@@ -179,6 +179,8 @@ public:
 	std::string system_path;
 	std::string coreexts;
 	std::string exe_path;
+	float core_fps;
+	double coretime;
 };
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
