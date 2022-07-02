@@ -107,32 +107,35 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
       ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("Options"))
+    if (instance->core_isrunning())
     {
-      if (ImGui::MenuItem("Core Settings..."))
-        coresettings = true;
-      if (ImGui::MenuItem("Input Settings..."))
-        inputsettings = true;
-
-      if (instance->core_inputdesc.size())
+      if (ImGui::BeginMenu("Options"))
       {
-        ImGui::Separator();
-        if (ImGui::BeginMenu("Input device"))
+        if (ImGui::MenuItem("Core Settings..."))
+          coresettings = true;
+        if (ImGui::MenuItem("Input Settings..."))
+          inputsettings = true;
+
+        if (instance->core_inputdesc.size())
         {
-          for (int i = 0; i < instance->core_inputdesc.size(); i++)
+          ImGui::Separator();
+          if (ImGui::BeginMenu("Input device"))
           {
-            const char *label = instance->core_inputdesc[i].desc.c_str();
-            if (ImGui::MenuItem(label, nullptr,
-                                instance->controller_type == instance->core_inputdesc[i].id))
+            for (int i = 0; i < instance->core_inputdesc.size(); i++)
             {
-              instance->controller_type = instance->core_inputdesc[i].id;
-              instance->core_changinpt(instance->controller_type);
+              const char *label = instance->core_inputdesc[i].desc.c_str();
+              if (ImGui::MenuItem(label, nullptr,
+                                  instance->controller_type == instance->core_inputdesc[i].id))
+              {
+                instance->controller_type = instance->core_inputdesc[i].id;
+                instance->core_changinpt(instance->controller_type);
+              }
             }
+            ImGui::EndMenu();
           }
-          ImGui::EndMenu();
         }
+        ImGui::EndMenu();
       }
-      ImGui::EndMenu();
     }
 
     ImGui::EndMainMenuBar();
