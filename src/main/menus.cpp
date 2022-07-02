@@ -80,6 +80,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
   static bool coresettings = false;
   static bool aboutbox = false;
   static bool load_core = false;
+  ImGuiIO &io = ImGui::GetIO();
 
   if (ImGui::BeginMainMenuBar())
   {
@@ -283,8 +284,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
   if (inputsettings)
   {
-    ImGui::PushItemWidth(200);
-    ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
 
     if (!instance->core_isrunning())
     {
@@ -299,6 +298,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     }
 
     ImGui::OpenPopup("Input Settings");
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -310,12 +311,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         if (bind.description == "")
           continue;
 
-        int total_w = 300;
         ImGui::Text("%s", bind.description.c_str());
         std::string script = "##" + bind.description;
         char *button_str = (char *)bind.joykey_desc.c_str();
-        ImGui::SameLine(350);
-        ImGui::SetNextItemWidth(total_w);
+        ImVec2 sz = ImGui::GetWindowSize();
+        ImGui::SameLine(sz.x * 0.78);
+        ImGui::SetNextItemWidth(sz.x * 0.2);
         ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
         if (ImGui::IsItemClicked())
         {
@@ -335,9 +336,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
   if (coresettings)
   {
-    ImGui::PushItemWidth(200);
-    ImGui::SetNextWindowSize(ImVec2(550, 660), ImGuiCond_FirstUseEver);
-
     if (!instance->core_isrunning())
     {
       popup_widget(&coresettings, "Core not running", "There is no core running!");
@@ -351,6 +349,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     }
 
     ImGui::OpenPopup("Core Settings");
+
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.6f, io.DisplaySize.y * 0.5f), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     if (ImGui::BeginPopupModal("Core Settings", &coresettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -386,7 +387,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
             int total_w = descript.length();
             ImGui::Text("%s", descript.c_str());
-            ImGui::SameLine(650 - 200);
+            float w = ImGui::CalcItemWidth();
+            ImVec2 sz = ImGui::GetWindowSize();
+            ImGui::SameLine(sz.x * 0.76);
             ImGui::SetNextItemWidth(total_w);
             if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
             {
@@ -398,10 +401,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
           }
           else
           {
+
             int total_w = 200;
             ImGui::Text("%s", descript.c_str());
-            ImGui::SameLine(650 - 200);
-            ImGui::SetNextItemWidth(total_w);
+            ImVec2 sz = ImGui::GetWindowSize();
+            ImGui::SameLine(sz.x * 0.76);
+            ImGui::SetNextItemWidth(sz.x * 0.2);
             if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
             {
               for (size_t n = 0; n < bind.config_vals.size(); n++)
