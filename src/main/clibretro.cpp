@@ -378,16 +378,19 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   struct retro_game_info info = {0};
   struct retro_system_info system = {0};
+  retro.retro_get_system_info(&system);
   retro_system_av_info av = {0};
   if (!contentless)
   {
     info = {ROM, 0};
     info.path = system.need_fullpath ? ROM : NULL;
     info.data = NULL;
-    info.size = system.need_fullpath ? 0 : get_filesize(ROM);
+    info.size = 0;
     info.meta = "";
     if (!system.need_fullpath)
     {
+      info.size = get_filesize(ROM);
+
       std::ifstream ifs;
       ifs.open(ROM, ios::binary);
       if (!ifs.good())
@@ -409,16 +412,13 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     return false;
   }
   core_changinpt(controller_type);
-  retro.retro_get_system_info(&system);
   retro.retro_get_system_av_info(&av);
-
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
   audio_init((float)60, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, sdl_window);
   lr_isrunning = true;
   core_saveram(romsavesstatespath.c_str(), false);
-
   return true;
 }
 
