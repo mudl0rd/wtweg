@@ -237,18 +237,8 @@ void video_render()
 
 	int dest_x0 = vpx.x;
 	int dest_x1 = vpx.x + vpx.width;
-	int dest_y0;
-	int dest_y1;
-	if (g_video.software_rast)
-	{
-		dest_y0 = vpx.y + vpx.height;
-		dest_y1 = vpx.y;
-	}
-	else
-	{
-		dest_y0 = vpx.y;
-		dest_y1 = vpx.y + vpx.height;
-	}
+	int dest_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
+	int dest_y1 = (g_video.software_rast) ? vpx.y : (vpx.y + vpx.height);
 	glBlitFramebuffer(0, 0, g_video.base_w, g_video.base_h,
 					  dest_x0, dest_y0, dest_x1, dest_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
