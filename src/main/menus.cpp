@@ -91,18 +91,22 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
       if (ImGui::MenuItem("Load contentless libretro core"))
         load_core = true;
 
-      ImGui::Separator();
-
-      if (ImGui::MenuItem("Load Savestate"))
+      if (instance->core_isrunning())
       {
-        if (instance->core_isrunning())
-          romloader.OpenModal("LoadSaveState", "Load a savestate", ss_filters, ".", "", 1, nullptr, flags);
-      }
 
-      if (ImGui::MenuItem("Save Savestate"))
-      {
-        if (instance->core_isrunning())
-          romloader.OpenModal("SaveSaveState", "Save a savestate", ss_filters, ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Load Savestate"))
+        {
+          if (instance->core_isrunning())
+            romloader.OpenModal("LoadSaveState", "Load a savestate", ss_filters, ".", "", 1, nullptr, flags);
+        }
+
+        if (ImGui::MenuItem("Save Savestate"))
+        {
+          if (instance->core_isrunning())
+            romloader.OpenModal("SaveSaveState", "Save a savestate", ss_filters, ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
+        }
       }
 
       ImGui::EndMenu();
