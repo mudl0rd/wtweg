@@ -16,6 +16,7 @@
 #include <windows.h>
 #else
 #include <SDL2/SDL.h>
+#include <unistd.h>
 #endif
 using namespace std;
 
