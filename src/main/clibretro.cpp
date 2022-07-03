@@ -344,6 +344,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
                 (core_path_.stem().string() + ".corecfg");
   }
 
+  core_config = std::filesystem::absolute(save_path).string();
+
   void *hDLL = openlib((const char *)corepath);
   if (!hDLL)
   {
