@@ -43,7 +43,6 @@ bool audio_init(float refreshra, float input_srate, float fps);
 void audio_destroy();
 void video_render();
 void video_bindfb();
-void video_unbindfb();
 void video_restoresz();
 vp resize_cb();
 bool video_init(const struct retro_game_geometry *geom, SDL_Window *window);

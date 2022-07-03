@@ -15,8 +15,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
-#include <unistd.h>
-#include <dlfcn.h>
+#include <SDL2/SDL.h>
 #endif
 using namespace std;
 
@@ -170,16 +169,12 @@ void *openlib(const char *path)
 #ifdef _WIN32
 	HMODULE handle = LoadLibrary(path);
 	if (!handle)
-	{
 		return NULL;
-	}
 	return handle;
 #else
-	void *handle = dlopen(path, RTLD_LAZY);
+	void *handle = SDL_LoadObject(path);
 	if (!handle)
-	{
 		return NULL;
-	}
 	return handle;
 #endif
 }
@@ -188,7 +183,7 @@ void *getfunc(void *handle, const char *funcname)
 #ifdef _WIN32
 	return (void *)GetProcAddress((HMODULE)handle, funcname);
 #else
-	return dlsym(handle, funcname);
+	return SDL_LoadFunction(handle, funcname);
 #endif
 }
 void freelib(void *handle)
@@ -196,6 +191,6 @@ void freelib(void *handle)
 #ifdef _WIN32
 	FreeLibrary((HMODULE)handle);
 #else
-	dlclose(handle);
+	SDL_UnloadObject(handle);
 #endif
 }

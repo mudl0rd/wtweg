@@ -165,11 +165,9 @@ void audio_mix(const int16_t *samples, size_t size)
             size_t write_amt = out_bytes - written > avail ? avail : out_bytes - written;
             fifo_write(audio_ctx_s._fifo,
                        (const char *)output_float.get() + written, write_amt);
-            SDL_UnlockAudioDevice(audio_ctx_s.dev);
             written += write_amt;
         }
-        else
-            SDL_UnlockAudioDevice(audio_ctx_s.dev);
+        SDL_UnlockAudioDevice(audio_ctx_s.dev);
     }
 }
 

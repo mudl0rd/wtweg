@@ -344,13 +344,14 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
                 (core_path_.stem().string() + ".corecfg");
   }
 
-  core_config = std::filesystem::absolute(save_path).string();
-
-  void *hDLL = SDL_LoadObject((const char *)corepath);
+  void *hDLL = openlib((const char *)corepath);
   if (!hDLL)
+  {
+    const char *err = SDL_GetError();
     return false;
+  }
 
-#define libload(name) SDL_LoadFunction(hDLL, name)
+#define libload(name) getfunc(hDLL, name)
 #define load_sym(V, name)                         \
   if (!(*(void **)(&V) = (void *)libload(#name))) \
     return false;
@@ -449,7 +450,7 @@ void CLibretro::core_unload()
       video_deinit();
       retro.retro_unload_game();
       retro.retro_deinit();
-      SDL_UnloadObject(retro.handle);
+      freelib(retro.handle);
       retro.handle = NULL;
       memset((retro_core *)&retro, 0, sizeof(retro_core));
     }
@@ -473,14 +474,14 @@ void CLibretro::get_cores()
       typedef void (*retro_get_system_info)(struct retro_system_info * info);
       retro_get_system_info getinfo;
       struct retro_system_info system = {0};
-      void *hDLL = SDL_LoadObject(str.c_str());
+      void *hDLL = openlib(str.c_str());
       if (!hDLL)
       {
         continue;
       }
-      getinfo = (retro_get_system_info)SDL_LoadFunction(hDLL, "retro_get_system_info");
+      getinfo = (retro_get_system_info)getfunc(hDLL, "retro_get_system_info");
       void (*set_environment)(retro_environment_t) =
-          (void (*)(retro_environment_t))SDL_LoadFunction(hDLL, "retro_set_environment");
+          (void (*)(retro_environment_t))getfunc(hDLL, "retro_set_environment");
       no_roms2 = false;
       set_environment(no_roms);
       if (getinfo)
@@ -495,7 +496,7 @@ void CLibretro::get_cores()
         entry_.core_path = str;
         entry_.no_roms = no_roms2;
         cores.push_back(entry_);
-        SDL_UnloadObject(hDLL);
+        freelib(hDLL);
       }
     }
   }

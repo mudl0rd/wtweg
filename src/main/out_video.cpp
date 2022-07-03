@@ -73,12 +73,6 @@ void video_bindfb()
 	}
 }
 
-void video_unbindfb()
-{
-	if (!g_video.software_rast)
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 bool video_sethw(struct retro_hw_render_callback *hw)
 {
 	if (hw->context_type == RETRO_HW_CONTEXT_OPENGL || hw->context_type == RETRO_HW_CONTEXT_OPENGL_CORE)
@@ -224,7 +218,6 @@ static inline unsigned get_alignment(unsigned pitch)
 
 void video_render()
 {
-	video_unbindfb();
 	vp vpx = resize_cb();
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
@@ -236,7 +229,7 @@ void video_render()
 	int dest_y1 = (g_video.software_rast) ? vpx.y : (vpx.y + vpx.height);
 	glBlitFramebuffer(0, 0, g_video.base_w, g_video.base_h,
 					  dest_x0, dest_y0, dest_x1, dest_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch)
