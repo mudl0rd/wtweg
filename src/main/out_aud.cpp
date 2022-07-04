@@ -196,7 +196,7 @@ bool audio_init(float refreshra, float input_srate, float fps)
     SDL_AudioSpec out;
     audio_ctx_s.dev = SDL_OpenAudioDevice(NULL, 0, &shit, &out, 0);
     // allocate some in tank.
-    size_t sampsize = (out.size * 2);
+    size_t sampsize = (out.size * 4);
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
     auto tmp = std::make_unique<uint8_t[]>(sampsize);
     fifo_write(audio_ctx_s._fifo, tmp.get(), sampsize);
