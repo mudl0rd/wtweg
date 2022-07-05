@@ -130,6 +130,7 @@ void func_callback(void *userdata, Uint8 *stream, int len)
 
 void audio_mix(const int16_t *samples, size_t size)
 {
+  
     struct resampler_data src_data = {0};
     size_t written = 0;
     uint32_t in_len = size * 2;

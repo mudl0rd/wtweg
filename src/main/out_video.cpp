@@ -15,10 +15,6 @@ struct
 	GLuint base_w, base_h;
 	unsigned rend_width, rend_height;
 	float aspect;
-	bool software_fb;
-	uint8_t *software_fbdat;
-	int software_fbsz;
-	GLuint soft_buffer;
 
 	struct
 	{
@@ -138,28 +134,6 @@ vp resize_cb()
 	return vp_;
 }
 
-bool video_allocatefb(struct retro_framebuffer *buf)
-{
-	if (g_video.software_fb)
-	{
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, g_video.soft_buffer);
-		buf->data = (void *)g_video.software_fbdat;
-		buf->width = g_video.base_w;
-		buf->height = g_video.base_h;
-		buf->pitch = g_video.base_h * 4;
-		return true;
-	}
-	else
-	{
-		g_video.software_fbsz = g_video.tex_w * g_video.tex_h * 4;
-		glGenBuffers(1, &g_video.soft_buffer);
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, g_video.soft_buffer);
-		glBufferStorage(GL_PIXEL_UNPACK_BUFFER, g_video.software_fbsz, 0, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-		g_video.software_fbdat = (uint8_t *)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, g_video.software_fbsz, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-		return true;
-	}
-}
-
 bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 {
 	g_video.software_rast = !g_video.hw.context_reset;
@@ -273,18 +247,9 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(width * g_video.pixformat.bpp));
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
-
-		if (data == g_video.software_fbdat)
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-							g_video.pixformat.pixfmt, 0);
-		else
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-							g_video.pixformat.pixfmt, data);
-
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
+						g_video.pixformat.pixfmt, data);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-		if (data == g_video.software_fbdat)
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	}
 }
 

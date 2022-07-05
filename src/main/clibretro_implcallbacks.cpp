@@ -22,6 +22,8 @@ static void core_audio_sample(int16_t left, int16_t right)
 }
 static size_t core_audio_sample_batch(const int16_t *data, size_t frames)
 {
+  if (!frames && data == NULL)
+    return 0;
   auto lib = CLibretro::get_classinstance();
   if (lib->core_isrunning())
   {
@@ -83,12 +85,6 @@ static bool core_environment(unsigned cmd, void *data)
 
   switch (cmd)
   {
-
-  case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER:
-  {
-    retro_framebuffer *data1 = (retro_framebuffer *)data;
-    return video_allocatefb(data1);
-  }
 
   case RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME:
   {
