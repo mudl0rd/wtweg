@@ -84,6 +84,12 @@ static bool core_environment(unsigned cmd, void *data)
   switch (cmd)
   {
 
+  case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER:
+  {
+    retro_framebuffer *data1 = (retro_framebuffer *)data;
+    return video_allocatefb(data1);
+  }
+
   case RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME:
   {
     bool *bval = (bool *)data;
