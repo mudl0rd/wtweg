@@ -57,7 +57,6 @@ static bool core_controller_info(struct retro_controller_info *info)
   auto retro = CLibretro::get_classinstance();
   bool cont_found = false;
   struct retro_controller_info *info2 = info;
-
   for (int j = 0; j < 2; j++)
   {
     if (info2 == NULL)

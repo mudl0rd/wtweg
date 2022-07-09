@@ -270,58 +270,52 @@ bool load_inpcfg(retro_input_descriptor *var)
     lib->core_inputbinds[0].clear();
     lib->core_inputbinds[1].clear();
 
-    while (var->description != NULL)
+    while (var->description != NULL && var->port < 2)
     {
-        if (var->port > 2)
-            break;
-
+        if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD) ||
+            (var->device == RETRO_DEVICE_KEYBOARD))
         {
-            if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD) ||
-                (var->device == RETRO_DEVICE_KEYBOARD))
+
+            coreinput_bind bind;
+            bind.description = var->description;
+            bind.port = var->port;
+            auto &settings = bind.config;
+
+            if (var->device == RETRO_DEVICE_ANALOG)
             {
+                int var_index = var->index;
+                int axistocheck = var->id;
+                if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+                    axistocheck = joypad_analogx_l;
+                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+                    axistocheck = joypad_analogy_l;
+                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+                    axistocheck = joypad_analogx_r;
+                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+                    axistocheck = joypad_analogy_r;
 
-                coreinput_bind bind;
-                bind.description = var->description;
-                bind.port = var->port;
-                auto &settings = bind.config;
-
-                if (var->device == RETRO_DEVICE_ANALOG)
-                {
-                    int var_index = var->index;
-                    int axistocheck = var->id;
-                    if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-                        axistocheck = joypad_analogx_l;
-                    else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-                        axistocheck = joypad_analogy_l;
-                    else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-                        axistocheck = joypad_analogx_r;
-                    else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-                        axistocheck = joypad_analogy_r;
-
-                    bind.isanalog = (uint8_t) true;
-                    bind.retro_id = axistocheck;
-                    bind.config.bits.axistrigger = 0;
-                    settings.bits.sdl_id = 0;
-                    settings.bits.joytype = (uint8_t)joytype_::keyboard;
-                    bind.val = 0;
-                    bind.joykey_desc = "None";
-                }
-                else if (var->device == RETRO_DEVICE_JOYPAD || var->device == RETRO_DEVICE_KEYBOARD)
-                {
-                    bind.isanalog = (uint8_t) false;
-                    bind.retro_id = var->id;
-                    bind.config.bits.axistrigger = 0;
-                    settings.bits.sdl_id = 0;
-                    settings.bits.joytype = (uint8_t)joytype_::keyboard;
-                    bind.val = 0;
-                    bind.joykey_desc = "None";
-                }
-                lib->core_inputbinds[var->port].push_back(bind);
-                var++;
+                bind.isanalog = (uint8_t) true;
+                bind.retro_id = axistocheck;
+                bind.config.bits.axistrigger = 0;
+                settings.bits.sdl_id = 0;
+                settings.bits.joytype = (uint8_t)joytype_::keyboard;
+                bind.val = 0;
+                bind.joykey_desc = "None";
             }
+            else if (var->device == RETRO_DEVICE_JOYPAD || var->device == RETRO_DEVICE_KEYBOARD)
+            {
+                bind.isanalog = (uint8_t) false;
+                bind.retro_id = var->id;
+                bind.config.bits.axistrigger = 0;
+                settings.bits.sdl_id = 0;
+                settings.bits.joytype = (uint8_t)joytype_::keyboard;
+                bind.val = 0;
+                bind.joykey_desc = "None";
+            }
+            lib->core_inputbinds[var->port].push_back(bind);
+            var++;
         }
     }
-
     return loadinpconf();
 }
 bool save_inpcfg()

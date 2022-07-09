@@ -128,21 +128,20 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
           for (int i = 0; i < 2; i++)
           {
             std::string player = "Player " + std::to_string(i + 1);
-            if (instance->core_inputdesc[i].size())
-              if (ImGui::BeginMenu(player.c_str()))
+            if (ImGui::BeginMenu(player.c_str()))
+            {
+              for (int j = 0; j < instance->core_inputdesc[i].size(); j++)
               {
-                for (int j = 0; j < instance->core_inputdesc[i].size(); j++)
+                const char *label = instance->core_inputdesc[i][j].desc.c_str();
+                if (ImGui::MenuItem(label, nullptr,
+                                    instance->controller_type[i] == instance->core_inputdesc[i][j].id))
                 {
-                  const char *label = instance->core_inputdesc[i][j].desc.c_str();
-                  if (ImGui::MenuItem(label, nullptr,
-                                      instance->controller_type[i] == instance->core_inputdesc[i][j].id))
-                  {
-                    instance->controller_type[i] = instance->core_inputdesc[i][j].id;
-                    instance->core_changinpt(instance->controller_type[i], i);
-                  }
+                  instance->controller_type[i] = instance->core_inputdesc[i][j].id;
+                  instance->core_changinpt(instance->controller_type[i], i);
                 }
-                ImGui::EndMenu();
               }
+              ImGui::EndMenu();
+            }
           }
         }
 

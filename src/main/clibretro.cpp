@@ -258,11 +258,6 @@ CLibretro::CLibretro(SDL_Window *window, char *exepath)
   get_cores();
   sdl_window = window;
   lr_isrunning = false;
-  core_inputbinds[0].clear();
-  core_inputbinds[1].clear();
-  core_variables.clear();
-  core_inputdesc[0].clear();
-  core_inputdesc[1].clear();
 }
 
 CLibretro::~CLibretro()
