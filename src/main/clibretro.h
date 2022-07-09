@@ -137,7 +137,7 @@ private:
 	SDL_Window *sdl_window;
 
 public:
-	int controller_type;
+	int controller_type[2];
 	bool lr_isrunning;
 	CLibretro(SDL_Window *window, char *exepath);
 	~CLibretro();
@@ -151,7 +151,7 @@ public:
 
 	void poll();
 
-	void core_changinpt(int dev);
+	void core_changinpt(int dev, int port);
 	bool core_isrunning();
 	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless);
 	void core_unload();

@@ -56,22 +56,29 @@ static bool core_controller_info(struct retro_controller_info *info)
     return false;
   auto retro = CLibretro::get_classinstance();
   bool cont_found = false;
+  struct retro_controller_info *info2 = info;
 
-  for (unsigned i = 0; i < info->num_types; i++)
+  for (int j = 0; j < 2; j++)
   {
-    const struct retro_controller_description d = info->types[i];
-    if (d.desc)
+    if (info2 == NULL)
+      break;
+    for (unsigned i = 0; i < info2->num_types; i++)
     {
-      if (d.id == RETRO_DEVICE_JOYPAD && !cont_found)
+      const struct retro_controller_description d = info2->types[i];
+      if (d.desc)
       {
-        cont_found = true;
-        retro->controller_type = d.id;
+        if (d.id == RETRO_DEVICE_JOYPAD && !cont_found)
+        {
+          cont_found = true;
+          retro->controller_type[j] = d.id;
+        }
+        coreinput_desc desc;
+        desc.desc = d.desc;
+        desc.id = d.id;
+        retro->core_inputdesc[j].push_back(desc);
       }
-      coreinput_desc desc;
-      desc.desc = d.desc;
-      desc.id = d.id;
-      retro->core_inputdesc[0].push_back(desc);
     }
+    info2++;
   }
   return true;
 }

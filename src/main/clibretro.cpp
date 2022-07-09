@@ -270,12 +270,12 @@ CLibretro::~CLibretro()
   core_unload();
 }
 
-void CLibretro::core_changinpt(int dev)
+void CLibretro::core_changinpt(int dev, int port)
 {
   if (lr_isrunning)
   {
-    controller_type = dev;
-    retro.retro_set_controller_port_device(0, dev);
+    controller_type[port] = dev;
+    retro.retro_set_controller_port_device(port, dev);
   }
 }
 
@@ -297,7 +297,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     core_unload();
 
   init_inp();
-  controller_type = RETRO_DEVICE_JOYPAD;
+  controller_type[0] = RETRO_DEVICE_JOYPAD;
+  controller_type[1] = RETRO_DEVICE_JOYPAD;
 
   // Assume "RetroPad"....fuck me
 
@@ -426,7 +427,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
     return false;
   }
-  core_changinpt(controller_type);
+  core_changinpt(controller_type[0], 0);
+  core_changinpt(controller_type[1], 1);
   retro.retro_get_system_av_info(&av);
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
@@ -448,7 +450,8 @@ void CLibretro::core_run()
   static bool connotset = true;
   if (connotset)
   {
-    core_changinpt(controller_type);
+    core_changinpt(controller_type[0], 0);
+    core_changinpt(controller_type[1], 1);
     connotset = false;
   }
 }
