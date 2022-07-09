@@ -304,12 +304,33 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
     if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
-
-      ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
-      int descnum = 1;
-
-      if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
+      if (!instance->core_inputbinds[1].size())
       {
+        int descnum = 1;
+        for (size_t i = 0; i < instance->core_inputbinds[0].size(); i++)
+        {
+          auto &bind = instance->core_inputbinds[0][i];
+          if (bind.description == "")
+            continue;
+
+          ImGui::Text("%s", bind.description.c_str());
+          std::string script = "##" + bind.description;
+          char *button_str = (char *)bind.joykey_desc.c_str();
+          ImVec2 sz = ImGui::GetWindowSize();
+          ImGui::SameLine(sz.x * 0.78);
+          ImGui::SetNextItemWidth(sz.x * 0.2);
+          ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
+          if (ImGui::IsItemClicked())
+          {
+            *selected_in = i;
+            *isselected_inp = true;
+            *selected_port = descnum - 1;
+          }
+        }
+      }
+      else if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
+      {
+        int descnum = 1;
         for (auto &controller : instance->core_inputbinds)
         {
           std::string descstring = "Player " + std::to_string(descnum);
