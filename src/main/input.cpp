@@ -270,8 +270,10 @@ bool load_inpcfg(retro_input_descriptor *var)
     lib->core_inputbinds[0].clear();
     lib->core_inputbinds[1].clear();
 
-    while (var->description != NULL && var->port < 2)
+    while (var->description != NULL)
     {
+        if (var->port > 2)
+            break;
 
         {
             if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD) ||
