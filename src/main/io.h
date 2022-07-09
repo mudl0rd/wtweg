@@ -56,7 +56,7 @@ bool video_set_pixelformat(retro_pixel_format fmt);
 bool loadinpconf();
 void init_inp();
 void close_inp();
-bool poll_inp(int selected_inp, bool *isselected_inp);
+bool poll_inp(int selected_inp, bool *isselected_inp, int port);
 int16_t input_state(unsigned port, unsigned device, unsigned index,
                     unsigned id);
 void poll_lr();

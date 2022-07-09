@@ -258,9 +258,11 @@ CLibretro::CLibretro(SDL_Window *window, char *exepath)
   get_cores();
   sdl_window = window;
   lr_isrunning = false;
-  core_inputbinds.clear();
+  core_inputbinds[0].clear();
+  core_inputbinds[1].clear();
   core_variables.clear();
-  core_inputdesc.clear();
+  core_inputdesc[0].clear();
+  core_inputdesc[1].clear();
 }
 
 CLibretro::~CLibretro()
@@ -298,24 +300,34 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   controller_type = RETRO_DEVICE_JOYPAD;
 
   // Assume "RetroPad"....fuck me
-  core_inputbinds.clear();
-  core_variables.clear();
-  core_inputdesc.clear();
 
-  if (!core_inputbinds.size())
+  core_inputbinds[0].clear();
+  core_inputbinds[1].clear();
+  core_variables.clear();
+  core_inputdesc[0].clear();
+  core_inputdesc[1].clear();
+
+  int portage = 0;
+
+  if (!core_inputbinds[0].size())
   {
-    for (int i = 0; i < 20; i++)
+    for (auto &controller : core_inputbinds)
     {
-      coreinput_bind bind;
-      bind.isanalog = (i > 15);
-      bind.retro_id = i;
-      bind.config.bits.axistrigger = 0;
-      bind.config.bits.sdl_id = 0;
-      bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
-      bind.val = 0;
-      bind.description = retro_descripts[i];
-      bind.joykey_desc = "None";
-      core_inputbinds.push_back(bind);
+      for (int i = 0; i < 20; i++)
+      {
+        coreinput_bind bind;
+        bind.isanalog = (i > 15);
+        bind.retro_id = i;
+        bind.config.bits.axistrigger = 0;
+        bind.config.bits.sdl_id = 0;
+        bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
+        bind.val = 0;
+        bind.port = portage;
+        bind.description = retro_descripts[i];
+        bind.joykey_desc = "None";
+        controller.push_back(bind);
+      }
+      portage++;
     }
   }
 
@@ -457,9 +469,11 @@ void CLibretro::core_unload()
       memset((retro_core *)&retro, 0, sizeof(retro_core));
     }
     lr_isrunning = false;
-    core_inputbinds.clear();
+    core_inputbinds[0].clear();
+    core_inputbinds[1].clear();
     core_variables.clear();
-    core_inputdesc.clear();
+    core_inputdesc[0].clear();
+    core_inputdesc[1].clear();
     close_inp();
   }
 }

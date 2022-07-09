@@ -66,6 +66,7 @@ struct coreinput_desc
 
 struct coreinput_bind
 {
+	int port;
 	std::string description;
 	std::string joykey_desc;
 	int16_t val;
@@ -167,9 +168,10 @@ public:
 
 	const char *load_corevars(retro_variable *var);
 
-	std::vector<coreinput_bind> core_inputbinds;
+	std::vector<coreinput_bind> core_inputbinds[2];
+	std::vector<coreinput_desc> core_inputdesc[2];
 	std::vector<loadedcore_configvars> core_variables;
-	std::vector<coreinput_desc> core_inputdesc;
+
 	bool variables_changed;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
@@ -184,6 +186,7 @@ public:
 };
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
-void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_in, bool *isselected_inp);
+void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_in, bool *isselected_inp,
+					int *selected_port);
 
 #endif

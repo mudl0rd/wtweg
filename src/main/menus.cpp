@@ -73,7 +73,7 @@ void popup_widget(bool *flag, const char *title, const char *msg)
   }
 }
 
-void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_in, bool *isselected_inp)
+void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_in, bool *isselected_inp, int *selected_port)
 {
 
   static bool inputsettings = false;
@@ -121,22 +121,28 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         if (ImGui::MenuItem("Input Settings..."))
           inputsettings = true;
 
-        if (instance->core_inputdesc.size() > 1)
-        {
+        if (instance->core_inputdesc[0].size() > 1)
           ImGui::Separator();
-          if (ImGui::BeginMenu("Input device"))
+
+        int descnum = 1;
+
+        for (auto &inputs : instance->core_inputdesc)
+        {
+          std::string playerdesc = "Player " + std::to_string(descnum);
+          if (ImGui::BeginMenu(playerdesc.c_str()))
           {
-            for (int i = 0; i < instance->core_inputdesc.size(); i++)
+            for (int i = 0; i < inputs.size(); i++)
             {
-              const char *label = instance->core_inputdesc[i].desc.c_str();
+              const char *label = inputs[i].desc.c_str();
               if (ImGui::MenuItem(label, nullptr,
-                                  instance->controller_type == instance->core_inputdesc[i].id))
+                                  instance->controller_type == inputs[i].id))
               {
-                instance->controller_type = instance->core_inputdesc[i].id;
+                instance->controller_type = inputs[i].id;
                 instance->core_changinpt(instance->controller_type);
               }
             }
             ImGui::EndMenu();
+            descnum++;
           }
         }
         ImGui::EndMenu();
@@ -285,7 +291,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
   if (inputsettings)
   {
 
-    if (!instance->core_inputbinds.size())
+    if (!instance->core_inputbinds[0].size())
     {
       popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
       return;
@@ -298,25 +304,42 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
 
-      std::string str2;
-      for (size_t i = 0; i < instance->core_inputbinds.size(); i++)
-      {
-        auto &bind = instance->core_inputbinds[i];
-        if (bind.description == "")
-          continue;
+      ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+      int descnum = 1;
 
-        ImGui::Text("%s", bind.description.c_str());
-        std::string script = "##" + bind.description;
-        char *button_str = (char *)bind.joykey_desc.c_str();
-        ImVec2 sz = ImGui::GetWindowSize();
-        ImGui::SameLine(sz.x * 0.78);
-        ImGui::SetNextItemWidth(sz.x * 0.2);
-        ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
-        if (ImGui::IsItemClicked())
+      if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
+      {
+        for (auto &controller : instance->core_inputbinds)
         {
-          *selected_in = i;
-          *isselected_inp = true;
+          std::string descstring = "Player " + std::to_string(descnum);
+          if (ImGui::BeginTabItem(descstring.c_str()))
+          {
+            for (size_t i = 0; i < controller.size(); i++)
+            {
+              auto &bind = controller[i];
+              if (bind.description == "")
+                continue;
+
+              ImGui::Text("%s", bind.description.c_str());
+              std::string script = "##" + bind.description;
+              char *button_str = (char *)bind.joykey_desc.c_str();
+              ImVec2 sz = ImGui::GetWindowSize();
+              ImGui::SameLine(sz.x * 0.78);
+              ImGui::SetNextItemWidth(sz.x * 0.2);
+              ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
+              if (ImGui::IsItemClicked())
+              {
+                *selected_in = i;
+                *isselected_inp = true;
+                *selected_port = descnum - 1;
+              }
+            }
+
+            ImGui::EndTabItem();
+          }
+          descnum++;
         }
+        ImGui::EndTabBar();
       }
       if (ImGui::Button("OK"))
       {
