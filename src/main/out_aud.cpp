@@ -130,7 +130,7 @@ void func_callback(void *userdata, Uint8 *stream, int len)
 
 void audio_mix(const int16_t *samples, size_t size)
 {
-  
+
     struct resampler_data src_data = {0};
     size_t written = 0;
     uint32_t in_len = size * 2;
@@ -173,7 +173,7 @@ void audio_mix(const int16_t *samples, size_t size)
     }
 }
 
-bool audio_init(float refreshra, float input_srate, float fps)
+void audio_changeratefps(float refreshra, float input_srate, float fps)
 {
     unsigned swap = 1;
     if (refreshra > fps)
@@ -184,6 +184,11 @@ bool audio_init(float refreshra, float input_srate, float fps)
         audio_ctx_s.system_rate = input_srate * (refreshtarget / fps);
     else
         audio_ctx_s.system_rate = input_srate;
+}
+
+bool audio_init(float refreshra, float input_srate, float fps)
+{
+    audio_changeratefps(refreshra, input_srate, fps);
 
     SDL_AudioSpec shit = {0};
     shit.freq = 44100;

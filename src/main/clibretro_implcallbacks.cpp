@@ -86,7 +86,6 @@ static bool core_environment(unsigned cmd, void *data)
 {
   bool *bval;
   auto retro = CLibretro::get_classinstance();
-
   switch (cmd)
   {
 
@@ -106,6 +105,30 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
   {
     return core_controller_info((struct retro_controller_info *)data);
+  }
+
+  case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
+  {
+    auto info = reinterpret_cast<struct retro_system_av_info *>(data);
+    struct retro_game_geometry *geo = (struct retro_game_geometry *)&info->geometry;
+    video_changegeom(geo);
+    audio_changeratefps(retro->refreshrate, info->timing.sample_rate, info->timing.fps);
+    return true;
+  }
+
+  case RETRO_ENVIRONMENT_SET_GEOMETRY:
+  {
+    auto *geom = reinterpret_cast<struct retro_game_geometry *>(data);
+    video_changegeom(geom);
+    return true;
+  }
+
+  case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
+  {
+    unsigned *ver = (unsigned *)data;
+    if (ver)
+      *ver = 0;
+    return true;
   }
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
@@ -128,6 +151,11 @@ static bool core_environment(unsigned cmd, void *data)
     struct retro_hw_render_callback *hw =
         (struct retro_hw_render_callback *)data;
     return video_sethw(hw);
+  }
+
+  case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
+  {
+    return true;
   }
 
   case RETRO_ENVIRONMENT_GET_CAN_DUPE:

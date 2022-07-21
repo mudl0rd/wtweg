@@ -33,6 +33,18 @@ void video_setsize(unsigned width, unsigned height)
 	g_video.rend_height = height;
 }
 
+void video_changegeom(struct retro_game_geometry *geom)
+{
+	g_video.tex_w = geom->max_width;
+	g_video.tex_h = geom->max_height;
+	g_video.base_w = geom->base_width;
+	g_video.base_h = geom->base_height;
+	if (geom->aspect_ratio <= 0.0)
+		g_video.aspect = (float)geom->base_width / (float)geom->base_height;
+	else
+		g_video.aspect = geom->aspect_ratio;
+}
+
 bool video_set_pixelformat(retro_pixel_format fmt)
 {
 	switch (fmt)
@@ -134,7 +146,7 @@ vp resize_cb()
 	return vp_;
 }
 
-bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
+bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 {
 	g_video.software_rast = !g_video.hw.context_reset;
 	g_video.sdl_context = context;
@@ -170,15 +182,7 @@ bool video_init(const struct retro_game_geometry *geom, SDL_Window *context)
 				 g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
 
 	init_framebuffer(geom->max_width, geom->max_height);
-
-	g_video.tex_w = geom->max_width;
-	g_video.tex_h = geom->max_height;
-	g_video.base_w = geom->base_width;
-	g_video.base_h = geom->base_height;
-	if (geom->aspect_ratio <= 0.0)
-		g_video.aspect = (float)geom->base_width / (float)geom->base_height;
-	else
-		g_video.aspect = geom->aspect_ratio;
+	video_changegeom(geom);
 
 	if (g_video.hw.context_reset)
 		g_video.hw.context_reset();

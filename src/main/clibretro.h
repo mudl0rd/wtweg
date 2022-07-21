@@ -183,6 +183,7 @@ public:
 	std::string exe_path;
 	float core_fps;
 	double coretime;
+	float refreshrate;
 };
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
