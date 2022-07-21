@@ -486,16 +486,15 @@ void CLibretro::get_cores()
     string str = entry.path().string();
     if (entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
     {
-      typedef void (*retro_get_system_info)(struct retro_system_info * info);
-      retro_get_system_info getinfo;
+
       struct retro_system_info system = {0};
       void *hDLL = openlib(str.c_str());
       if (!hDLL)
       {
         continue;
       }
-      getinfo = (retro_get_system_info)getfunc(hDLL, "retro_get_system_info");
-      void (*set_environment)(retro_environment_t) =
+      auto *getinfo = (void (*)(retro_system_info *))getfunc(hDLL, "retro_get_system_info");
+      auto *set_environment =
           (void (*)(retro_environment_t))getfunc(hDLL, "retro_set_environment");
       no_roms2 = false;
       set_environment(no_roms);

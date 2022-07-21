@@ -110,7 +110,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
   {
     auto info = (struct retro_system_av_info *)data;
-    struct retro_game_geometry *geo = (struct retro_game_geometry *)&info->geometry;
+    auto *geo = (struct retro_game_geometry *)&info->geometry;
     video_changegeom(geo);
     audio_changeratefps(retro->refreshrate, info->timing.sample_rate, info->timing.fps);
     return true;
@@ -153,6 +153,7 @@ static bool core_environment(unsigned cmd, void *data)
     return video_sethw(hw);
   }
 
+  case RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT:
   case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
   {
     return true;
@@ -166,8 +167,8 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
   {
     std::string str = retro->system_path;
-    static char *sys_path = strdup((const char *)str.c_str());
-    char **ppDir = (char **)data;
+    auto *sys_path = (char *)str.c_str();
+    auto **ppDir = (char **)data;
     *ppDir = sys_path;
     return true;
     break;
@@ -175,8 +176,8 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
     std::string str = retro->saves_path;
-    static char *sys_path = strdup((const char *)str.c_str());
-    char **ppDir = (char **)data;
+    auto *sys_path = (char *)str.c_str();
+    auto **ppDir = (char **)data;
     *ppDir = sys_path;
     return true;
     break;
