@@ -91,13 +91,13 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME:
   {
-    bool *bval = (bool *)data;
+    auto *bval = (bool *)data;
     return true;
   }
 
   case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
   {
-    struct retro_log_callback *cb = (struct retro_log_callback *)data;
+    auto *cb = (struct retro_log_callback *)data;
     cb->log = core_log;
     return true;
   }
@@ -109,7 +109,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
   {
-    auto info = reinterpret_cast<struct retro_system_av_info *>(data);
+    auto info = (struct retro_system_av_info *)data;
     struct retro_game_geometry *geo = (struct retro_game_geometry *)&info->geometry;
     video_changegeom(geo);
     audio_changeratefps(retro->refreshrate, info->timing.sample_rate, info->timing.fps);
@@ -118,14 +118,14 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_GEOMETRY:
   {
-    auto *geom = reinterpret_cast<struct retro_game_geometry *>(data);
+    auto *geom = (struct retro_game_geometry *)data;
     video_changegeom(geom);
     return true;
   }
 
   case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
   {
-    unsigned *ver = (unsigned *)data;
+    auto *ver = (unsigned *)data;
     if (ver)
       *ver = 0;
     return true;
@@ -133,7 +133,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
   {
-    struct retro_core_option_display *cb = (struct retro_core_option_display *)data;
+    auto *cb = (struct retro_core_option_display *)data;
     for (size_t i = 0; i < retro->core_variables.size(); i++)
     {
       if (strcmp(retro->core_variables[i].name.c_str(), cb->key) == 0)
@@ -148,7 +148,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_HW_RENDER:
   {
-    struct retro_hw_render_callback *hw =
+    auto *hw =
         (struct retro_hw_render_callback *)data;
     return video_sethw(hw);
   }
@@ -184,7 +184,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
   {
-    const struct retro_keyboard_callback *callback = (const struct retro_keyboard_callback *)data;
+    auto *callback = (const struct retro_keyboard_callback *)data;
     core_kb_callback(callback->callback);
     return true;
     break;
@@ -192,7 +192,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 31
   {
-    struct retro_input_descriptor *var = (struct retro_input_descriptor *)data;
+    auto *var = (struct retro_input_descriptor *)data;
     retro->init_inputvars(var);
     return true;
   }
@@ -201,14 +201,14 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_VARIABLES:
   {
-    const struct retro_variable *vars = (const struct retro_variable *)data;
+    auto *vars = (const struct retro_variable *)data;
     return retro->init_configvars((retro_variable *)vars);
   }
   break;
 
   case RETRO_ENVIRONMENT_GET_VARIABLE:
   {
-    struct retro_variable *var = (struct retro_variable *)data;
+    auto *var = (struct retro_variable *)data;
 
     var->value = retro->load_corevars(var);
 
@@ -234,7 +234,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_MESSAGE:
   {
-    const struct retro_message *msg = (const struct retro_message *)data;
+    auto *msg = (const struct retro_message *)data;
     core_log(RETRO_LOG_DEBUG, "%s", msg);
     return true;
     break;
@@ -242,7 +242,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
   {
-    enum retro_pixel_format *fmt = (enum retro_pixel_format *)data;
+    auto *fmt = (enum retro_pixel_format *)data;
     return video_set_pixelformat(*fmt);
   }
   default:
