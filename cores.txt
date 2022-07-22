@@ -1,10 +1,10 @@
 Broken/incomplete-supported cores:
 
 * mednafen_psx_hw_libretro.dll.zip (broken GL context when changing from GL4+ cores?)
-* mednafen_supafaust_libretro.dll.zip (crashes on load)
 
 Tested cores (known to load/play/save games, might not be problem-free)
 
+* mednafen_supafaust_libretro.dll.zip (no known problems)
 * vitaquake3_libretro.dll.zip (no known problems)
 * vitaquake2-rogue_libretro.dll.zip (no known problems)
 * vitaquake2-xatrix_libretro.dll.zip (no known problems)
@@ -44,11 +44,11 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * smsplus_libretro.dll.zip (no known problems)
 * gme_libretro.dll.zip (no known problems)
 * gong_libretro.dll.zip (no known problems)
-* snes9x_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
-* snes9x2002_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
-* snes9x2005_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
-* snes9x2005_plus_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
-* snes9x2010_libretro.dll.zip  (incomplete controllers on port 2, otherwise problem-free)
+* snes9x_libretro.dll.zip  (no known problems)
+* snes9x2002_libretro.dll.zip  (no known problems)
+* snes9x2005_libretro.dll.zip  (no known problems)
+* snes9x2005_plus_libretro.dll.zip  (no known problems)
+* snes9x2010_libretro.dll.zip  (no known problems)
 * mupen64plus_next_libretro.dll.zip (no Vulkan)
 * flycast_libretro.dll.zip (no Vulkan) 
 * parallel_n64_libretro.dll.zip (no Vulkan)
