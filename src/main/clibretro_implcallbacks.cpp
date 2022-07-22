@@ -123,14 +123,6 @@ static bool core_environment(unsigned cmd, void *data)
     return true;
   }
 
-  case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
-  {
-    auto *ver = (unsigned *)data;
-    if (ver)
-      *ver = 0;
-    return true;
-  }
-
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
   {
     auto *cb = (struct retro_core_option_display *)data;
@@ -154,7 +146,6 @@ static bool core_environment(unsigned cmd, void *data)
   }
 
   case RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT:
-  case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
   {
     return true;
   }
@@ -180,7 +171,6 @@ static bool core_environment(unsigned cmd, void *data)
     auto **ppDir = (char **)data;
     *ppDir = sys_path;
     return true;
-    break;
   }
 
   case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
@@ -188,7 +178,6 @@ static bool core_environment(unsigned cmd, void *data)
     auto *callback = (const struct retro_keyboard_callback *)data;
     core_kb_callback(callback->callback);
     return true;
-    break;
   }
 
   case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 31
@@ -198,21 +187,16 @@ static bool core_environment(unsigned cmd, void *data)
     return true;
   }
 
-  break;
-
   case RETRO_ENVIRONMENT_SET_VARIABLES:
   {
     auto *vars = (const struct retro_variable *)data;
     return retro->init_configvars((retro_variable *)vars);
   }
-  break;
 
   case RETRO_ENVIRONMENT_GET_VARIABLE:
   {
     auto *var = (struct retro_variable *)data;
-
     var->value = retro->load_corevars(var);
-
     return true;
   }
   break;
@@ -231,14 +215,12 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
     return true;
-    break;
 
   case RETRO_ENVIRONMENT_SET_MESSAGE:
   {
     auto *msg = (const struct retro_message *)data;
     core_log(RETRO_LOG_DEBUG, "%s", msg);
     return true;
-    break;
   }
 
   case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:

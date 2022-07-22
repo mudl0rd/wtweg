@@ -249,7 +249,7 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 	if (data && data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
 		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(width * g_video.pixformat.bpp));
+		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(pitch));
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
 						g_video.pixformat.pixfmt, data);
