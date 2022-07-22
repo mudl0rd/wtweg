@@ -55,6 +55,8 @@ static bool core_controller_info(struct retro_controller_info *info)
   if (!info)
     return false;
   auto retro = CLibretro::get_classinstance();
+  retro->core_inputdesc[0].clear();
+  retro->core_inputdesc[1].clear();
   bool cont_found = false;
   struct retro_controller_info *info2 = info;
   for (int j = 0; j < 2; j++)
@@ -63,6 +65,8 @@ static bool core_controller_info(struct retro_controller_info *info)
       break;
     for (unsigned i = 0; i < info2->num_types; i++)
     {
+      if (info2 == NULL)
+        break;
       const struct retro_controller_description d = info2->types[i];
       if (d.desc)
       {
@@ -158,7 +162,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
   {
     std::string str = retro->system_path;
-    auto *sys_path = (char *)str.c_str();
+    static auto *sys_path = strdup(str.c_str());
     auto **ppDir = (char **)data;
     *ppDir = sys_path;
     return true;
@@ -167,7 +171,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
     std::string str = retro->saves_path;
-    auto *sys_path = (char *)str.c_str();
+    static auto *sys_path = strdup(str.c_str());
     auto **ppDir = (char **)data;
     *ppDir = sys_path;
     return true;
