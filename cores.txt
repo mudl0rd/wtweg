@@ -4,6 +4,7 @@ Broken/incomplete-supported cores:
 
 Tested cores (known to load/play/save games, might not be problem-free)
 
+* mednafen_saturn_libretro.dll.zip (no known problems)
 * mednafen_supafaust_libretro.dll.zip (no known problems)
 * vitaquake3_libretro.dll.zip (no known problems)
 * vitaquake2-rogue_libretro.dll.zip (no known problems)
@@ -127,7 +128,6 @@ mame2010_libretro.dll.zip
 mame_libretro.dll.zip
 mednafen_lynx_libretro.dll.zip
 mednafen_ngp_libretro.dll.zip
-mednafen_saturn_libretro.dll.zip
 mednafen_supergrafx_libretro.dll.zip
 mednafen_vb_libretro.dll.zip
 melonds_libretro.dll.zip
