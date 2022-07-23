@@ -270,8 +270,11 @@ bool load_inpcfg(retro_input_descriptor *var)
     lib->core_inputbinds[0].clear();
     lib->core_inputbinds[1].clear();
 
-    while (var->description != NULL && var->port < 2)
+    while (1)
     {
+        if (var->port >= 2 || var->description == NULL)
+            break;
+
         if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD) ||
             (var->device == RETRO_DEVICE_KEYBOARD))
         {
@@ -301,6 +304,7 @@ bool load_inpcfg(retro_input_descriptor *var)
                 settings.bits.joytype = (uint8_t)joytype_::keyboard;
                 bind.val = 0;
                 bind.joykey_desc = "None";
+                lib->core_inputbinds[var->port].push_back(bind);
             }
             else if (var->device == RETRO_DEVICE_JOYPAD || var->device == RETRO_DEVICE_KEYBOARD)
             {
@@ -311,10 +315,10 @@ bool load_inpcfg(retro_input_descriptor *var)
                 settings.bits.joytype = (uint8_t)joytype_::keyboard;
                 bind.val = 0;
                 bind.joykey_desc = "None";
+                lib->core_inputbinds[var->port].push_back(bind);
             }
-            lib->core_inputbinds[var->port].push_back(bind);
-            var++;
         }
+        var++;
     }
     return loadinpconf();
 }

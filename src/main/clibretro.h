@@ -127,6 +127,11 @@ enum libretro_stickdirs
 	joypad_rtrigger
 };
 
+struct retro_disk{
+	int index;
+	std::string path;
+};
+
 std::vector<core_info> get_cores();
 
 class CLibretro
@@ -171,6 +176,7 @@ public:
 	std::vector<coreinput_bind> core_inputbinds[2];
 	std::vector<coreinput_desc> core_inputdesc[2];
 	std::vector<loadedcore_configvars> core_variables;
+	std::vector<retro_disk> disk_intf;
 
 	bool variables_changed;
 	std::vector<core_info> cores;

@@ -297,6 +297,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   // Assume "RetroPad"....fuck me
 
+  disk_intf.clear();
+
   core_inputbinds[0].clear();
   core_inputbinds[1].clear();
   core_variables.clear();

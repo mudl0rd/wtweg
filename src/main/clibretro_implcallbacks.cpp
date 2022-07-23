@@ -11,6 +11,57 @@
 #endif
 using namespace std;
 
+static void core_set_led_state(int led, int state)
+{
+}
+
+static bool core_set_eject_state(bool ejected)
+{
+  auto lib = CLibretro::get_classinstance();
+  return false;
+}
+
+static bool core_get_eject_state()
+{
+  auto lib = CLibretro::get_classinstance();
+  return false;
+}
+
+static bool core_set_image_index(unsigned int index)
+{
+  auto lib = CLibretro::get_classinstance();
+  return false;
+}
+
+static unsigned int core_get_image_index()
+{
+  auto lib = CLibretro::get_classinstance();
+  return 0;
+}
+
+static unsigned int core_get_num_images()
+{
+  auto lib = CLibretro::get_classinstance();
+  return 0;
+}
+
+static bool core_add_image_index()
+{
+  struct retro_disk disk;
+  disk.path = "";
+  disk.index = 0;
+
+  auto lib = CLibretro::get_classinstance();
+  lib->disk_intf.push_back(disk);
+  return false;
+}
+
+static bool core_replace_image_index(unsigned int index, const retro_game_info *info)
+{
+  auto lib = CLibretro::get_classinstance();
+  return false;
+}
+
 static void core_audio_sample(int16_t left, int16_t right)
 {
   auto lib = CLibretro::get_classinstance();
@@ -92,6 +143,19 @@ static bool core_environment(unsigned cmd, void *data)
   auto retro = CLibretro::get_classinstance();
   switch (cmd)
   {
+
+  case RETRO_ENVIRONMENT_GET_LED_INTERFACE:
+  {
+    auto *var = (struct retro_led_interface *)data;
+    var->set_led_state = core_set_led_state;
+    return true;
+  }
+
+  case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE:
+  {
+    auto *var = (const struct retro_disk_control_callback *)data;
+    return false;
+  }
 
   case RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME:
   {
@@ -216,9 +280,6 @@ static bool core_environment(unsigned cmd, void *data)
     *(unsigned *)data = 1;
     return true;
     break;
-
-  case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
-    return true;
 
   case RETRO_ENVIRONMENT_SET_MESSAGE:
   {
