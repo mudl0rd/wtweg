@@ -393,10 +393,11 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   struct retro_system_info system = {0};
   retro.retro_get_system_info(&system);
   retro_system_av_info av = {0};
+
   if (!contentless)
   {
     info = {ROM, 0};
-    info.path = system.need_fullpath ? ROM : NULL;
+    info.path = ROM;
     info.data = NULL;
     info.size = 0;
     info.meta = "";
@@ -424,8 +425,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
     return false;
   }
-  core_changinpt(controller_type[0], 0);
-  core_changinpt(controller_type[1], 1);
+
   retro.retro_get_system_av_info(&av);
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
