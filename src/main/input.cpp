@@ -567,7 +567,7 @@ void keys()
         const int sdl_masks[] = {KMOD_SHIFT, KMOD_CTRL, KMOD_ALT, KMOD_NUM, KMOD_CAPS};
         const int libretro_masks[] = {RETROKMOD_SHIFT, RETROKMOD_CTRL, RETROKMOD_ALT,
                                       RETROKMOD_NUMLOCK, RETROKMOD_CAPSLOCK};
-        for (int i = 0; i < sizeof(sdl_masks) / sizeof(sdl_masks[0]); i++)
+        for (int i = 0; i < sizeof_array(sdl_masks); i++)
         {
             if (mod & sdl_masks[i])
                 libretro_mod |= libretro_masks[i];
