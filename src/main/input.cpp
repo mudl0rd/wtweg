@@ -584,7 +584,7 @@ void keys()
             for (; map->rk != RETROK_UNKNOWN; map++)
             {
                 unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)map->sym);
-                inp_keys(keymap[sym], map->rk, 0, libretro_mod);
+                inp_keys(keymap[sym], map->rk, SDL_GetKeyFromScancode((SDL_Scancode)sym), libretro_mod);
             }
         }
     }
