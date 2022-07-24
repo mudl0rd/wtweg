@@ -18,7 +18,7 @@
 
 struct key_map
 {
-    unsigned sym;
+    SDL_Keycode sym;
     enum retro_key rk;
 };
 
@@ -550,7 +550,7 @@ static bool key_pressed(int key)
     for (; map->rk != RETROK_UNKNOWN; map++)
         if (map->rk == (retro_key)key)
             break;
-    unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)map->sym);
+    unsigned sym = SDL_GetScancodeFromKey(map->sym);
     return keymap[sym];
 }
 
@@ -582,7 +582,7 @@ void keys()
             struct key_map *map = (key_map *)key_map_;
             for (; map->rk != RETROK_UNKNOWN; map++)
             {
-                unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)map->sym);
+                unsigned sym = SDL_GetScancodeFromKey(map->sym);
                 inp_keys(keymap[sym], map->rk, map->sym, libretro_mod);
             }
         }
