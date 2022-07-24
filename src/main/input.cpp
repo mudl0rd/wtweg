@@ -564,13 +564,17 @@ void keys()
         SDL_Keymod mod = SDL_GetModState();
         uint16_t libretro_mod = 0;
 
-        const int sdl_masks[] = {KMOD_SHIFT, KMOD_CTRL, KMOD_ALT, KMOD_NUM, KMOD_CAPS};
-        const int libretro_masks[] = {RETROKMOD_SHIFT, RETROKMOD_CTRL, RETROKMOD_ALT,
-                                      RETROKMOD_NUMLOCK, RETROKMOD_CAPSLOCK};
-        for (int i = 0; i < sizeof_array(sdl_masks); i++)
+        std::tuple<int, int> mask_assoc[] = {
+            {KMOD_SHIFT, RETROKMOD_SHIFT},
+            {KMOD_CTRL, RETROKMOD_CTRL},
+            {KMOD_ALT, RETROKMOD_ALT},
+            {KMOD_NUM, RETROKMOD_NUMLOCK},
+            {KMOD_CAPS, RETROKMOD_CAPSLOCK},
+        };
+        for (auto [sdl_mask, libretro_mask] : mask_assoc)
         {
-            if (mod & sdl_masks[i])
-                libretro_mod |= libretro_masks[i];
+            if (mod & sdl_mask)
+                libretro_mod |= libretro_mask;
         }
 
         for (int i = 0; i < num_keys_km; i++)
