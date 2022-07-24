@@ -554,6 +554,42 @@ static bool key_pressed(int key)
     return keymap[sym];
 }
 
+void keys()
+{
+    if (inp_keys)
+    {
+
+        int num_keys_km;
+        const Uint8 *keymap = SDL_GetKeyboardState(&num_keys_km);
+        SDL_Keymod mod = SDL_GetModState();
+        uint16_t libretro_mod = 0;
+        if (mod & KMOD_SHIFT)
+            libretro_mod |= RETROKMOD_SHIFT;
+
+        if (mod & KMOD_CTRL)
+            libretro_mod |= RETROKMOD_CTRL;
+
+        if (mod & KMOD_ALT)
+            libretro_mod |= RETROKMOD_ALT;
+
+        if (mod & KMOD_NUM)
+            libretro_mod |= RETROKMOD_NUMLOCK;
+
+        if (mod & KMOD_CAPS)
+            libretro_mod |= RETROKMOD_CAPSLOCK;
+
+        for (int i = 0; i < num_keys_km; i++)
+        {
+            struct key_map *map = (key_map *)key_map_;
+            for (; map->rk != RETROK_UNKNOWN; map++)
+            {
+                unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)map->sym);
+                inp_keys(keymap[sym], map->rk, 0, libretro_mod);
+            }
+        }
+    }
+}
+
 void poll_lr()
 {
     auto lib = CLibretro::get_classinstance();
@@ -566,20 +602,7 @@ void poll_lr()
     }
     SDL_GameControllerUpdate();
 
-    if (inp_keys)
-    {
-        int num_keys_km;
-        const Uint8 *keymap = SDL_GetKeyboardState(&num_keys_km);
-        for (int i = 0; i < num_keys_km; i++)
-        {
-            struct key_map *map = (key_map *)key_map_;
-            for (; map->rk != RETROK_UNKNOWN; map++)
-            {
-                unsigned sym = SDL_GetScancodeFromKey((SDL_Keycode)map->sym);
-                inp_keys(keymap[sym], map->rk, 0, 0);
-            }
-        }
-    }
+    keys();
 
     memset(&mousiez, 0, sizeof(mousiebind));
     Uint8 btn = SDL_GetRelativeMouseState(&mousiez.rel_x, &mousiez.rel_y);
