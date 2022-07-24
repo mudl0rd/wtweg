@@ -563,20 +563,15 @@ void keys()
         const Uint8 *keymap = SDL_GetKeyboardState(&num_keys_km);
         SDL_Keymod mod = SDL_GetModState();
         uint16_t libretro_mod = 0;
-        if (mod & KMOD_SHIFT)
-            libretro_mod |= RETROKMOD_SHIFT;
 
-        if (mod & KMOD_CTRL)
-            libretro_mod |= RETROKMOD_CTRL;
-
-        if (mod & KMOD_ALT)
-            libretro_mod |= RETROKMOD_ALT;
-
-        if (mod & KMOD_NUM)
-            libretro_mod |= RETROKMOD_NUMLOCK;
-
-        if (mod & KMOD_CAPS)
-            libretro_mod |= RETROKMOD_CAPSLOCK;
+        const int sdl_masks[] = {KMOD_SHIFT, KMOD_CTRL, KMOD_ALT, KMOD_NUM, KMOD_CAPS};
+        const int libretro_masks[] = {RETROKMOD_SHIFT, RETROKMOD_CTRL, RETROKMOD_ALT,
+                                      RETROKMOD_NUMLOCK, RETROKMOD_CAPSLOCK};
+        for (int i = 0; i < sizeof(sdl_masks) / sizeof(sdl_masks[0]); i++)
+        {
+            if (mod & sdl_masks[i])
+                libretro_mod |= libretro_masks[i];
+        }
 
         for (int i = 0; i < num_keys_km; i++)
         {
