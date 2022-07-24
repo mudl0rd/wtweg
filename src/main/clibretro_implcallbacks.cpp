@@ -137,12 +137,127 @@ static bool core_controller_info(struct retro_controller_info *info)
   return true;
 }
 
+static uint64_t core_get_cpu_features()
+{
+  uint64_t cpu = 0;
+  if (SDL_HasAVX())
+  {
+    cpu |= RETRO_SIMD_AVX;
+  }
+  if (SDL_HasAVX2())
+  {
+    cpu |= RETRO_SIMD_AVX2;
+  }
+  if (SDL_HasMMX())
+  {
+    cpu |= RETRO_SIMD_MMX;
+  }
+  if (SDL_HasSSE())
+  {
+    cpu |= RETRO_SIMD_SSE;
+  }
+  if (SDL_HasSSE2())
+  {
+    cpu |= RETRO_SIMD_SSE2;
+  }
+  if (SDL_HasSSE3())
+  {
+    cpu |= RETRO_SIMD_SSE3;
+  }
+  if (SDL_HasSSE41())
+  {
+    cpu |= RETRO_SIMD_SSE4;
+  }
+  if (SDL_HasSSE42())
+  {
+    cpu |= RETRO_SIMD_SSE42;
+  }
+  return cpu;
+}
+
+retro_time_t cpu_features_get_time_usec(void)
+{
+  return (retro_time_t)SDL_GetTicks() * 1000;
+}
+
+static retro_perf_tick_t core_get_perf_counter()
+{
+  return (retro_perf_tick_t)SDL_GetPerformanceCounter();
+}
+
+static void core_perf_register(struct retro_perf_counter *counter)
+{
+  auto retro = CLibretro::get_classinstance();
+  retro->perf_counter_last = counter;
+  counter->registered = true;
+}
+
+static void core_perf_log()
+{
+}
+
+static void core_perf_start(struct retro_perf_counter *counter)
+{
+  if (counter->registered)
+  {
+    counter->start = core_get_perf_counter();
+  }
+}
+
+static void core_perf_stop(struct retro_perf_counter *counter)
+{
+  counter->total = core_get_perf_counter() - counter->start;
+}
+
 static bool core_environment(unsigned cmd, void *data)
 {
   bool *bval;
   auto retro = CLibretro::get_classinstance();
   switch (cmd)
   {
+
+  case RETRO_ENVIRONMENT_GET_PERF_INTERFACE:
+  {
+    struct retro_perf_callback *perf = (struct retro_perf_callback *)data;
+    perf->get_time_usec = cpu_features_get_time_usec;
+    perf->get_cpu_features = core_get_cpu_features;
+    perf->get_perf_counter = core_get_perf_counter;
+    perf->perf_register = core_perf_register;
+    perf->perf_start = core_perf_start;
+    perf->perf_stop = core_perf_stop;
+    perf->perf_log = core_perf_log;
+    return true;
+  }
+
+  case RETRO_ENVIRONMENT_SET_ROTATION:
+  {
+    return false;
+  }
+
+  case RETRO_ENVIRONMENT_GET_OVERSCAN:
+  {
+    return false;
+  }
+
+  case RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE:
+  {
+    return false;
+  }
+
+  case RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE:
+  {
+    return false;
+  }
+
+  case RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE:
+  {
+    return false;
+  }
+
+  case RETRO_ENVIRONMENT_GET_LOCATION_INTERFACE:
+  {
+    return false;
+  }
 
   case RETRO_ENVIRONMENT_GET_LED_INTERFACE:
   {
@@ -163,10 +278,60 @@ static bool core_environment(unsigned cmd, void *data)
     return true;
   }
 
+  case RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO:
+  {
+    return false;
+  }
+
+  case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER:
+  {
+    return false;
+  }
+
+  case RETRO_ENVIRONMENT_GET_INPUT_MAX_USERS:
+  {
+    auto *players = (unsigned *)data;
+    *players = 2;
+    return true;
+  }
+
+  case RETRO_ENVIRONMENT_SET_MEMORY_MAPS:
+  {
+    return false;
+  }
+
+  case RETRO_ENVIRONMENT_GET_INPUT_DEVICE_CAPABILITIES:
+  {
+    auto *capabilities = (uint64_t *)data;
+    *capabilities = (1 << RETRO_DEVICE_JOYPAD) |
+                    (1 << RETRO_DEVICE_MOUSE) |
+                    (1 << RETRO_DEVICE_KEYBOARD) |
+                    (1 << RETRO_DEVICE_POINTER);
+    return true;
+  }
+
   case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
   {
     auto *cb = (struct retro_log_callback *)data;
     cb->log = core_log;
+    return true;
+  }
+
+  case RETRO_ENVIRONMENT_GET_LANGUAGE:
+  {
+    *(unsigned *)data = RETRO_LANGUAGE_ENGLISH;
+    return true;
+  }
+
+  case RETRO_ENVIRONMENT_GET_FASTFORWARDING:
+  {
+    *(bool *)data = false;
+    return true;
+  }
+
+  case RETRO_ENVIRONMENT_GET_USERNAME:
+  {
+    *(const char **)data = "mudlord";
     return true;
   }
 
@@ -206,6 +371,12 @@ static bool core_environment(unsigned cmd, void *data)
     break;
   }
 
+  case RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER:
+  {
+    *(unsigned *)data = RETRO_HW_CONTEXT_OPENGL;
+    return true;
+  }
+
   case RETRO_ENVIRONMENT_SET_HW_RENDER:
   {
     auto *hw =
@@ -222,6 +393,14 @@ static bool core_environment(unsigned cmd, void *data)
     bval = (bool *)data;
     *bval = true;
     return true;
+
+  case RETRO_ENVIRONMENT_GET_LIBRETRO_PATH:
+  {
+    const char **dir = (const char **)data;
+    std::filesystem::path p(get_wtfwegname());
+    *dir = p.parent_path().string().c_str();
+    return true;
+  }
   case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
   {

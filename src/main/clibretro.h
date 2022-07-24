@@ -127,7 +127,8 @@ enum libretro_stickdirs
 	joypad_rtrigger
 };
 
-struct retro_disk{
+struct retro_disk
+{
 	int index;
 	std::string path;
 };
@@ -190,6 +191,7 @@ public:
 	float core_fps;
 	double coretime;
 	float refreshrate;
+	struct retro_perf_counter *perf_counter_last;
 };
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
