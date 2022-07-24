@@ -398,7 +398,8 @@ static bool core_environment(unsigned cmd, void *data)
   {
     const char **dir = (const char **)data;
     std::filesystem::path p(get_wtfwegname());
-    *dir = p.parent_path().string().c_str();
+    static auto *lr_path = strdup(p.parent_path().string().c_str());
+    *dir = lr_path;
     return true;
   }
   case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
