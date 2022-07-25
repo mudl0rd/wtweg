@@ -139,15 +139,22 @@ static bool core_controller_info(struct retro_controller_info *info)
 
 static uint64_t core_get_cpu_features()
 {
-  SDL_bool (*vec_ptr[8])() = {SDL_HasAVX, SDL_HasAVX2, SDL_HasMMX, SDL_HasSSE, SDL_HasSSE2, SDL_HasSSE3,
-                              SDL_HasSSE41, SDL_HasSSE42};
-  int vec_masks[8] = {RETRO_SIMD_AVX, RETRO_SIMD_AVX2, RETRO_SIMD_MMX, RETRO_SIMD_SSE, RETRO_SIMD_SSE2,
-                      RETRO_SIMD_SSE3, RETRO_SIMD_SSE4, RETRO_SIMD_SSE42};
+
+  std::tuple<int, SDL_bool (*)()> simd_masks[] = {
+      {RETRO_SIMD_AVX, SDL_HasAVX},
+      {RETRO_SIMD_AVX2, SDL_HasAVX2},
+      {RETRO_SIMD_MMX, SDL_HasMMX},
+      {RETRO_SIMD_SSE, SDL_HasSSE},
+      {RETRO_SIMD_SSE2, SDL_HasSSE2},
+      {RETRO_SIMD_SSE3, SDL_HasSSE3},
+      {RETRO_SIMD_SSE4, SDL_HasSSE41},
+      {RETRO_SIMD_SSE42, SDL_HasSSE42},
+  };
   uint64_t cpu = 0;
-  for (int i = 0; i < 8; i++)
+  for (auto [rarch_mask, vecfunc] : simd_masks)
   {
-    if (vec_ptr[i]())
-      cpu |= vec_masks[i];
+    if (vecfunc())
+      cpu |= rarch_mask;
   }
   return cpu;
 }
