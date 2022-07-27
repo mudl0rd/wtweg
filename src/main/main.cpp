@@ -145,6 +145,13 @@ int main2(const char *rom, const char *core, bool pergame)
         break;
       }
 
+      if (event.type == SDL_CONTROLLERDEVICEADDED || event.type == SDL_CONTROLLERDEVICEREMOVED)
+      {
+        close_inp();
+        init_inp();
+        SDL_GameControllerUpdate();
+      }
+
       if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
       {
         int w = event.window.data1;

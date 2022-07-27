@@ -139,7 +139,6 @@ static bool core_controller_info(struct retro_controller_info *info)
 
 static uint64_t core_get_cpu_features()
 {
-
   std::tuple<int, SDL_bool (*)()> simd_masks[] = {
       {RETRO_SIMD_AVX, SDL_HasAVX},
       {RETRO_SIMD_AVX2, SDL_HasAVX2},
