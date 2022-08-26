@@ -174,10 +174,8 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 
 	glGenTextures(1, &g_video.tex_id);
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, geom->max_width, geom->max_height, 0,
 				 g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
 

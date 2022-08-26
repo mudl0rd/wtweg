@@ -438,7 +438,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
             return true;
         }
     }
-    if (Joystick[port])
+    if (SDL_GameControllerGetAttached(Joystick[port]))
     {
         for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
         {
@@ -527,17 +527,15 @@ bool poll_inp(int selected_inp, bool *isselected_inp, int port)
 {
     if (*isselected_inp)
     {
-        if (Joystick[port])
+        if (!SDL_GameControllerGetAttached(Joystick[port]))
         {
-            if (!SDL_GameControllerGetAttached(Joystick[port]))
-            {
-                close_inp();
-                init_inp();
-                SDL_GameControllerUpdate();
-            }
+            SDL_GameControllerClose(Joystick[port]);
+            Joystick[port] = SDL_GameControllerOpen(port);
             SDL_GameControllerUpdate();
+            return false;
         }
-        return checkbuttons_forui(selected_inp, isselected_inp, port);
+        else
+            return checkbuttons_forui(selected_inp, isselected_inp, port);
     }
     else
         return false;
@@ -595,9 +593,9 @@ void poll_lr()
 
     if (!SDL_GameControllerGetAttached(Joystick[0]))
     {
-        close_inp();
-        init_inp();
-        SDL_GameControllerUpdate();
+
+        SDL_GameControllerClose(Joystick[0]);
+        Joystick[0] = SDL_GameControllerOpen(0);
     }
     SDL_GameControllerUpdate();
 
@@ -616,7 +614,7 @@ void poll_lr()
     {
         for (auto &bind : controller)
         {
-            if (Joystick[bind.port])
+            if (SDL_GameControllerGetAttached(Joystick[bind.port]))
             {
                 if (bind.config.bits.joytype == joytype_::joystick_)
                 {
