@@ -178,6 +178,18 @@ const struct key_map key_map_[] = {
 };
 std::array<SDL_GameController *, 2> Joystick;
 
+bool checkjs(SDL_GameController *Joystick, int port = 0)
+{
+    if (!SDL_GameControllerGetAttached(Joystick))
+    {
+        SDL_GameControllerClose(Joystick);
+        Joystick = SDL_GameControllerOpen(port);
+        return Joystick != NULL ? true : false;
+    }
+    else
+        return true;
+}
+
 bool loadinpconf()
 {
     auto lib = CLibretro::get_classinstance();
@@ -438,7 +450,8 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
             return true;
         }
     }
-    if (SDL_GameControllerGetAttached(Joystick[port]))
+
+    if (checkjs(Joystick[port]), port)
     {
         for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
         {
@@ -591,12 +604,6 @@ void poll_lr()
 {
     auto lib = CLibretro::get_classinstance();
 
-    if (!SDL_GameControllerGetAttached(Joystick[0]))
-    {
-
-        SDL_GameControllerClose(Joystick[0]);
-        Joystick[0] = SDL_GameControllerOpen(0);
-    }
     SDL_GameControllerUpdate();
 
     keys();
@@ -614,7 +621,7 @@ void poll_lr()
     {
         for (auto &bind : controller)
         {
-            if (SDL_GameControllerGetAttached(Joystick[bind.port]))
+            if (checkjs(Joystick[bind.port], bind.port))
             {
                 if (bind.config.bits.joytype == joytype_::joystick_)
                 {
