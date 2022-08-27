@@ -178,16 +178,16 @@ const struct key_map key_map_[] = {
 };
 std::array<SDL_GameController *, 2> Joystick;
 
-bool checkjs(SDL_GameController *Joystick, int port = 0)
+bool checkjs(int port)
 {
-    if (Joystick)
+    if (Joystick[port])
     {
-        if (!SDL_GameControllerGetAttached(Joystick))
+        if (!SDL_GameControllerGetAttached(Joystick[port]))
         {
-            SDL_GameControllerClose(Joystick);
-            Joystick = NULL;
-            Joystick = SDL_GameControllerOpen(port);
-            return Joystick != NULL ? true : false;
+            SDL_GameControllerClose(Joystick[port]);
+            Joystick[port] = NULL;
+            Joystick[port] = SDL_GameControllerOpen(port);
+            return Joystick[port] != NULL ? true : false;
         }
         else
             return true;
@@ -537,7 +537,7 @@ bool poll_inp(int selected_inp, bool *isselected_inp, int port)
 {
     if (*isselected_inp)
     {
-        if (checkjs(Joystick[port], port))
+        if (checkjs(port))
             return checkbuttons_forui(selected_inp, isselected_inp, port);
         else
             return false;
@@ -610,7 +610,7 @@ void poll_lr()
     {
         for (auto &bind : controller)
         {
-            if (checkjs(Joystick[bind.port], bind.port))
+            if (checkjs(bind.port))
             {
                 if (bind.config.bits.joytype == joytype_::joystick_)
                 {
