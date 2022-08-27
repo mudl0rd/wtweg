@@ -413,8 +413,12 @@ void init_inp()
     SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
     SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
 
-    for (int i = 0; i < 2; i++)
-        Joystick[i] = SDL_GameControllerOpen(i);
+    int i = 0;
+    for (auto &joy : Joystick)
+    {
+        joy = SDL_GameControllerOpen(i);
+        i++;
+    }
 }
 
 struct axisarrdig
