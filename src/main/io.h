@@ -53,7 +53,7 @@ void video_deinit();
 void video_changegeom(struct retro_game_geometry *geom);
 void audio_changeratefps(float refreshra, float input_srate, float fps);
 uintptr_t video_get_fb();
-static retro_keyboard_event_t inp_keys;
+static retro_keyboard_event_t inp_keys = NULL;
 bool video_set_pixelformat(retro_pixel_format fmt);
 bool loadinpconf();
 void init_inp();

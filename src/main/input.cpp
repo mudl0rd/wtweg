@@ -180,14 +180,20 @@ std::array<SDL_GameController *, 2> Joystick;
 
 bool checkjs(SDL_GameController *Joystick, int port = 0)
 {
-    if (!SDL_GameControllerGetAttached(Joystick))
+    if (Joystick)
     {
-        SDL_GameControllerClose(Joystick);
-        Joystick = SDL_GameControllerOpen(port);
-        return Joystick != NULL ? true : false;
+        if (!SDL_GameControllerGetAttached(Joystick))
+        {
+            SDL_GameControllerClose(Joystick);
+            Joystick = NULL;
+            Joystick = SDL_GameControllerOpen(port);
+            return Joystick != NULL ? true : false;
+        }
+        else
+            return true;
     }
     else
-        return true;
+        return false;
 }
 
 bool loadinpconf()
@@ -384,34 +390,19 @@ void close_inp()
 {
     for (auto &joy : Joystick)
     {
-        if (SDL_GameControllerGetAttached(joy))
+        if (joy)
         {
             SDL_GameControllerClose(joy);
             joy = NULL;
         }
     }
-    inp_keys = NULL;
 }
 void init_inp()
 {
-    inp_keys = NULL;
     if (!SDL_NumJoysticks())
         return;
-    for (auto &joy : Joystick)
-    {
-        if (SDL_GameControllerGetAttached(joy))
-        {
-            SDL_GameControllerClose(joy);
-            joy = NULL;
-        }
-    }
 
-    std::filesystem::path p(get_wtfwegname());
-    std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
-    std::filesystem::path path2 = p.parent_path() / "mudmaps.txt";
-    std::filesystem::absolute(path).string();
-    SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
-    SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
+    close_inp();
 
     int i = 0;
     for (auto &joy : Joystick)

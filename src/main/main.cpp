@@ -40,6 +40,7 @@ int main2(const char *rom, const char *core, bool pergame)
     printf("SDL_Init failed: %s\n", SDL_GetError());
     return 1;
   }
+
   SDL_GL_LoadLibrary(NULL);
   const char *glsl_version = "#version 330";
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -88,6 +89,12 @@ int main2(const char *rom, const char *core, bool pergame)
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
+
+  std::filesystem::path p(get_wtfwegname());
+  std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
+  std::filesystem::path path2 = p.parent_path() / "mudmaps.txt";
+  SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
+  SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
 
   auto instance = CLibretro::get_classinstance(window);
 
@@ -147,7 +154,6 @@ int main2(const char *rom, const char *core, bool pergame)
 
       if (event.type == SDL_CONTROLLERDEVICEADDED || event.type == SDL_CONTROLLERDEVICEREMOVED)
       {
-        close_inp();
         init_inp();
         SDL_GameControllerUpdate();
       }
