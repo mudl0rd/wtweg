@@ -180,20 +180,7 @@ std::array<SDL_GameController *, 2> Joystick;
 
 bool checkjs(int port)
 {
-    if (Joystick[port])
-    {
-        if (!SDL_GameControllerGetAttached(Joystick[port]))
-        {
-            SDL_GameControllerClose(Joystick[port]);
-            Joystick[port] = NULL;
-            Joystick[port] = SDL_GameControllerOpen(port);
-            return Joystick[port] != NULL ? true : false;
-        }
-        else
-            return true;
-    }
-    else
-        return false;
+    return (Joystick[port] != NULL) ? SDL_GameControllerGetAttached(Joystick[port]) : false;
 }
 
 bool loadinpconf()
@@ -386,30 +373,35 @@ bool save_inpcfg()
     }
     return true;
 }
-void close_inp()
+
+void reset_inp()
 {
-    for (auto &joy : Joystick)
+    for (auto &bind : Joystick)
     {
-        if (joy)
+        if (bind)
         {
-            SDL_GameControllerClose(joy);
-            joy = NULL;
+            SDL_GameControllerClose(bind);
+            bind = NULL;
         }
     }
 }
-void init_inp()
+
+void close_inp(int num)
+{
+    if (Joystick[num])
+    {
+        SDL_GameControllerClose(Joystick[num]);
+        Joystick[num] = NULL;
+    }
+}
+
+void init_inp(int num)
 {
     if (!SDL_NumJoysticks())
         return;
-
-    close_inp();
-
-    int i = 0;
-    for (auto &joy : Joystick)
-    {
-        joy = SDL_GameControllerOpen(i);
-        i++;
-    }
+    if (num > 1)
+        return;
+    Joystick[num] = SDL_GameControllerOpen(num);
 }
 
 struct axisarrdig

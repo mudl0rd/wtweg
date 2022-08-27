@@ -102,6 +102,7 @@ int main2(const char *rom, const char *core, bool pergame)
 
   bool done = false;
   bool show_menu = true;
+  reset_inp();
 
   if (rom && core)
     loadfile(instance.get(), rom, core, pergame);
@@ -152,9 +153,15 @@ int main2(const char *rom, const char *core, bool pergame)
         break;
       }
 
-      if (event.type == SDL_CONTROLLERDEVICEADDED || event.type == SDL_CONTROLLERDEVICEREMOVED)
+      if (event.type == SDL_CONTROLLERDEVICEREMOVED)
       {
-        init_inp();
+        close_inp(event.cdevice.which);
+        SDL_GameControllerUpdate();
+      }
+
+      if (event.type == SDL_CONTROLLERDEVICEADDED)
+      {
+        init_inp(event.cdevice.which);
         SDL_GameControllerUpdate();
       }
 
@@ -191,6 +198,7 @@ int main2(const char *rom, const char *core, bool pergame)
   }
 
   instance->core_unload();
+  reset_inp();
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();

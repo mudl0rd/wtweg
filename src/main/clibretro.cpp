@@ -291,8 +291,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   if (lr_isrunning)
     core_unload();
 
-  init_inp();
-
   controller_type[0] = RETRO_DEVICE_JOYPAD;
   controller_type[1] = RETRO_DEVICE_JOYPAD;
 
@@ -476,7 +474,6 @@ void CLibretro::core_unload()
     core_variables.clear();
     core_inputdesc[0].clear();
     core_inputdesc[1].clear();
-    close_inp();
   }
 }
 

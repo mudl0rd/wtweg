@@ -56,8 +56,11 @@ uintptr_t video_get_fb();
 static retro_keyboard_event_t inp_keys = NULL;
 bool video_set_pixelformat(retro_pixel_format fmt);
 bool loadinpconf();
-void init_inp();
-void close_inp();
+void init_inpt();
+void init_inp(int num);
+void close_inp(int num);
+void reset_inp();
+
 bool poll_inp(int selected_inp, bool *isselected_inp, int port);
 int16_t input_state(unsigned port, unsigned device, unsigned index,
                     unsigned id);
