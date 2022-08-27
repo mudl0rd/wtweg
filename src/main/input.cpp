@@ -384,8 +384,11 @@ void close_inp()
 {
     for (auto &joy : Joystick)
     {
-        SDL_GameControllerClose(joy);
-        joy = NULL;
+        if (SDL_GameControllerGetAttached(joy))
+        {
+            SDL_GameControllerClose(joy);
+            joy = NULL;
+        }
     }
     inp_keys = NULL;
 }
@@ -396,8 +399,11 @@ void init_inp()
         return;
     for (auto &joy : Joystick)
     {
-        SDL_GameControllerClose(joy);
-        joy = NULL;
+        if (SDL_GameControllerGetAttached(joy))
+        {
+            SDL_GameControllerClose(joy);
+            joy = NULL;
+        }
     }
 
     std::filesystem::path p(get_wtfwegname());
@@ -451,107 +457,96 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
         }
     }
 
-    if (checkjs(Joystick[port]), port)
+    for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
     {
-        for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
+        if (bind.isanalog)
         {
-
-            if (bind.isanalog)
-            {
-                Sint16 axis = 0;
-                axis = SDL_GameControllerGetAxis(Joystick[port], (SDL_GameControllerAxis)a);
-                if (abs(axis) < JOYSTICK_DEAD_ZONE)
-                    continue;
-                else
-                {
-                    name = SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)a);
-                    bind.joykey_desc = name;
-                    bind.config.bits.sdl_id = a;
-                    bind.val = 0;
-                    bind.port = port;
-                    bind.config.bits.joytype = joytype_::joystick_;
-                    *isselected_inp = false;
-                    ImGui::SetWindowFocus(NULL);
-                    return true;
-                }
-            }
+            Sint16 axis = 0;
+            axis = SDL_GameControllerGetAxis(Joystick[port], (SDL_GameControllerAxis)a);
+            if (abs(axis) < JOYSTICK_DEAD_ZONE)
+                continue;
             else
             {
-                Sint16 axis = SDL_GameControllerGetAxis(Joystick[port], (SDL_GameControllerAxis)a);
-                if (abs(axis) < JOYSTICK_DEAD_ZONE)
-                    continue;
-                else
-                {
-                    for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX + 1; i++)
-                    {
-                        if (a == arr_dig[i].axis)
-                        {
-                            bind.joykey_desc = (axis > JOYSTICK_DEAD_ZONE) ? arr_dig[i].name : arr_dig[i + 1].name;
-                            bind.config.bits.sdl_id = a;
-                            bind.val = 0;
-                            bind.port = port;
-                            bind.config.bits.axistrigger = (axis > JOYSTICK_DEAD_ZONE) ? 0x4000 : -0x4000;
-                            bind.config.bits.joytype = joytype_::joystick_;
-                            *isselected_inp = false;
-                            ImGui::SetWindowFocus(NULL);
-                            return true;
-                        }
-                        if (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT || a == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-                        {
-                            if (axis > JOYSTICK_DEAD_ZONE)
-                            {
-                                bind.joykey_desc = (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT) ? "ltrigger" : "rtrigger";
-                                bind.config.bits.axistrigger = 0x4000;
-                                bind.config.bits.sdl_id = a;
-                                bind.val = 0;
-                                bind.port = port;
-                                bind.config.bits.joytype = joytype_::joystick_;
-                                *isselected_inp = false;
-                                ImGui::SetWindowFocus(NULL);
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        for (int b = 0; b < SDL_CONTROLLER_BUTTON_MAX; b++)
-        {
-            int btn = SDL_GameControllerGetButton(Joystick[port], (SDL_GameControllerButton)b);
-            if (btn == SDL_PRESSED)
-            {
-                name += SDL_GameControllerGetStringForButton((SDL_GameControllerButton)b);
+                name = SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)a);
                 bind.joykey_desc = name;
-                bind.config.bits.sdl_id = b;
+                bind.config.bits.sdl_id = a;
                 bind.val = 0;
                 bind.port = port;
-                bind.config.bits.joytype = joytype_::button;
+                bind.config.bits.joytype = joytype_::joystick_;
                 *isselected_inp = false;
                 ImGui::SetWindowFocus(NULL);
                 return true;
             }
         }
+        else
+        {
+            Sint16 axis = SDL_GameControllerGetAxis(Joystick[port], (SDL_GameControllerAxis)a);
+            if (abs(axis) < JOYSTICK_DEAD_ZONE)
+                continue;
+            else
+            {
+                for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX + 1; i++)
+                {
+                    if (a == arr_dig[i].axis)
+                    {
+                        bind.joykey_desc = (axis > JOYSTICK_DEAD_ZONE) ? arr_dig[i].name : arr_dig[i + 1].name;
+                        bind.config.bits.sdl_id = a;
+                        bind.val = 0;
+                        bind.port = port;
+                        bind.config.bits.axistrigger = (axis > JOYSTICK_DEAD_ZONE) ? 0x4000 : -0x4000;
+                        bind.config.bits.joytype = joytype_::joystick_;
+                        *isselected_inp = false;
+                        ImGui::SetWindowFocus(NULL);
+                        return true;
+                    }
+                    if (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT || a == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+                    {
+                        if (axis > JOYSTICK_DEAD_ZONE)
+                        {
+                            bind.joykey_desc = (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT) ? "ltrigger" : "rtrigger";
+                            bind.config.bits.axistrigger = 0x4000;
+                            bind.config.bits.sdl_id = a;
+                            bind.val = 0;
+                            bind.port = port;
+                            bind.config.bits.joytype = joytype_::joystick_;
+                            *isselected_inp = false;
+                            ImGui::SetWindowFocus(NULL);
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
     }
-    return true;
+
+    for (int b = 0; b < SDL_CONTROLLER_BUTTON_MAX; b++)
+    {
+        int btn = SDL_GameControllerGetButton(Joystick[port], (SDL_GameControllerButton)b);
+        if (btn == SDL_PRESSED)
+        {
+            name += SDL_GameControllerGetStringForButton((SDL_GameControllerButton)b);
+            bind.joykey_desc = name;
+            bind.config.bits.sdl_id = b;
+            bind.val = 0;
+            bind.port = port;
+            bind.config.bits.joytype = joytype_::button;
+            *isselected_inp = false;
+            ImGui::SetWindowFocus(NULL);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool poll_inp(int selected_inp, bool *isselected_inp, int port)
 {
     if (*isselected_inp)
     {
-        if (!SDL_GameControllerGetAttached(Joystick[port]))
-        {
-            SDL_GameControllerClose(Joystick[port]);
-            Joystick[port] = SDL_GameControllerOpen(port);
-            SDL_GameControllerUpdate();
-            return false;
-        }
-        else
+        if (checkjs(Joystick[port], port))
             return checkbuttons_forui(selected_inp, isselected_inp, port);
+        else
+            return false;
     }
-    else
-        return false;
 }
 
 static bool key_pressed(int key)
@@ -569,7 +564,6 @@ void keys()
 {
     if (inp_keys)
     {
-
         int num_keys_km;
         const Uint8 *keymap = SDL_GetKeyboardState(&num_keys_km);
         SDL_Keymod mod = SDL_GetModState();
