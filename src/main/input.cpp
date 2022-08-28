@@ -395,11 +395,28 @@ void close_inp(int num)
     }
 }
 
+void reset_inpt()
+{
+    for (auto &bind : Joystick)
+    {
+        if (bind != NULL)
+        {
+            SDL_GameControllerClose(bind);
+            bind = NULL;
+        }
+    }
+    int num = SDL_NumJoysticks();
+    if (!num || num > 2)
+        return;
+
+    for (int i = 0; i < 2; i++)
+        Joystick[num] = SDL_GameControllerOpen(num);
+}
+
 void init_inp(int num)
 {
-    if (!SDL_NumJoysticks())
-        return;
-    if (num > 1)
+    int num = SDL_NumJoysticks();
+    if (!num || num > 2)
         return;
     Joystick[num] = SDL_GameControllerOpen(num);
 }
