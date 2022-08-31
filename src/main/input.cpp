@@ -418,7 +418,8 @@ void init_inp(int num)
     int num1 = SDL_NumJoysticks();
     if (!num1 || num1 > 2)
         return;
-    if(Joystick[num] != NULL)return;
+    if(Joystick[num] != NULL)
+    SDL_GameControllerClose(Joystick[num]);
     Joystick[num] = SDL_GameControllerOpen(num);
     
 }
