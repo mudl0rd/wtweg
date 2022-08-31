@@ -243,7 +243,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     // action if OK
     if (romloader.IsOk())
     {
-      std::string filePathName = romloader.GetFilePathName();
+      std::string filePathName = romloader.GetCurrentFileName();
       std::string filePath = romloader.GetCurrentPath();
       instance->core_savestate(filePathName.c_str(), true);
     }

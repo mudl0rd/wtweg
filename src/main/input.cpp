@@ -415,10 +415,12 @@ void reset_inpt()
 
 void init_inp(int num)
 {
-    int num = SDL_NumJoysticks();
-    if (!num || num > 2)
+    int num1 = SDL_NumJoysticks();
+    if (!num1 || num1 > 2)
         return;
+    if(Joystick[num] != NULL)return;
     Joystick[num] = SDL_GameControllerOpen(num);
+    
 }
 
 struct axisarrdig
