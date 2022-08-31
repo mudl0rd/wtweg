@@ -100,13 +100,13 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         if (ImGui::MenuItem("Load Savestate"))
         {
           if (instance->core_isrunning())
-            romloader.OpenModal("LoadSaveState", "Load a savestate", ss_filters, ".", "", 1, nullptr, flags);
+            romloader.OpenModal("LoadSaveState", "Load a savestate", ".state", ".", "", 1, nullptr, flags);
         }
 
         if (ImGui::MenuItem("Save Savestate"))
         {
           if (instance->core_isrunning())
-            romloader.OpenModal("SaveSaveState", "Save a savestate", ss_filters, ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
+            romloader.OpenModal("SaveSaveState", "Save a savestate", ".state", ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
         }
       }
 
@@ -230,7 +230,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     if (romloader.IsOk())
     {
       std::string filePathName = romloader.GetFilePathName();
-      std::string filePath = romloader.GetCurrentPath();
       instance->core_savestate(filePathName.c_str(), false);
       // action
     }
@@ -243,8 +242,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     // action if OK
     if (romloader.IsOk())
     {
-      std::string filePathName = romloader.GetCurrentFileName();
-      std::string filePath = romloader.GetCurrentPath();
+      std::string filePathName = romloader.GetFilePathName();
       instance->core_savestate(filePathName.c_str(), true);
     }
     // close
