@@ -96,6 +96,18 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
       {
 
         ImGui::Separator();
+        if (ImGui::BeginMenu("Quick save slot"))
+        {
+        for (int i=0;i<9;i++)
+        {
+          std::string player = "Quick save slot " + std::to_string(i + 1);
+          if (ImGui::MenuItem(player.c_str(), nullptr,instance->save_slot==i))
+          instance->save_slot =i;
+        }
+        ImGui::EndMenu();
+
+        }
+
 
         if (ImGui::MenuItem("Load Savestate"))
         {

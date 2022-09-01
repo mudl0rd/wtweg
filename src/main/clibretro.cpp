@@ -19,6 +19,16 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
 
+bool CLibretro::core_savestateslot(bool save)
+{
+  std::filesystem::path romzpath = std::filesystem::path(rom_path);
+  std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
+  std::filesystem::path save_path = save_path_ / (romzpath.stem().string()+"_"+std::to_string(save_slot) + ".sram");
+  std::string saves = std::filesystem::absolute(save_path).string();
+  core_savestate(saves.c_str(),save);
+  return true;
+}
+
 bool CLibretro::core_savestate(const char *filename, bool save)
 {
   if (lr_isrunning)
@@ -258,6 +268,7 @@ CLibretro::CLibretro(SDL_Window *window, char *exepath)
   get_cores();
   sdl_window = window;
   lr_isrunning = false;
+  save_slot=0;
 }
 
 CLibretro::~CLibretro()
@@ -333,6 +344,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path;
+  rom_path = std::filesystem::absolute(romzpath).string();
   if (contentless)
     save_path = save_path_ / (core_path_.stem().string() + ".sram");
   else

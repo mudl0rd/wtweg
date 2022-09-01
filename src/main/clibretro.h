@@ -162,6 +162,7 @@ public:
 	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless);
 	void core_unload();
 	bool core_saveram(const char *filename, bool save);
+	bool core_savestateslot(bool save);
 	bool core_savestate(const char *filename, bool save);
 	void core_run();
 	void set_inputdevice(int device);
@@ -186,8 +187,10 @@ public:
 	std::string core_path;
 	std::string saves_path;
 	std::string system_path;
+	std::string rom_path;
 	std::string coreexts;
 	std::string exe_path;
+	int save_slot;
 	float core_fps;
 	double coretime;
 	float refreshrate;

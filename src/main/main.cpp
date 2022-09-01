@@ -147,6 +147,11 @@ int main2(const char *rom, const char *core, bool pergame)
         break;
       }
 
+      if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2)
+      instance->core_savestateslot(false);
+      if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F3)
+      instance->core_savestateslot(true);
+
       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
       {
         show_menu = !show_menu;
