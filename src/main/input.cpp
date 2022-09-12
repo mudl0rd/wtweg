@@ -176,7 +176,7 @@ const struct key_map key_map_[] = {
 
     {0, RETROK_UNKNOWN},
 };
-std::array<SDL_GameController *, 2> Joystick;
+std::array<SDL_GameController *, 2> Joystick = {NULL,NULL};
 
 bool checkjs(int port)
 {
@@ -406,9 +406,7 @@ void reset_inpt()
         }
     }
     int num = SDL_NumJoysticks();
-    if (!num || num > 2)
-        return;
-
+    if (num)
     for (int i = 0; i < 2; i++)
         Joystick[num] = SDL_GameControllerOpen(num);
 }
@@ -418,7 +416,6 @@ void init_inp(int num)
     int num1 = SDL_NumJoysticks();
     if (!num1 || num1 > 2)
         return;
-    if(Joystick[num] != NULL)
     SDL_GameControllerClose(Joystick[num]);
     Joystick[num] = SDL_GameControllerOpen(num);
     
