@@ -180,7 +180,7 @@ std::array<SDL_GameController *, 2> Joystick = {NULL,NULL};
 
 bool checkjs(int port)
 {
-    return (Joystick[port] != NULL) ? SDL_GameControllerGetAttached(Joystick[port]) : false;
+    return (Joystick[port])?SDL_GameControllerGetAttached(Joystick[port]):false;
 }
 
 bool loadinpconf()
@@ -544,13 +544,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
 
 bool poll_inp(int selected_inp, bool *isselected_inp, int port)
 {
-    if (*isselected_inp)
-    {
-        if (checkjs(port))
-            return checkbuttons_forui(selected_inp, isselected_inp, port);
-        else
-            return false;
-    }
+    return (*isselected_inp)? (checkjs(port))?checkbuttons_forui(selected_inp, isselected_inp, port):false:false;
 }
 
 static bool key_pressed(int key)
