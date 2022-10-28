@@ -53,7 +53,7 @@
         },
 
         {
-        "preLaunchTask": "build",
+        "preLaunchTask": "builddbg",
         "name": "Compile/Debug (Linux)",
         "type": "cppdbg",
         "request": "launch",
@@ -75,7 +75,7 @@
     },
 
         {
-            "preLaunchTask": "build",
+            "preLaunchTask": "builddbg",
             "name": "Compile/Debug (Windows)",
             "type": "cppdbg",
             "request": "launch",
