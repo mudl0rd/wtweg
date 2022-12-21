@@ -80,6 +80,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
   static bool coresettings = false;
   static bool aboutbox = false;
   static bool load_core = false;
+  static bool no_cores = false;
   ImGuiIO &io = ImGui::GetIO();
 
   if (ImGui::BeginMainMenuBar())
@@ -87,7 +88,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     if (ImGui::BeginMenu("File"))
     {
       if (ImGui::MenuItem("Load ROM/ISO"))
-        romloader.OpenModal("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
+      {
+        if (instance->coreexts == "")
+        {
+          no_cores = true;
+        }
+        else
+          romloader.OpenModal("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
+      }
 
       if (ImGui::MenuItem("Load contentless libretro core"))
         load_core = true;
@@ -98,16 +106,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         ImGui::Separator();
         if (ImGui::BeginMenu("Quick save slot"))
         {
-        for (int i=0;i<9;i++)
-        {
-          std::string player = "Quick save slot " + std::to_string(i + 1);
-          if (ImGui::MenuItem(player.c_str(), nullptr,instance->save_slot==i))
-          instance->save_slot =i;
+          for (int i = 0; i < 9; i++)
+          {
+            std::string player = "Quick save slot " + std::to_string(i + 1);
+            if (ImGui::MenuItem(player.c_str(), nullptr, instance->save_slot == i))
+              instance->save_slot = i;
+          }
+          ImGui::EndMenu();
         }
-        ImGui::EndMenu();
-
-        }
-
 
         if (ImGui::MenuItem("Load Savestate"))
         {
@@ -178,6 +184,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     romloader.Close();
   }
 
+  if (no_cores)
+  {
+    popup_widget(&no_cores, "No libretro cores", "There is no ROM/ISO loading cores detected.");
+    return;
+  }
+
   if (coreselect)
   {
     int hits = 0;
@@ -186,6 +198,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     std::vector<core_info> cores_info;
     cores_info.clear();
     bool found = false;
+
     for (auto &core : instance->cores)
     {
 

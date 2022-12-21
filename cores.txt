@@ -121,6 +121,7 @@ play_libretro.dll.zip
 pocketcdg_libretro.dll.zip
 potator_libretro.dll.zip
 ppsspp_libretro.dll.zip
+pcsx_rearmed_libretro.dll.zip
 prosystem_libretro.dll.zip
 puae2021_libretro.dll.zip
 puae_libretro.dll.zip

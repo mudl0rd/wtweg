@@ -21,12 +21,17 @@ static std::string_view SHLIB_EXTENSION = ".so";
 
 bool CLibretro::core_savestateslot(bool save)
 {
-  std::filesystem::path romzpath = std::filesystem::path(rom_path);
-  std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
-  std::filesystem::path save_path = save_path_ / (romzpath.stem().string()+"_"+std::to_string(save_slot) + ".sram");
-  std::string saves = std::filesystem::absolute(save_path).string();
-  core_savestate(saves.c_str(),save);
-  return true;
+  if (rom_path != "")
+  {
+    std::filesystem::path romzpath = std::filesystem::path(rom_path);
+    std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
+    std::filesystem::path save_path = save_path_ / (romzpath.stem().string() + "_" + std::to_string(save_slot) + ".sram");
+    std::string saves = std::filesystem::absolute(save_path).string();
+    core_savestate(saves.c_str(), save);
+    return true;
+  }
+  else
+    return false;
 }
 
 bool CLibretro::core_savestate(const char *filename, bool save)
@@ -265,10 +270,18 @@ CLibretro::CLibretro(SDL_Window *window, char *exepath)
   std::filesystem::path p(get_wtfwegname());
   exe_path = p.parent_path().string();
   cores.clear();
+
+  const char *dirs[3] = {"cores", "system", "saves"};
+  for (int i = 0; i < 3; i++)
+  {
+    std::filesystem::path p(exe_path);
+    std::filesystem::path path = p / dirs[i];
+    std::filesystem::create_directory(path);
+  }
   get_cores();
   sdl_window = window;
   lr_isrunning = false;
-  save_slot=0;
+  save_slot = 0;
 }
 
 CLibretro::~CLibretro()
@@ -344,14 +357,19 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path;
-  rom_path = std::filesystem::absolute(romzpath).string();
+
   if (contentless)
+  {
     save_path = save_path_ / (core_path_.stem().string() + ".sram");
+    rom_path = "";
+  }
   else
+  {
+    rom_path = std::filesystem::absolute(romzpath).string();
     save_path = save_path_ / (romzpath.stem().string() + ".sram");
+  }
   saves_path = std::filesystem::absolute(save_path_).string();
   system_path = std::filesystem::absolute(system_path_).string();
-
   romsavesstatespath = std::filesystem::absolute(save_path).string();
 
   if (game_specific_settings)
@@ -526,7 +544,9 @@ void CLibretro::get_cores()
       }
     }
   }
-  coreexts = "All supported {.";
+
+  coreexts = "";
+  std::string corelist = "";
   for (auto &corez : cores)
   {
     if (!corez.no_roms)
@@ -535,10 +555,15 @@ void CLibretro::get_cores()
       std::string segment;
       std::vector<std::string> seglist;
       while (std::getline(test, segment, '|'))
-        if (coreexts.find(segment) == std::string::npos)
-          coreexts += segment + ",.";
+        if (corelist.find(segment) == std::string::npos)
+          corelist += segment + ",.";
     }
   }
-  coreexts.resize(coreexts.size() - 2);
-  coreexts += "}";
+  if (corelist != "")
+  {
+    coreexts = "All supported {.";
+    coreexts += corelist;
+    coreexts.resize(coreexts.size() - 2);
+    coreexts += "}";
+  }
 }

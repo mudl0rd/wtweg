@@ -1,25 +1,20 @@
 # WTFweg
+![fxUE](https://user-images.githubusercontent.com/56025978/203640439-62ccfee9-408b-482b-9bea-365bf2f53df2.gif)
 
-## What?
 
-Personal [libretro](https://www.libretro.com) code playset for anything with:
+**Personal** [libretro](https://www.libretro.com) code playset for anything with:
 
 * **x86 CPUs w/SSE4.1 and above**.
-* **ARM+NEON CPUs around RPI4 level and above**.
-* **OGL 4.6/OGLESv2 and above**
+* **OGL 4.6 and above**
 * **Win7 and above/Linux**
 * **GCC/G++ with C++17 support**
 
 
 ## Where?
 
-**Note that these builds are radioactive-waste quality, beware!**
-
 [Cores can be grabbed here](http://buildbot.libretro.com/nightly/windows/x86_64/latest/)
 
 [A list of tested cores is here](https://raw.githubusercontent.com/mudlord/WTFweg/master/cores.txt)
-
-[Releases compiled every Sunday, my time are here](https://www.mediafire.com/file/ntfxx0fnqjedy56/wtfweg.7z)
 
 * "cores" is where all libretro cores go
 * "saves" is where all saves are
