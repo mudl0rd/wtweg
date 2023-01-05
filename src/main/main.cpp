@@ -104,8 +104,12 @@ int main2(const char *rom, const char *core, bool pergame)
   bool show_menu = true;
   reset_inp();
 
+  SDL_Rect window_rect={0};
+
   if (rom && core)
     loadfile(instance.get(), rom, core, pergame);
+
+
 
   while (!done)
   {
@@ -128,19 +132,32 @@ int main2(const char *rom, const char *core, bool pergame)
         if (instance->core_isrunning())
         {
           static bool window_fs = false;
-          if (!window_fs)
+          window_fs = !window_fs;
+
+          if(window_fs)
           {
-            SDL_SetWindowResizable(window, SDL_FALSE);
+            SDL_GetWindowSize(window, &window_rect.w, &window_rect.h);
+	          SDL_GetWindowPosition(window, &window_rect.x, &window_rect.y);
+            int i = SDL_GetWindowDisplayIndex(window);
+		        SDL_Rect j;
+		        SDL_GetDisplayBounds(i, &j);
+            SDL_SetWindowSize(window, j.w,j.h);
             SDL_SetWindowPosition(window, 0, 0);
-            SDL_SetWindowSize(window, dm.w, dm.h);
+            video_setsize(j.w, j.h);
+            glViewport(0, 0, j.w, j.h);
+            glScissor(0, 0, j.w, j.h);
           }
           else
           {
-            video_restoresz();
-            SDL_SetWindowResizable(window, SDL_TRUE);
-            SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+            	SDL_SetWindowSize(window, window_rect.w, window_rect.h);
+	            SDL_SetWindowPosition(window, window_rect.x, window_rect.y);
+              video_setsize(window_rect.w, window_rect.h);
+              glViewport(0, 0, window_rect.w, window_rect.h);
+              glScissor(0, 0, window_rect.w, window_rect.h);
           }
-          window_fs = !window_fs;
+          SDL_SetWindowAlwaysOnTop(window,window_fs ? SDL_TRUE : SDL_FALSE);
+          SDL_SetWindowResizable(window, window_fs ? SDL_FALSE : SDL_TRUE);
+          SDL_SetWindowBordered(window, window_fs ? SDL_FALSE : SDL_TRUE);
           SDL_SetRelativeMouseMode(window_fs ? SDL_TRUE : SDL_FALSE);
           show_menu = !window_fs;
         }
