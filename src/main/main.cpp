@@ -155,10 +155,10 @@ int main2(const char *rom, const char *core, bool pergame)
               glViewport(0, 0, window_rect.w, window_rect.h);
               glScissor(0, 0, window_rect.w, window_rect.h);
           }
-          SDL_SetWindowAlwaysOnTop(window,window_fs ? SDL_TRUE : SDL_FALSE);
-          SDL_SetWindowResizable(window, window_fs ? SDL_FALSE : SDL_TRUE);
-          SDL_SetWindowBordered(window, window_fs ? SDL_FALSE : SDL_TRUE);
-          SDL_SetRelativeMouseMode(window_fs ? SDL_TRUE : SDL_FALSE);
+          SDL_SetWindowAlwaysOnTop(window,(SDL_bool)window_fs);
+          SDL_SetWindowResizable(window, (SDL_bool)window_fs);
+          SDL_SetWindowBordered(window, (SDL_bool)!window_fs);
+          SDL_SetRelativeMouseMode((SDL_bool)window_fs);
           show_menu = !window_fs;
         }
         break;
