@@ -156,7 +156,7 @@ int main2(const char *rom, const char *core, bool pergame)
               glScissor(0, 0, window_rect.w, window_rect.h);
           }
           SDL_SetWindowAlwaysOnTop(window,(SDL_bool)window_fs);
-          SDL_SetWindowResizable(window, (SDL_bool)window_fs);
+          SDL_SetWindowResizable(window, (SDL_bool)!window_fs);
           SDL_SetWindowBordered(window, (SDL_bool)!window_fs);
           SDL_SetRelativeMouseMode((SDL_bool)window_fs);
           show_menu = !window_fs;
