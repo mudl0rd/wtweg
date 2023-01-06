@@ -158,8 +158,6 @@ int main2(const char *rom, const char *core, bool pergame)
           SDL_SetWindowAlwaysOnTop(window,(SDL_bool)window_fs);
           SDL_SetWindowResizable(window, (SDL_bool)!window_fs);
           SDL_SetWindowBordered(window, (SDL_bool)!window_fs);
-          SDL_SetRelativeMouseMode((SDL_bool)window_fs);
-          show_menu = !window_fs;
         }
         break;
       }
@@ -171,8 +169,9 @@ int main2(const char *rom, const char *core, bool pergame)
 
       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
       {
-        show_menu = !show_menu;
-        break;
+       
+        show_menu ^= true;
+        SDL_SetRelativeMouseMode((SDL_bool)(!show_menu));
       }
 
       if (event.type == SDL_CONTROLLERDEVICEREMOVED)
