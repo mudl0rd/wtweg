@@ -17,8 +17,8 @@ then
     mkdir "$install_direct"
 fi;
 
-CC=gcc CXX=g++ CC_LD=g++ meson setup builddir
+CC=gcc CXX=g++ CC_LD=g++ meson buildtype=release setup builddir
 meson builddir
 ninja -C builddir -f build.ninja
-cd builddir && meson install
+cd builddir && meson install --strip
 

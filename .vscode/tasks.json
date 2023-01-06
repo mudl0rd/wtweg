@@ -5,7 +5,7 @@
 		{
 			"windows": {
 				"command": "C:\\msys64\\usr\\bin\\bash.exe",
-				"args": ["-lc", "rm -r builddir &&([ -f builddir/build.ninja ] || CC=gcc CXX=g++ CC_LD=g++ meson setup builddir && meson builddir && cd builddir && meson install --strip) && ninja -C builddir | cat"]
+				"args": ["-lc", "rm -r builddir &&([ -f builddir/build.ninja ] || CC=gcc CXX=g++ CC_LD=g++ meson setup builddir && meson builddir && cd builddir && meson install) && ninja -C builddir | cat"]
 			},
 			"linux": {
 				"args": ["-lc", "cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f builddir/build.ninja ] || meson builddir) && ninja -C builddir && cd builddir && meson install && $@"],
