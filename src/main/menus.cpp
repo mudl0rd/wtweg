@@ -172,7 +172,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
   }
 
   ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
-  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey",32,maxSizedlg, maxSizedlg))
+  ImVec2 minSizedlg = ImVec2((float)io.DisplaySize.x * 0.4f, (float)io.DisplaySize.y * 0.4f);
+  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey",32, minSizedlg, maxSizedlg))
   {
     // action if OK
     if (ImGuiFileDialog::Instance()->IsOk())
@@ -235,7 +236,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     else
       ImGui::OpenPopup("Select a core");
 
-    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f), ImGuiCond_Always);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
+    ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -257,7 +259,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     }
   }
  
-  if (ImGuiFileDialog::Instance()->Display("LoadSaveState",32,maxSizedlg, maxSizedlg))
+  if (ImGuiFileDialog::Instance()->Display("LoadSaveState",32,minSizedlg, maxSizedlg))
   {
     // action if OK
     if ( ImGuiFileDialog::Instance()->IsOk())
@@ -270,7 +272,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
      ImGuiFileDialog::Instance()->Close();
   }
 
-  if (ImGuiFileDialog::Instance()->Display("SaveSaveState", 32,maxSizedlg, maxSizedlg))
+  if (ImGuiFileDialog::Instance()->Display("SaveSaveState", 32,minSizedlg, maxSizedlg))
   {
     // action if OK
     if (ImGuiFileDialog::Instance()->IsOk())
@@ -300,7 +302,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
       return;
     }
 
-    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f), ImGuiCond_Always);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
+    ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::OpenPopup("Select a contentless core to load");
     if (ImGui::BeginPopupModal("Select a contentless core to load", &load_core, ImGuiWindowFlags_AlwaysAutoResize))
@@ -333,7 +336,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     }
 
     ImGui::OpenPopup("Input Settings");
-    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.3f),
+    ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
@@ -418,7 +422,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
     ImGui::OpenPopup("Core Settings");
 
-    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.8f, io.DisplaySize.y * 0.5f), ImGuiCond_Always);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.1f),
+    ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     if (ImGui::BeginPopupModal("Core Settings", &coresettings, ImGuiWindowFlags_AlwaysAutoResize))
