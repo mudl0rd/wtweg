@@ -556,7 +556,11 @@ void CLibretro::get_cores()
       std::vector<std::string> seglist;
       while (std::getline(test, segment, '|'))
         if (corelist.find(segment) == std::string::npos)
+        {
+          std::transform(segment.begin(), segment.end(), segment.begin(), ::tolower);
           corelist += segment + ",.";
+        }
+          
     }
   }
   if (corelist != "")

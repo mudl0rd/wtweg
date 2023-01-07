@@ -11,10 +11,8 @@
 #ifndef _WIN32
 #define stricmp strcasecmp
 #endif
-
-ImGuiFileDialog romloader;
 const char *ss_filters = "Savestates (*.state){.state}";
-static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_None;
+static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_CaseInsensitiveExtention;
 
 enum
 {
@@ -97,7 +95,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         }
         else
         
-          romloader.OpenModal("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
+          ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
       }
 
       if (ImGui::MenuItem("Load contentless libretro core"))
@@ -121,13 +119,13 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         if (ImGui::MenuItem("Load Savestate"))
         {
           if (instance->core_isrunning())
-            romloader.OpenModal("LoadSaveState", "Load a savestate", ".state", ".", "", 1, nullptr, flags);
+            ImGuiFileDialog::Instance()->OpenDialog("LoadSaveState", "Load a savestate", ".state", ".", "", 1, nullptr, flags);
         }
 
         if (ImGui::MenuItem("Save Savestate"))
         {
           if (instance->core_isrunning())
-            romloader.OpenModal("SaveSaveState", "Save a savestate", ".state", ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
+            ImGuiFileDialog::Instance()->OpenDialog("SaveSaveState", "Save a savestate", ".state", ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
         }
       }
 
@@ -174,18 +172,18 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
   }
 
   ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
-  if (romloader.Display("ChooseFileDlgKey",32,maxSizedlg, maxSizedlg))
+  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey",32,maxSizedlg, maxSizedlg))
   {
     // action if OK
-    if (romloader.IsOk())
+    if (ImGuiFileDialog::Instance()->IsOk())
     {
-      std::string filePathName = romloader.GetFilePathName();
-      std::string filePath = romloader.GetCurrentPath();
+      std::string filePathName =  ImGuiFileDialog::Instance()->GetFilePathName();
+      std::string filePath =  ImGuiFileDialog::Instance()->GetCurrentPath();
       coreselect = loadfile(instance, (char *)filePathName.c_str(), NULL, false);
       filenamepath = filePathName;
     }
 
-    romloader.Close();
+     ImGuiFileDialog::Instance()->Close();
   }
 
   if (no_cores)
@@ -259,29 +257,29 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     }
   }
  
-  if (romloader.Display("LoadSaveState",32,maxSizedlg, maxSizedlg))
+  if (ImGuiFileDialog::Instance()->Display("LoadSaveState",32,maxSizedlg, maxSizedlg))
   {
     // action if OK
-    if (romloader.IsOk())
+    if ( ImGuiFileDialog::Instance()->IsOk())
     {
-      std::string filePathName = romloader.GetFilePathName();
+      std::string filePathName =  ImGuiFileDialog::Instance()->GetFilePathName();
       instance->core_savestate(filePathName.c_str(), false);
       // action
     }
     // close
-    romloader.Close();
+     ImGuiFileDialog::Instance()->Close();
   }
 
-  if (romloader.Display("SaveSaveState", 32,maxSizedlg, maxSizedlg))
+  if (ImGuiFileDialog::Instance()->Display("SaveSaveState", 32,maxSizedlg, maxSizedlg))
   {
     // action if OK
-    if (romloader.IsOk())
+    if (ImGuiFileDialog::Instance()->IsOk())
     {
-      std::string filePathName = romloader.GetFilePathName();
+      std::string filePathName =  ImGuiFileDialog::Instance()->GetFilePathName();
       instance->core_savestate(filePathName.c_str(), true);
     }
     // close
-    romloader.Close();
+     ImGuiFileDialog::Instance()->Close();
   }
 
   if (load_core)
