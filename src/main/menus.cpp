@@ -60,6 +60,8 @@ bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool
 void popup_widget(bool *flag, const char *title, const char *msg)
 {
   ImGui::OpenPopup(title);
+  ImGuiIO &io = ImGui::GetIO();
+  ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   if (ImGui::BeginPopupModal(title, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
   {
     ImGui::Text(msg);
