@@ -17,6 +17,17 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * mednafen_supergrafx_libretro.dll.zip (no known problems)
 * mednafen_vb_libretro.dll.zip (no known problems)
 * mednafen_snes_libretro.dll.zip  (incomplete controllers)
+* swanstation_libretro.dll.zip (no Vulkan/D3D)
+* bsnes_hd_beta_libretro.dll.zip  (incomplete controllers)
+* bsnes_libretro.dll.zip (incomplete controllers)
+* bsnes2014_accuracy_libretro.dll.zip  (incomplete controllers)
+* bsnes2014_balanced_libretro.dll.zip  (incomplete controllers)
+* bsnes2014_performance_libretro.dll.zip  (incomplete controllers)
+* bsnes_cplusplus98_libretro.dll.zip  (incomplete controllers)
+* bsnes_mercury_accuracy_libretro.dll.zip  (incomplete controllers)
+* bsnes_mercury_balanced_libretro.dll.zip  (incomplete controllers)
+* bsnes_mercury_performance_libretro.dll.zip  (incomplete controllers)
+* mgba_libretro.dll.zip (no known problems)
 * vitaquake3_libretro.dll.zip (no known problems)
 * vitaquake2-rogue_libretro.dll.zip (no known problems)
 * vitaquake2-xatrix_libretro.dll.zip (no known problems)
@@ -80,10 +91,13 @@ boom3_xp_libretro.dll.zip
 cannonball_libretro.dll.zip
 cap32_libretro.dll.zip
 cdi2015_libretro.dll.zip
+citra2018_libretro.dll.zip
+citra_libretro.dll.zip
 chailove_libretro.dll.zip
 crocods_libretro.dll.zip
 desmume2015_libretro.dll.zip
 desmume_libretro.dll.zip
+dolphin_libretro.dll.zip
 dosbox_core_libretro.dll.zip
 dosbox_pure_libretro.dll.zip
 dosbox_svn_libretro.dll.zip
@@ -108,6 +122,13 @@ hatari_libretro.dll.zip
 jaxe_libretro.dll.zip
 lowresnx_libretro.dll.zip
 lutro_libretro.dll.zip
+mame2000_libretro.dll.zip
+mame2003_libretro.dll.zip
+mame2003_midway_libretro.dll.zip
+mame2003_plus_libretro.dll.zip
+mame2010_libretro.dll.zip
+mame_libretro.dll.zip
+melonds_libretro.dll.zip
 minivmac_libretro.dll.zip
 mu_libretro.dll.zip
 nekop2_libretro.dll.zip
@@ -121,6 +142,7 @@ play_libretro.dll.zip
 pocketcdg_libretro.dll.zip
 potator_libretro.dll.zip
 ppsspp_libretro.dll.zip
+pcsx2_libretro.dll.zip
 pcsx_rearmed_libretro.dll.zip
 prosystem_libretro.dll.zip
 puae2021_libretro.dll.zip
