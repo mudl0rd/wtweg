@@ -94,6 +94,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
           no_cores = true;
         }
         else
+        
           romloader.OpenModal("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
       }
 
@@ -170,7 +171,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     ImGui::EndMainMenuBar();
   }
 
-  if (romloader.Display("ChooseFileDlgKey", 0, ImVec2(550, 400)))
+  ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
+  if (romloader.Display("ChooseFileDlgKey",32,maxSizedlg, maxSizedlg))
   {
     // action if OK
     if (romloader.IsOk())
@@ -231,11 +233,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     }
     else
       ImGui::OpenPopup("Select a core");
+
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
     {
       static int listbox_item_current = 0;
-      ImGui::PushItemWidth(200);
-      ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
       ImGui::ListBox("Select a core",
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
@@ -243,13 +246,17 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(listbox_item_current).core_path.c_str(), false);
         coreselect = false;
       }
-      ImGui::BulletText("WTFweg couldn't determine the core to use.");
-      ImGui::BulletText("Choose the specific core to load the ROM/ISO wanted.");
+      ImGui::Bullet();
+      ImGui::SameLine();
+      ImGui::TextWrapped("WTFweg couldn't determine the core to use.");
+      ImGui::Bullet();
+      ImGui::SameLine();
+      ImGui::TextWrapped("Choose the specific core to load the ROM/ISO.");
       ImGui::EndPopup();
     }
   }
-
-  if (romloader.Display("LoadSaveState", 0, ImVec2(550, 400)))
+ 
+  if (romloader.Display("LoadSaveState",32,maxSizedlg, maxSizedlg))
   {
     // action if OK
     if (romloader.IsOk())
@@ -262,7 +269,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     romloader.Close();
   }
 
-  if (romloader.Display("SaveSaveState", 0, ImVec2(550, 400)))
+  if (romloader.Display("SaveSaveState", 32,maxSizedlg, maxSizedlg))
   {
     // action if OK
     if (romloader.IsOk())
@@ -292,12 +299,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
       return;
     }
 
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::OpenPopup("Select a contentless core to load");
     if (ImGui::BeginPopupModal("Select a contentless core to load", &load_core, ImGuiWindowFlags_AlwaysAutoResize))
     {
       static int listbox_item_current = 0;
-      ImGui::PushItemWidth(200);
-      ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
       ImGui::ListBox("Select a contentless core",
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
@@ -305,8 +312,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
         instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str(), true);
         load_core = false;
       }
-      ImGui::BulletText("Choose the specific core to load.");
-      ImGui::BulletText("These are ones that load their own assets.");
+      ImGui::Bullet();
+      ImGui::SameLine();
+      ImGui::TextWrapped("Choose the specific core to load.");
+      ImGui::Bullet();
+      ImGui::SameLine();
+      ImGui::TextWrapped("These are ones that load their own assets.");
       ImGui::EndPopup();
     }
   }
@@ -335,7 +346,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
           if (bind.description == "")
             continue;
 
-          ImGui::Text("%s", bind.description.c_str());
+          ImGui::TextWrapped("%s", bind.description.c_str());
           std::string script = "##" + bind.description;
           char *button_str = (char *)bind.joykey_desc.c_str();
           ImVec2 sz = ImGui::GetWindowSize();
@@ -364,11 +375,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
               if (bind.description == "")
                 continue;
 
-              ImGui::Text("%s", bind.description.c_str());
+              ImGui::TextWrapped("%s", bind.description.c_str());
               std::string script = "##" + bind.description;
               char *button_str = (char *)bind.joykey_desc.c_str();
               ImVec2 sz = ImGui::GetWindowSize();
-              ImGui::SameLine(sz.x * 0.78);
+              ImGui::SameLine(sz.x * 0.80);
               ImGui::SetNextItemWidth(sz.x * 0.2);
               ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
               if (ImGui::IsItemClicked())
@@ -406,7 +417,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
 
     ImGui::OpenPopup("Core Settings");
 
-    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.6f, io.DisplaySize.y * 0.5f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.8f, io.DisplaySize.y * 0.5f), ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     if (ImGui::BeginPopupModal("Core Settings", &coresettings, ImGuiWindowFlags_AlwaysAutoResize))
@@ -442,10 +453,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
           {
 
             int total_w = descript.length();
-            ImGui::Text("%s", descript.c_str());
+            ImGui::TextWrapped("%s", descript.c_str());
             float w = ImGui::CalcItemWidth();
             ImVec2 sz = ImGui::GetWindowSize();
-            ImGui::SameLine(sz.x * 0.76);
+            ImGui::SameLine(sz.x * 0.65);
             ImGui::SetNextItemWidth(total_w);
             if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
             {
@@ -458,11 +469,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
           else
           {
 
-            int total_w = 200;
-            ImGui::Text("%s", descript.c_str());
+            ImGui::TextWrapped("%s", descript.c_str());
             ImVec2 sz = ImGui::GetWindowSize();
-            ImGui::SameLine(sz.x * 0.76);
-            ImGui::SetNextItemWidth(sz.x * 0.2);
+            ImGui::SameLine(sz.x * 0.65);
+            ImGui::SetNextItemWidth(sz.x * 0.3);
             if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
             {
               for (size_t n = 0; n < bind.config_vals.size(); n++)
