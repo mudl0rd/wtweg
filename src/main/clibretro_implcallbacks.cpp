@@ -212,36 +212,6 @@ static bool core_environment(unsigned cmd, void *data)
     return true;
   }
 
-  case RETRO_ENVIRONMENT_SET_ROTATION:
-  {
-    return false;
-  }
-
-  case RETRO_ENVIRONMENT_GET_OVERSCAN:
-  {
-    return false;
-  }
-
-  case RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE:
-  {
-    return false;
-  }
-
-  case RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE:
-  {
-    return false;
-  }
-
-  case RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE:
-  {
-    return false;
-  }
-
-  case RETRO_ENVIRONMENT_GET_LOCATION_INTERFACE:
-  {
-    return false;
-  }
-
   case RETRO_ENVIRONMENT_GET_LED_INTERFACE:
   {
     auto *var = (struct retro_led_interface *)data;
@@ -266,21 +236,11 @@ static bool core_environment(unsigned cmd, void *data)
     return false;
   }
 
-  case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER:
-  {
-    return false;
-  }
-
   case RETRO_ENVIRONMENT_GET_INPUT_MAX_USERS:
   {
     auto *players = (unsigned *)data;
     *players = 2;
     return true;
-  }
-
-  case RETRO_ENVIRONMENT_SET_MEMORY_MAPS:
-  {
-    return false;
   }
 
   case RETRO_ENVIRONMENT_GET_INPUT_DEVICE_CAPABILITIES:
