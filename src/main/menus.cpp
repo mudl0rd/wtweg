@@ -32,6 +32,10 @@ static bool coreselect = false;
 bool pergame_ = false;
 static std::string filenamepath;
 
+int selected_inp = 0;
+bool isselected_inp = false;
+int selected_port = 0;
+
 static auto vector_getter = [](void *data, int n, const char **out_text)
 {
   const std::vector<core_info> *v = (std::vector<core_info> *)data;
@@ -73,7 +77,7 @@ void popup_widget(bool *flag, const char *title, const char *msg)
   }
 }
 
-void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_in, bool *isselected_inp, int *selected_port)
+void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 {
 
   static bool inputsettings = false;
@@ -326,14 +330,18 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
     }
   }
 
+  
+
   if (inputsettings)
   {
-
+    checkbuttons_forui(selected_inp, &isselected_inp, selected_port);
     if (!instance->core_inputbinds[0].size())
     {
       popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
       return;
     }
+
+    
 
     ImGui::OpenPopup("Input Settings");
     ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.3f),
@@ -360,9 +368,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
           ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
           if (ImGui::IsItemClicked())
           {
-            *selected_in = i;
-            *isselected_inp = true;
-            *selected_port = descnum - 1;
+            selected_inp = i;
+            isselected_inp = true;
+            selected_port = descnum - 1;
           }
         }
       }
@@ -389,9 +397,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
               ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
               if (ImGui::IsItemClicked())
               {
-                *selected_in = i;
-                *isselected_inp = true;
-                *selected_port = descnum - 1;
+                selected_inp = i;
+                isselected_inp = true;
+                selected_port = descnum - 1;
               }
             }
 
@@ -404,7 +412,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_
       if (ImGui::Button("OK"))
       {
         inputsettings = false;
-        *isselected_inp = false;
+        isselected_inp = false;
         save_inpcfg();
       }
       ImGui::EndPopup();
