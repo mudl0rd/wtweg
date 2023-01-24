@@ -29,6 +29,9 @@ static struct retro_vfs_file_handle* vfs_open(const char *path,unsigned mode, un
  //https://github.com/jermp/mm_file
   if (strstr(path, "cdrom://"))
   {
+    //add in CD drive emulation.
+    //afaik the core shouldnt know whats this file handlde anyway, so it could be anything
+    //though reading cores that actually implement vfs makes it tonz less clear.
     free(hand);
     return NULL;
   }
