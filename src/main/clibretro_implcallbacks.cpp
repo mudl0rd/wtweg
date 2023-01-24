@@ -60,20 +60,12 @@ static int vfs_close(struct retro_vfs_file_handle *stream)
 
 static int64_t vfs_size(struct retro_vfs_file_handle *stream)
 {
-  if(stream)
-  {
-    std::streampos fsize = 0;
-    fsize = stream->file_ptr.tellg();
-    stream->file_ptr.seekg( 0, std::ios::end );
-    fsize = stream->file_ptr.tellg() - fsize;
-    return fsize;
-  }
-  return -1;
+  return (stream)?std::filesystem::file_size(stream->curr_file):-1;
 }
 
 static int64_t vfs_tell(struct retro_vfs_file_handle *stream)
 {
-   return  (stream !=NULL)?(int64_t)stream->file_ptr.tellg():-1;
+   return  (stream)?(int64_t)stream->file_ptr.tellg():-1;
 }
 
 static int64_t vfs_seek(struct retro_vfs_file_handle *stream, int64_t offset, int seek_position)
