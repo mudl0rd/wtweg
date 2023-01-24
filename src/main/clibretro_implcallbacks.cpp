@@ -26,6 +26,13 @@ static const char* vfs_file_path(retro_vfs_file_handle* handle)
 static struct retro_vfs_file_handle* vfs_open(const char *path,unsigned mode, unsigned hints)
 {
   retro_vfs_file_handle* hand=(retro_vfs_file_handle*)malloc(sizeof(retro_vfs_file_handle*));
+ //https://github.com/jermp/mm_file
+  if (strstr(path, "cdrom://"))
+  {
+    free(hand);
+    return NULL;
+  }
+
   switch(mode)
   {
     case RETRO_VFS_FILE_ACCESS_READ:
