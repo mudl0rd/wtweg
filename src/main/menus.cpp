@@ -32,9 +32,7 @@ static bool coreselect = false;
 bool pergame_ = false;
 static std::string filenamepath;
 
-int selected_inp = 0;
-bool isselected_inp = false;
-int selected_port = 0;
+
 
 static auto vector_getter = [](void *data, int n, const char **out_text)
 {
@@ -85,6 +83,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static bool aboutbox = false;
   static bool load_core = false;
   static bool no_cores = false;
+  static int selected_inp = 0;
+  static bool isselected_inp = false;
+  static int selected_port = 0;
   ImGuiIO &io = ImGui::GetIO();
 
   if (ImGui::BeginMainMenuBar())
