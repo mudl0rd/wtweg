@@ -10,6 +10,12 @@
 * **GCC/G++ with C++17 support**
 
 
+## Why?
+
+
+![Capture](https://user-images.githubusercontent.com/56025978/214430309-353effd4-c514-4bc5-a644-05e499ddefa2.PNG)
+
+
 ## Where?
 
 [Cores can be grabbed here](http://buildbot.libretro.com/nightly/windows/x86_64/latest/)
