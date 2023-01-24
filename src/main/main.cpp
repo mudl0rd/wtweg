@@ -203,8 +203,8 @@ int main2(const char *rom, const char *core, bool pergame)
         SDL_free(filez);
       }
     }
-
-    poll_inp(selected_inp, &isselected_inp, selected_port);
+    
+    checkbuttons_forui(selected_inp, &isselected_inp, selected_port);
 
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

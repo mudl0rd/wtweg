@@ -438,8 +438,9 @@ axisarrdig arr_dig[] = {
     {"rsup", SDL_CONTROLLER_AXIS_RIGHTY},
 };
 
-bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
+void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
 {
+    if(!*isselected_inp)return;
     auto lib = CLibretro::get_classinstance();
     std::string name;
     auto &bind = lib->core_inputbinds[port][selected_inp];
@@ -457,12 +458,12 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
             bind.config.bits.joytype = joytype_::keyboard;
             *isselected_inp = false;
             ImGui::SetWindowFocus(NULL);
-            return true;
+            return;
         }
     }
 
-    for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
-    {
+    if(checkjs(port)){
+        for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++){
         if (bind.isanalog)
         {
             Sint16 axis = 0;
@@ -479,7 +480,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
                 bind.config.bits.joytype = joytype_::joystick_;
                 *isselected_inp = false;
                 ImGui::SetWindowFocus(NULL);
-                return true;
+                return;
             }
         }
         else
@@ -501,7 +502,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
                         bind.config.bits.joytype = joytype_::joystick_;
                         *isselected_inp = false;
                         ImGui::SetWindowFocus(NULL);
-                        return true;
+                        return;
                     }
                     if (a == SDL_CONTROLLER_AXIS_TRIGGERLEFT || a == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
                     {
@@ -515,7 +516,7 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
                             bind.config.bits.joytype = joytype_::joystick_;
                             *isselected_inp = false;
                             ImGui::SetWindowFocus(NULL);
-                            return true;
+                            return;
                         }
                     }
                 }
@@ -536,15 +537,10 @@ bool checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
             bind.config.bits.joytype = joytype_::button;
             *isselected_inp = false;
             ImGui::SetWindowFocus(NULL);
-            return true;
+            return;
         }
     }
-    return false;
-}
-
-bool poll_inp(int selected_inp, bool *isselected_inp, int port)
-{
-    return (*isselected_inp)? (checkjs(port))?checkbuttons_forui(selected_inp, isselected_inp, port):false:false;
+    }
 }
 
 static bool key_pressed(int key)
