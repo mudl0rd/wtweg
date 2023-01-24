@@ -198,7 +198,6 @@ public:
 };
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
-void sdlggerat_menu(CLibretro *instance, std::string *window_str, int *selected_in, bool *isselected_inp,
-					int *selected_port);
+void sdlggerat_menu(CLibretro *instance, std::string *window_str);
 
 #endif

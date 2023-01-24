@@ -61,7 +61,7 @@ void init_inp(int num);
 void close_inp(int num);
 void reset_inp();
 
-bool poll_inp(int selected_inp, bool *isselected_inp, int port);
+void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port);
 int16_t input_state(unsigned port, unsigned device, unsigned index,
                     unsigned id);
 void poll_lr();

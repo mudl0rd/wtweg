@@ -13,9 +13,7 @@
 
 #define WIDTH 1280
 #define HEIGHT 720
-int selected_inp = 0;
-bool isselected_inp = false;
-int selected_port = 0;
+
 SDL_DisplayMode dm;
 
 void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
@@ -23,10 +21,11 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
   std::string window_name;
   if (show_menu)
   {
+    
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
-    sdlggerat_menu(instance, &window_name, &selected_inp, &isselected_inp, &selected_port);
+    sdlggerat_menu(instance, &window_name);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
@@ -204,7 +203,7 @@ int main2(const char *rom, const char *core, bool pergame)
       }
     }
 
-    poll_inp(selected_inp, &isselected_inp, selected_port);
+    
 
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -11,6 +11,161 @@
 #endif
 using namespace std;
 
+struct retro_vfs_file_handle
+{
+  std::string filepath;
+  std::string curr_file;
+  std::fstream file_ptr;
+};
+
+static const char* vfs_file_path(retro_vfs_file_handle* handle)
+{
+  return handle->curr_file.c_str();
+}
+
+static struct retro_vfs_file_handle* vfs_open(const char *path,unsigned mode, unsigned hints)
+{
+  retro_vfs_file_handle* hand=(retro_vfs_file_handle*)malloc(sizeof(retro_vfs_file_handle*));
+ //https://github.com/jermp/mm_file
+  if (strstr(path, "cdrom://"))
+  {
+    //add in CD drive emulation.
+    //afaik the core shouldnt know whats this file handlde anyway, so it could be anything
+    //though reading cores that actually implement vfs makes it tonz less clear.
+    free(hand);
+    return NULL;
+  }
+
+  switch(mode)
+  {
+    case RETRO_VFS_FILE_ACCESS_READ:
+    hand->file_ptr.open(path,std::fstream::in);
+    break;
+    case RETRO_VFS_FILE_ACCESS_READ_WRITE:
+    hand->file_ptr.open(path,std::fstream::in | std::fstream::out);
+    break;
+    case RETRO_VFS_FILE_ACCESS_WRITE:
+    hand->file_ptr.open(path,std::fstream::out);
+    break;
+    case RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING:
+    hand->file_ptr.open(path,std::fstream::in | std::fstream::out | std::fstream::app);
+  }
+  if(!hand->file_ptr){
+    free(hand);
+    return NULL;
+  }
+  hand->curr_file = path;
+  return hand;
+}
+
+static int vfs_close(struct retro_vfs_file_handle *stream)
+{
+  if(stream)
+  {
+    stream->file_ptr.close();
+    return 1;
+  }
+  return -1;
+}
+
+static int64_t vfs_size(struct retro_vfs_file_handle *stream)
+{
+  return (stream)?std::filesystem::file_size(stream->curr_file):-1;
+}
+
+static int64_t vfs_tell(struct retro_vfs_file_handle *stream)
+{
+   return  (stream)?(int64_t)stream->file_ptr.tellg():-1;
+}
+
+static int64_t vfs_seek(struct retro_vfs_file_handle *stream, int64_t offset, int seek_position)
+{
+    if(stream != NULL)
+    {
+      switch (seek_position)
+      {
+        case RETRO_VFS_SEEK_POSITION_START:
+        stream->file_ptr.seekg(offset,ios::beg);
+        break;
+        case RETRO_VFS_SEEK_POSITION_CURRENT:
+        stream->file_ptr.seekg(offset,ios::cur);
+        break;
+        case RETRO_VFS_SEEK_POSITION_END:
+        stream->file_ptr.seekg(offset,ios::end);
+        break;
+      }
+      return stream->file_ptr.tellg();
+    }
+    return  -1;
+}
+
+static int64_t vfs_read(struct retro_vfs_file_handle *stream, void *s, uint64_t len)
+{
+  if (stream != NULL)
+  {
+    stream->file_ptr.read((char*)s,len);
+    return stream->file_ptr.tellg();
+  }
+  return -1;
+}
+
+static int64_t vfs_write(struct retro_vfs_file_handle *stream, const void *s, uint64_t len)
+{
+  if (stream != NULL)
+  {
+    stream->file_ptr.write((char*)s,len);
+    return stream->file_ptr.tellg();
+  }
+  return -1;
+}
+
+static int vfs_flush(struct retro_vfs_file_handle *stream)
+{
+  if(stream != NULL)
+  {
+    stream->file_ptr.flush();
+    return 0;
+  }
+  return -1;
+}
+
+static int vfs_remove(const char *path)
+{
+  return std::remove(path);
+}
+
+static int vfs_rename(const char *old_path, const char *new_path)
+{
+  std::filesystem::rename(old_path,new_path);
+  return 0;
+}
+
+
+ struct retro_vfs_interface vfs_intf
+{
+   /* VFS API v1 */
+  vfs_file_path,
+	vfs_open,
+	vfs_close,
+	vfs_size,
+	vfs_tell,
+	vfs_seek,
+	vfs_read,
+	vfs_write,
+	vfs_flush,
+	vfs_remove,
+	vfs_rename,
+  NULL,
+   /* VFS API v3 */
+   NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
 static void core_set_led_state(int led, int state)
 {
 }
@@ -252,6 +407,15 @@ static bool core_environment(unsigned cmd, void *data)
                     (1 << RETRO_DEVICE_POINTER);
     return true;
   }
+
+  case RETRO_ENVIRONMENT_GET_VFS_INTERFACE:
+  {
+  auto *cb  = (struct retro_vfs_interface_info*)data;
+  cb->iface =  (retro_vfs_interface*)&vfs_intf;
+  cb->required_interface_version = 1;
+  return true;
+  }
+  
 
   case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
   {
