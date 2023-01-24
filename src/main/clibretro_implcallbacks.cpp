@@ -119,7 +119,12 @@ static int64_t vfs_write(struct retro_vfs_file_handle *stream, const void *s, ui
 
 static int vfs_flush(struct retro_vfs_file_handle *stream)
 {
-  return 0;
+  if(stream != NULL)
+  {
+    stream->file_ptr.flush();
+    return 0;
+  }
+  return -1;
 }
 
 static int vfs_remove(const char *path)

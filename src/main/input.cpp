@@ -540,6 +540,7 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
             return;
         }
     }
+    return;
     }
 }
 
