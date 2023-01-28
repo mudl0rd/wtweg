@@ -8,11 +8,6 @@
 * **GCC/G++ with C++17 support**
 
 
-## Why?
-
-![fxUE](https://user-images.githubusercontent.com/56025978/203640439-62ccfee9-408b-482b-9bea-365bf2f53df2.gif)
-
-
 ## Where?
 
 [Cores can be grabbed here](http://buildbot.libretro.com/nightly/windows/x86_64/latest/)
