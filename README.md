@@ -13,9 +13,6 @@
 ![fxUE](https://user-images.githubusercontent.com/56025978/203640439-62ccfee9-408b-482b-9bea-365bf2f53df2.gif)
 
 
-![Capture](https://user-images.githubusercontent.com/56025978/214430309-353effd4-c514-4bc5-a644-05e499ddefa2.PNG)
-
-
 ## Where?
 
 [Cores can be grabbed here](http://buildbot.libretro.com/nightly/windows/x86_64/latest/)
