@@ -13,72 +13,72 @@ using namespace std;
 
 struct retro_vfs_file_handle
 {
-  std::string filepath;
   std::string curr_file;
   std::fstream file_ptr;
 };
 
-static const char* vfs_file_path(retro_vfs_file_handle* handle)
+
+
+const char* vfs_file_path(retro_vfs_file_handle* handle)
 {
   return handle->curr_file.c_str();
 }
 
-static struct retro_vfs_file_handle* vfs_open(const char *path,unsigned mode, unsigned hints)
+retro_vfs_file_handle* vfs_open(const char *path,unsigned mode, unsigned hints)
 {
-  retro_vfs_file_handle* hand=(retro_vfs_file_handle*)malloc(sizeof(retro_vfs_file_handle*));
+  retro_vfs_file_handle* p = new retro_vfs_file_handle();
  //https://github.com/jermp/mm_file
   if (strstr(path, "cdrom://"))
   {
     //add in CD drive emulation.
     //afaik the core shouldnt know whats this file handlde anyway, so it could be anything
     //though reading cores that actually implement vfs makes it tonz less clear.
-    free(hand);
     return NULL;
   }
-
   switch(mode)
   {
     case RETRO_VFS_FILE_ACCESS_READ:
-    hand->file_ptr.open(path,std::fstream::in);
+    p->file_ptr.open(path,std::fstream::in);
     break;
     case RETRO_VFS_FILE_ACCESS_READ_WRITE:
-    hand->file_ptr.open(path,std::fstream::in | std::fstream::out);
+    p->file_ptr.open(path,std::fstream::in | std::fstream::out);
     break;
     case RETRO_VFS_FILE_ACCESS_WRITE:
-    hand->file_ptr.open(path,std::fstream::out);
+    p->file_ptr.open(path,std::fstream::out);
     break;
     case RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING:
-    hand->file_ptr.open(path,std::fstream::in | std::fstream::out | std::fstream::app);
+    p->file_ptr.open(path,std::fstream::in | std::fstream::out | std::fstream::app);
   }
-  if(!hand->file_ptr){
-    free(hand);
+  if(!p->file_ptr.is_open()){
+    delete p;
     return NULL;
   }
-  hand->curr_file = path;
-  return hand;
+  p->curr_file = path;
+  return p;
 }
 
-static int vfs_close(struct retro_vfs_file_handle *stream)
+int vfs_close(struct retro_vfs_file_handle *stream)
 {
   if(stream)
   {
     stream->file_ptr.close();
+    delete stream;
     return 1;
   }
   return -1;
 }
 
-static int64_t vfs_size(struct retro_vfs_file_handle *stream)
+int64_t vfs_size(struct retro_vfs_file_handle *stream)
 {
   return (stream)?std::filesystem::file_size(stream->curr_file):-1;
 }
 
-static int64_t vfs_tell(struct retro_vfs_file_handle *stream)
+int64_t vfs_tell(struct retro_vfs_file_handle *stream)
 {
    return  (stream)?(int64_t)stream->file_ptr.tellg():-1;
 }
 
-static int64_t vfs_seek(struct retro_vfs_file_handle *stream, int64_t offset, int seek_position)
+int64_t vfs_seek(struct retro_vfs_file_handle *stream, int64_t offset, int seek_position)
 {
     if(stream != NULL)
     {
@@ -99,7 +99,7 @@ static int64_t vfs_seek(struct retro_vfs_file_handle *stream, int64_t offset, in
     return  -1;
 }
 
-static int64_t vfs_read(struct retro_vfs_file_handle *stream, void *s, uint64_t len)
+int64_t vfs_read(struct retro_vfs_file_handle *stream, void *s, uint64_t len)
 {
   if (stream != NULL)
   {
@@ -109,7 +109,7 @@ static int64_t vfs_read(struct retro_vfs_file_handle *stream, void *s, uint64_t 
   return -1;
 }
 
-static int64_t vfs_write(struct retro_vfs_file_handle *stream, const void *s, uint64_t len)
+int64_t vfs_write(struct retro_vfs_file_handle *stream, const void *s, uint64_t len)
 {
   if (stream != NULL)
   {
@@ -119,7 +119,7 @@ static int64_t vfs_write(struct retro_vfs_file_handle *stream, const void *s, ui
   return -1;
 }
 
-static int vfs_flush(struct retro_vfs_file_handle *stream)
+int vfs_flush(struct retro_vfs_file_handle *stream)
 {
   if(stream != NULL)
   {
@@ -129,19 +129,25 @@ static int vfs_flush(struct retro_vfs_file_handle *stream)
   return -1;
 }
 
-static int vfs_remove(const char *path)
+int vfs_remove(const char *path)
 {
   return std::remove(path);
 }
 
-static int vfs_rename(const char *old_path, const char *new_path)
+int vfs_rename(const char *old_path, const char *new_path)
 {
   std::filesystem::rename(old_path,new_path);
   return 0;
 }
 
+int64_t vfs_truncate(struct retro_vfs_file_handle *stream,int64_t length)
+{
+    std::filesystem::resize_file(stream->curr_file, length);
+    return length;
+}
 
- struct retro_vfs_interface vfs_intf
+
+retro_vfs_interface vfs_intf
 {
    /* VFS API v1 */
   vfs_file_path,
@@ -155,9 +161,9 @@ static int vfs_rename(const char *old_path, const char *new_path)
 	vfs_flush,
 	vfs_remove,
 	vfs_rename,
-  NULL,
+  vfs_truncate,
    /* VFS API v3 */
-   NULL,
+  NULL,
   NULL,
   NULL,
   NULL,
@@ -165,6 +171,7 @@ static int vfs_rename(const char *old_path, const char *new_path)
   NULL,
   NULL
 };
+
 
 static void core_set_led_state(int led, int state)
 {
@@ -411,8 +418,9 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_VFS_INTERFACE:
   {
   auto *cb  = (struct retro_vfs_interface_info*)data;
-  cb->iface =  (retro_vfs_interface*)&vfs_intf;
-  cb->required_interface_version = 1;
+  struct retro_vfs_interface *vfs_iface=(struct retro_vfs_interface*)&vfs_intf;
+  cb->iface =(struct retro_vfs_interface*)vfs_iface;  
+  cb->required_interface_version = 2;
   return true;
   }
   

@@ -71,7 +71,8 @@
 			"unordered_set": "cpp",
 			"optional": "cpp",
 			"future": "cpp",
-			"sdl.h": "c"
+			"sdl.h": "c",
+			"regex": "cpp"
 		}
 	}
 }
