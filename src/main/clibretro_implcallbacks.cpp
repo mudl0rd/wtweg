@@ -418,9 +418,9 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_VFS_INTERFACE:
   {
   auto *cb  = (struct retro_vfs_interface_info*)data;
+  if(cb->required_interface_version> 2)return false;
   struct retro_vfs_interface *vfs_iface=(struct retro_vfs_interface*)&vfs_intf;
   cb->iface =(struct retro_vfs_interface*)vfs_iface;  
-  cb->required_interface_version = 2;
   return true;
   }
   
