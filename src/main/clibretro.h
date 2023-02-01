@@ -66,6 +66,7 @@ struct coreinput_desc
 
 struct coreinput_bind
 {
+	int SDL_port;
 	int port;
 	std::string description;
 	std::string joykey_desc;
