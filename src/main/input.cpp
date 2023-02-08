@@ -176,12 +176,13 @@ const struct key_map key_map_[] = {
 
     {0, RETROK_UNKNOWN},
 };
-//std::array<SDL_GameController *, 2> Joystick = {NULL,NULL};
 std::vector<SDL_GameController*> Joystick = {};
 
 bool checkjs(int port)
 {
+    if(Joystick.size())
     return (Joystick[port])?SDL_GameControllerGetAttached(Joystick[port]):false;
+    else return false;
 }
 
 bool loadinpconf()
@@ -429,7 +430,6 @@ void reset_inpt()
 
 void init_inp(int num)
 {
-    int num1 = SDL_NumJoysticks();
     if(Joystick.size())
     {
     if(Joystick[num] != NULL)
@@ -491,10 +491,8 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
     int num = SDL_NumJoysticks();
     if (num)
     {
-         for (int k = 0; k < num; k++)
-         {
-        if(bind.SDL_port != -1)
-        if(checkjs(k)){
+         for (int k = 0; k < num; k++){
+        if(checkjs(k) && bind.SDL_port != -1){
         for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++){
         if (bind.isanalog)
         {

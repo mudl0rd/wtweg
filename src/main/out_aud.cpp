@@ -147,7 +147,7 @@ void audio_mix(const int16_t *samples, size_t size)
     float drc_ratio = (float)audio_ctx_s.client_rate / (float)newInputFrequency;
 
     auto input_float = std::make_unique<float[]>(in_len);
-    auto output_float = std::make_unique<float[]>(in_len * 4);
+    auto output_float = std::make_unique<float[]>(in_len * 2);
 
     s16tof(input_float.get(), samples, in_len);
     src_data.input_frames = size;
@@ -191,18 +191,24 @@ bool audio_init(float refreshra, float input_srate, float fps)
     audio_changeratefps(refreshra, input_srate, fps);
 
     SDL_AudioSpec shit = {0};
-    shit.freq = 44100;
+    SDL_AudioSpec shit2 = {0};
+    SDL_GetDefaultAudioInfo(NULL,&shit2,0);
+    shit.freq = shit2.freq;
+
+
+
     shit.format = AUDIO_F32;
     shit.samples = 1024;
     shit.callback = func_callback;
     shit.userdata = (audio_ctx *)&audio_ctx_s;
     shit.channels = 2;
-    audio_ctx_s.client_rate = shit.freq;
+   
     audio_ctx_s.resample = resampler_sinc_init();
     SDL_AudioSpec out;
     audio_ctx_s.dev = SDL_OpenAudioDevice(NULL, 0, &shit, &out, 0);
     // allocate some in tank.
-    size_t sampsize = (out.size * 4);
+    size_t sampsize = (out.size * 2);
+    audio_ctx_s.client_rate = out.freq;
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
     auto tmp = std::make_unique<uint8_t[]>(sampsize);
     fifo_write(audio_ctx_s._fifo, tmp.get(), sampsize);

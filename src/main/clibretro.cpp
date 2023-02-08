@@ -343,6 +343,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
         bind.config.bits.sdl_id = 0;
         bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
         bind.val = 0;
+        bind.SDL_port = -1;
         bind.port = portage;
         bind.description = retro_descripts[i];
         bind.joykey_desc = "None";
