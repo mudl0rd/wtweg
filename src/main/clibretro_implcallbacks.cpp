@@ -395,6 +395,8 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO:
   {
+    //the more and more I read example code using this, the less it makes sense to
+    //implement it.
     return false;
   }
 
