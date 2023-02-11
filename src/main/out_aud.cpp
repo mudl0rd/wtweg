@@ -4,7 +4,7 @@
 #include "libretro.h"
 #include "io.h"
 #include "utils.h"
-
+#include <mutex>
 struct fifo_buffer
 {
     uint8_t *buffer;
@@ -20,6 +20,7 @@ struct audio_ctx
     unsigned client_rate;
     double system_rate;
     void *resample;
+    std::mutex myMutex;
 } audio_ctx_s;
 
 typedef struct fifo_buffer fifo_buffer_t;
@@ -133,7 +134,7 @@ void audio_mix(const int16_t *samples, size_t size)
 {
 
     struct resampler_data src_data = {0};
-    size_t written = 0;
+    
     uint32_t in_len = size * 2;
     double maxdelta = 0.005;
     auto bufferlevel = []()
@@ -157,10 +158,10 @@ void audio_mix(const int16_t *samples, size_t size)
     src_data.data_out = output_float.get();
     resampler_sinc_process(audio_ctx_s.resample, &src_data);
     size_t out_bytes = src_data.output_frames * 2 * sizeof(float);
-
+    size_t written = 0;
+   
     while (written < out_bytes)
     {
-        SDL_LockAudioDevice(audio_ctx_s.dev);
         size_t avail = fifo_write_avail(audio_ctx_s._fifo);
         if (avail)
         {
@@ -170,7 +171,6 @@ void audio_mix(const int16_t *samples, size_t size)
                        (const char *)output_float.get() + written, write_amt);
             written += write_amt;
         }
-        SDL_UnlockAudioDevice(audio_ctx_s.dev);
     }
 }
 
@@ -192,7 +192,9 @@ bool audio_init(float refreshra, float input_srate, float fps)
     audio_changeratefps(refreshra, input_srate, fps);
 
     SDL_AudioSpec shit = {0};
-    shit.freq = 44100;
+    SDL_AudioSpec shit2 = {0};
+    SDL_GetDefaultAudioInfo(NULL,&shit2,0);
+    shit.freq = shit2.freq;
     shit.format = AUDIO_F32;
     shit.samples = 1024;
     shit.callback = func_callback;
@@ -203,7 +205,7 @@ bool audio_init(float refreshra, float input_srate, float fps)
     SDL_AudioSpec out;
     audio_ctx_s.dev = SDL_OpenAudioDevice(NULL, 0, &shit, &out, 0);
     // allocate some in tank.
-    size_t sampsize = (out.size * 4);
+    size_t sampsize = out.size * 4;
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
     SDL_PauseAudioDevice(audio_ctx_s.dev, 0);
     return true;
