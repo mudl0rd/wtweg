@@ -221,7 +221,7 @@ static inline unsigned get_alignment(unsigned pitch)
 void video_render()
 {
 	vp vpx = resize_cb();
-	glScissor(0, 0, g_video.rend_width, g_video.rend_height);
+		
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
