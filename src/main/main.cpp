@@ -64,6 +64,7 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_GetDisplayUsableBounds(window_indx, &display_bounds);
   int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
   SDL_SetWindowSize(window, win_w, win_h);
+  video_setsize(win_w, win_h);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_GetDesktopDisplayMode(window_indx, &dm);
   int swap = 1;
@@ -189,8 +190,7 @@ int main2(const char *rom, const char *core, bool pergame)
       {
         int w = event.window.data1;
         int h = event.window.data2;
-        if (instance->core_isrunning())
-          video_setsize(w, h);
+        video_setsize(w, h);
 
         glViewport(0, 0, w, h);
         glScissor(0, 0, w, h);
