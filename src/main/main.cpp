@@ -21,7 +21,7 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
   std::string window_name;
   if (show_menu)
   {
-    
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
@@ -104,12 +104,10 @@ int main2(const char *rom, const char *core, bool pergame)
   bool show_menu = true;
   reset_inp();
 
-  SDL_Rect window_rect={0};
+  SDL_Rect window_rect = {0};
 
   if (rom && core)
     loadfile(instance.get(), rom, core, pergame);
-
-
 
   while (!done)
   {
@@ -134,14 +132,14 @@ int main2(const char *rom, const char *core, bool pergame)
           static bool window_fs = false;
           window_fs = !window_fs;
 
-          if(window_fs)
+          if (window_fs)
           {
             SDL_GetWindowSize(window, &window_rect.w, &window_rect.h);
-	          SDL_GetWindowPosition(window, &window_rect.x, &window_rect.y);
+            SDL_GetWindowPosition(window, &window_rect.x, &window_rect.y);
             int i = SDL_GetWindowDisplayIndex(window);
-		        SDL_Rect j;
-		        SDL_GetDisplayBounds(i, &j);
-            SDL_SetWindowSize(window, j.w,j.h);
+            SDL_Rect j;
+            SDL_GetDisplayBounds(i, &j);
+            SDL_SetWindowSize(window, j.w, j.h);
             SDL_SetWindowPosition(window, 0, 0);
             video_setsize(j.w, j.h);
             glViewport(0, 0, j.w, j.h);
@@ -149,27 +147,27 @@ int main2(const char *rom, const char *core, bool pergame)
           }
           else
           {
-            	SDL_SetWindowSize(window, window_rect.w, window_rect.h);
-	            SDL_SetWindowPosition(window, window_rect.x, window_rect.y);
-              video_setsize(window_rect.w, window_rect.h);
-              glViewport(0, 0, window_rect.w, window_rect.h);
-              glScissor(0, 0, window_rect.w, window_rect.h);
+            SDL_SetWindowSize(window, window_rect.w, window_rect.h);
+            SDL_SetWindowPosition(window, window_rect.x, window_rect.y);
+            video_setsize(window_rect.w, window_rect.h);
+            glViewport(0, 0, window_rect.w, window_rect.h);
+            glScissor(0, 0, window_rect.w, window_rect.h);
           }
-          SDL_SetWindowAlwaysOnTop(window,(SDL_bool)window_fs);
+          SDL_SetWindowAlwaysOnTop(window, (SDL_bool)window_fs);
           SDL_SetWindowResizable(window, (SDL_bool)!window_fs);
           SDL_SetWindowBordered(window, (SDL_bool)!window_fs);
         }
         break;
       }
 
-      if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2)
-      instance->core_savestateslot(false);
-      if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F3)
-      instance->core_savestateslot(true);
+      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2)
+        instance->core_savestateslot(false);
+      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F3)
+        instance->core_savestateslot(true);
 
       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
       {
-       
+
         show_menu ^= true;
         SDL_SetRelativeMouseMode((SDL_bool)(!show_menu));
       }
@@ -202,8 +200,6 @@ int main2(const char *rom, const char *core, bool pergame)
         SDL_free(filez);
       }
     }
-
-    
 
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

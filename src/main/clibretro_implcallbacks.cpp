@@ -17,39 +17,38 @@ struct retro_vfs_file_handle
   std::fstream file_ptr;
 };
 
-
-
-const char* vfs_file_path(retro_vfs_file_handle* handle)
+const char *vfs_file_path(retro_vfs_file_handle *handle)
 {
   return handle->curr_file.c_str();
 }
 
-retro_vfs_file_handle* vfs_open(const char *path,unsigned mode, unsigned hints)
+retro_vfs_file_handle *vfs_open(const char *path, unsigned mode, unsigned hints)
 {
-  retro_vfs_file_handle* p = new retro_vfs_file_handle();
- //https://github.com/jermp/mm_file
+  retro_vfs_file_handle *p = new retro_vfs_file_handle();
+  // https://github.com/jermp/mm_file
   if (strstr(path, "cdrom://"))
   {
-    //add in CD drive emulation.
-    //afaik the core shouldnt know whats this file handlde anyway, so it could be anything
-    //though reading cores that actually implement vfs makes it tonz less clear.
+    // add in CD drive emulation.
+    // afaik the core shouldnt know whats this file handlde anyway, so it could be anything
+    // though reading cores that actually implement vfs makes it tonz less clear.
     return NULL;
   }
-  switch(mode)
+  switch (mode)
   {
-    case RETRO_VFS_FILE_ACCESS_READ:
-    p->file_ptr.open(path,std::fstream::in);
+  case RETRO_VFS_FILE_ACCESS_READ:
+    p->file_ptr.open(path, std::fstream::in);
     break;
-    case RETRO_VFS_FILE_ACCESS_READ_WRITE:
-    p->file_ptr.open(path,std::fstream::in | std::fstream::out);
+  case RETRO_VFS_FILE_ACCESS_READ_WRITE:
+    p->file_ptr.open(path, std::fstream::in | std::fstream::out);
     break;
-    case RETRO_VFS_FILE_ACCESS_WRITE:
-    p->file_ptr.open(path,std::fstream::out);
+  case RETRO_VFS_FILE_ACCESS_WRITE:
+    p->file_ptr.open(path, std::fstream::out);
     break;
-    case RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING:
-    p->file_ptr.open(path,std::fstream::in | std::fstream::out | std::fstream::app);
+  case RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING:
+    p->file_ptr.open(path, std::fstream::in | std::fstream::out | std::fstream::app);
   }
-  if(!p->file_ptr.is_open()){
+  if (!p->file_ptr.is_open())
+  {
     delete p;
     return NULL;
   }
@@ -59,7 +58,7 @@ retro_vfs_file_handle* vfs_open(const char *path,unsigned mode, unsigned hints)
 
 int vfs_close(struct retro_vfs_file_handle *stream)
 {
-  if(stream)
+  if (stream)
   {
     stream->file_ptr.close();
     delete stream;
@@ -70,40 +69,40 @@ int vfs_close(struct retro_vfs_file_handle *stream)
 
 int64_t vfs_size(struct retro_vfs_file_handle *stream)
 {
-  return (stream)?std::filesystem::file_size(stream->curr_file):-1;
+  return (stream) ? std::filesystem::file_size(stream->curr_file) : -1;
 }
 
 int64_t vfs_tell(struct retro_vfs_file_handle *stream)
 {
-   return  (stream)?(int64_t)stream->file_ptr.tellg():-1;
+  return (stream) ? (int64_t)stream->file_ptr.tellg() : -1;
 }
 
 int64_t vfs_seek(struct retro_vfs_file_handle *stream, int64_t offset, int seek_position)
 {
-    if(stream != NULL)
+  if (stream != NULL)
+  {
+    switch (seek_position)
     {
-      switch (seek_position)
-      {
-        case RETRO_VFS_SEEK_POSITION_START:
-        stream->file_ptr.seekg(offset,ios::beg);
-        break;
-        case RETRO_VFS_SEEK_POSITION_CURRENT:
-        stream->file_ptr.seekg(offset,ios::cur);
-        break;
-        case RETRO_VFS_SEEK_POSITION_END:
-        stream->file_ptr.seekg(offset,ios::end);
-        break;
-      }
-      return stream->file_ptr.tellg();
+    case RETRO_VFS_SEEK_POSITION_START:
+      stream->file_ptr.seekg(offset, ios::beg);
+      break;
+    case RETRO_VFS_SEEK_POSITION_CURRENT:
+      stream->file_ptr.seekg(offset, ios::cur);
+      break;
+    case RETRO_VFS_SEEK_POSITION_END:
+      stream->file_ptr.seekg(offset, ios::end);
+      break;
     }
-    return  -1;
+    return stream->file_ptr.tellg();
+  }
+  return -1;
 }
 
 int64_t vfs_read(struct retro_vfs_file_handle *stream, void *s, uint64_t len)
 {
   if (stream != NULL)
   {
-    stream->file_ptr.read((char*)s,len);
+    stream->file_ptr.read((char *)s, len);
     return stream->file_ptr.tellg();
   }
   return -1;
@@ -113,7 +112,7 @@ int64_t vfs_write(struct retro_vfs_file_handle *stream, const void *s, uint64_t 
 {
   if (stream != NULL)
   {
-    stream->file_ptr.write((char*)s,len);
+    stream->file_ptr.write((char *)s, len);
     return stream->file_ptr.tellg();
   }
   return -1;
@@ -121,7 +120,7 @@ int64_t vfs_write(struct retro_vfs_file_handle *stream, const void *s, uint64_t 
 
 int vfs_flush(struct retro_vfs_file_handle *stream)
 {
-  if(stream != NULL)
+  if (stream != NULL)
   {
     stream->file_ptr.flush();
     return 0;
@@ -136,42 +135,38 @@ int vfs_remove(const char *path)
 
 int vfs_rename(const char *old_path, const char *new_path)
 {
-  std::filesystem::rename(old_path,new_path);
+  std::filesystem::rename(old_path, new_path);
   return 0;
 }
 
-int64_t vfs_truncate(struct retro_vfs_file_handle *stream,int64_t length)
+int64_t vfs_truncate(struct retro_vfs_file_handle *stream, int64_t length)
 {
-    std::filesystem::resize_file(stream->curr_file, length);
-    return length;
+  std::filesystem::resize_file(stream->curr_file, length);
+  return length;
 }
 
-
-retro_vfs_interface vfs_intf
-{
-   /* VFS API v1 */
-  vfs_file_path,
-	vfs_open,
-	vfs_close,
-	vfs_size,
-	vfs_tell,
-	vfs_seek,
-	vfs_read,
-	vfs_write,
-	vfs_flush,
-	vfs_remove,
-	vfs_rename,
-  vfs_truncate,
-   /* VFS API v3 */
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL
-};
-
+retro_vfs_interface vfs_intf{
+    /* VFS API v1 */
+    vfs_file_path,
+    vfs_open,
+    vfs_close,
+    vfs_size,
+    vfs_tell,
+    vfs_seek,
+    vfs_read,
+    vfs_write,
+    vfs_flush,
+    vfs_remove,
+    vfs_rename,
+    vfs_truncate,
+    /* VFS API v3 */
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL};
 
 static void core_set_led_state(int led, int state)
 {
@@ -395,8 +390,8 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO:
   {
-    //the more and more I read example code using this, the less it makes sense to
-    //implement it.
+    // the more and more I read example code using this, the less it makes sense to
+    // implement it.
     return false;
   }
 
@@ -419,13 +414,13 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_GET_VFS_INTERFACE:
   {
-  auto *cb  = (struct retro_vfs_interface_info*)data;
-  if(cb->required_interface_version> 2)return false;
-  struct retro_vfs_interface *vfs_iface=(struct retro_vfs_interface*)&vfs_intf;
-  cb->iface =(struct retro_vfs_interface*)vfs_iface;  
-  return true;
+    auto *cb = (struct retro_vfs_interface_info *)data;
+    if (cb->required_interface_version > 2)
+      return false;
+    struct retro_vfs_interface *vfs_iface = (struct retro_vfs_interface *)&vfs_intf;
+    cb->iface = (struct retro_vfs_interface *)vfs_iface;
+    return true;
   }
-  
 
   case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
   {
