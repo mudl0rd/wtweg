@@ -77,12 +77,13 @@ uintptr_t video_get_fb()
 
 void video_bindfb()
 {
-	if (!g_video.software_rast)
-	{
+		int w = (!g_video.software_rast)?g_video.base_w:g_video.rend_width;
+		int h = (!g_video.software_rast)?g_video.base_w:g_video.rend_height;
 		glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
-		glViewport(0, 0, g_video.base_w, g_video.base_h);
-		glScissor(0, 0, g_video.base_h, g_video.base_h);
-	}
+		glClearColor(0., 0., 0., 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, w, h);
+		glScissor(0, 0, w, h);
 }
 
 bool video_sethw(struct retro_hw_render_callback *hw)

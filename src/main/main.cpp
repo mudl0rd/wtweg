@@ -201,9 +201,9 @@ int main2(const char *rom, const char *core, bool pergame)
       }
     }
 
+   
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     if (instance->core_isrunning())
     {
       video_bindfb();
