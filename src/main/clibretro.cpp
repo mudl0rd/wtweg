@@ -561,7 +561,8 @@ void CLibretro::get_cores()
           std::transform(segment.begin(), segment.end(), segment.begin(), ::tolower);
           corelist += segment + ",.";
         }
-        }
+          
+    }
   }
   if (corelist != "")
   {
