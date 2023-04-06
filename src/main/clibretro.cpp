@@ -215,6 +215,17 @@ const char *CLibretro::load_corevars(retro_variable *var)
   return NULL;
 }
 
+bool CLibretro::init_configvars_v2(retro_core_options_v2* var)
+{
+  size_t num_vars = 0;
+  std::vector<loadedcore_configvars> variables;
+  variables.clear();
+  variables_changed = false;
+
+
+  return false;
+}
+
 bool CLibretro::init_configvars(retro_variable *var)
 {
   size_t num_vars = 0;

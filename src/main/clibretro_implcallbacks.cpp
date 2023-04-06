@@ -542,15 +542,26 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 31
   {
-    auto *var = (struct retro_input_descriptor *)data;
-    retro->init_inputvars(var);
+    retro->init_inputvars((struct retro_input_descriptor *)data);
     return true;
+  }
+
+  case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
+  {
+     auto *var = (unsigned *)data;
+     *var = 2;
+    return true;
+  }
+
+  case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+  case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+  {
+    return retro->init_configvars_v2((struct retro_core_options_v2*)data);
   }
 
   case RETRO_ENVIRONMENT_SET_VARIABLES:
   {
-    auto *vars = (const struct retro_variable *)data;
-    return retro->init_configvars((retro_variable *)vars);
+    return retro->init_configvars((struct retro_variable *)data);
   }
 
   case RETRO_ENVIRONMENT_GET_VARIABLE:

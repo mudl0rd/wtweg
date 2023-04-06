@@ -6,13 +6,25 @@
 #include <vector>
 #include "io.h"
 
+struct loadedcore_configcat
+{
+	std::string key;
+	std::string desc;
+	std::string info;
+};
+
 struct loadedcore_configvars
 {
 	std::string name;
 	std::string var;
 	std::string description;
+	std::string desc_cat;
+	std::string tooltip;
+	std::string tooltip_cat;
 	std::string usevars;
+	std::string category_name;
 	std::vector<std::string> config_vals;
+	std::string default_val;
 	unsigned sel_idx;
 	bool config_visible;
 };
@@ -170,6 +182,7 @@ public:
 	void get_cores();
 
 	bool init_configvars(retro_variable *var);
+	bool init_configvars_v2(retro_core_options_v2* var);
 	bool init_inputvars(retro_input_descriptor *var);
 	bool load_coresettings();
 	void save_coresettings();
@@ -179,8 +192,10 @@ public:
 	std::vector<coreinput_bind> core_inputbinds[2];
 	std::vector<coreinput_desc> core_inputdesc[2];
 	std::vector<loadedcore_configvars> core_variables;
+	std::vector<loadedcore_configcat>core_categories;
 	std::vector<retro_disk> disk_intf;
 
+    bool v2_vars;
 	bool variables_changed;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
