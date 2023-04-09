@@ -80,8 +80,6 @@ void video_bindfb()
 		int w = (!g_video.software_rast)?g_video.base_w:g_video.rend_width;
 		int h = (!g_video.software_rast)?g_video.base_w:g_video.rend_height;
 		glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
-		glClearColor(0., 0., 0., 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, w, h);
 		glScissor(0, 0, w, h);
 }

@@ -11,6 +11,7 @@ struct loadedcore_configcat
 	std::string key;
 	std::string desc;
 	std::string info;
+	bool visible;
 };
 
 struct loadedcore_configvars
@@ -24,6 +25,7 @@ struct loadedcore_configvars
 	std::string usevars;
 	std::string category_name;
 	std::vector<std::string> config_vals;
+	std::vector<std::string> config_vals_desc;
 	std::string default_val;
 	unsigned sel_idx;
 	bool config_visible;
@@ -182,7 +184,7 @@ public:
 	void get_cores();
 
 	bool init_configvars(retro_variable *var);
-	bool init_configvars_v2(retro_core_options_v2* var);
+	bool init_configvars_coreoptions(void* var, int version);
 	bool init_inputvars(retro_input_descriptor *var);
 	bool load_coresettings();
 	void save_coresettings();

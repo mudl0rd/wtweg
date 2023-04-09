@@ -471,16 +471,18 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
   {
     auto *cb = (struct retro_core_option_display *)data;
-    for (size_t i = 0; i < retro->core_variables.size(); i++)
+
+    for(auto &var: retro->core_variables){
+    if(strcmp(var.name.c_str(), cb->key)==0)
     {
-      if (strcmp(retro->core_variables[i].name.c_str(), cb->key) == 0)
-      {
-        retro->core_variables[i].config_visible = cb->visible;
-        return true;
-      }
+    var.config_visible = cb->visible;
+    for(auto &var2: retro->core_categories)
+    if((var.category_name == var2.key))
+    var2.visible =  cb->visible;
+    return true;
+    }
     }
     return false;
-    break;
   }
 
   case RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER:
@@ -553,10 +555,25 @@ static bool core_environment(unsigned cmd, void *data)
     return true;
   }
 
+  case RETRO_ENVIRONMENT_SET_CORE_OPTIONS:
+  {
+    return retro->init_configvars_coreoptions(data,1);
+  }
+
+  case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
+  {
+    auto* lang = (struct retro_core_options_intl*)data;
+    return retro->init_configvars_coreoptions(lang->us,1);
+  }
+
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+  {
+    auto* lang = (struct retro_core_options_v2_intl*)data;
+    return retro->init_configvars_coreoptions(lang->us,2);
+  }
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
   {
-    return retro->init_configvars_v2((struct retro_core_options_v2*)data);
+    return retro->init_configvars_coreoptions(data,2);
   }
 
   case RETRO_ENVIRONMENT_SET_VARIABLES:
