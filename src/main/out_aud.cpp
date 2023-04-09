@@ -148,7 +148,6 @@ void audio_mix(const int16_t *samples, size_t size)
     resampler_sinc_process(audio_ctx_s.resample, &src_data);
     size_t out_bytes = src_data.output_frames * 2 * sizeof(float);
    
-
     while (written < out_bytes)
     {
         SDL_LockAudioDevice(audio_ctx_s.dev);
@@ -201,10 +200,6 @@ bool audio_init(float refreshra, float input_srate, float fps)
     audio_ctx_s.output_float=(float*)memalign_alloc(64, sampsize);
     memset(audio_ctx_s.input_float,0,sampsize);
     memset(audio_ctx_s.output_float,0,sampsize);
-
-
-
-
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
     auto tmp = std::make_unique<uint8_t[]>(sampsize);
     fifo_write(audio_ctx_s._fifo, tmp.get(), sampsize);
