@@ -184,7 +184,7 @@ public:
 	void get_cores();
 
 	bool init_configvars(retro_variable *var);
-	bool init_configvars_coreoptions(void* var, int version);
+	bool init_configvars_coreoptions(void *var, int version);
 	bool init_inputvars(retro_input_descriptor *var);
 	bool load_coresettings();
 	void save_coresettings();
@@ -194,10 +194,10 @@ public:
 	std::vector<coreinput_bind> core_inputbinds[2];
 	std::vector<coreinput_desc> core_inputdesc[2];
 	std::vector<loadedcore_configvars> core_variables;
-	std::vector<loadedcore_configcat>core_categories;
+	std::vector<loadedcore_configcat> core_categories;
 	std::vector<retro_disk> disk_intf;
 
-    bool v2_vars;
+	bool v2_vars;
 	bool variables_changed;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;

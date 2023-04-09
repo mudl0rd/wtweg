@@ -472,15 +472,16 @@ static bool core_environment(unsigned cmd, void *data)
   {
     auto *cb = (struct retro_core_option_display *)data;
 
-    for(auto &var: retro->core_variables){
-    if(strcmp(var.name.c_str(), cb->key)==0)
+    for (auto &var : retro->core_variables)
     {
-    var.config_visible = cb->visible;
-    for(auto &var2: retro->core_categories)
-    if((var.category_name == var2.key))
-    var2.visible =  cb->visible;
-    return true;
-    }
+      if (strcmp(var.name.c_str(), cb->key) == 0)
+      {
+        var.config_visible = cb->visible;
+        for (auto &var2 : retro->core_categories)
+          if ((var.category_name == var2.key))
+            var2.visible = cb->visible;
+        return true;
+      }
     }
     return false;
   }
@@ -550,30 +551,30 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
   {
-     auto *var = (unsigned *)data;
-     *var = 2;
+    auto *var = (unsigned *)data;
+    *var = 2;
     return true;
   }
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS:
   {
-    return retro->init_configvars_coreoptions(data,1);
+    return retro->init_configvars_coreoptions(data, 1);
   }
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
   {
-    auto* lang = (struct retro_core_options_intl*)data;
-    return retro->init_configvars_coreoptions(lang->us,1);
+    auto *lang = (struct retro_core_options_intl *)data;
+    return retro->init_configvars_coreoptions(lang->us, 1);
   }
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
   {
-    auto* lang = (struct retro_core_options_v2_intl*)data;
-    return retro->init_configvars_coreoptions(lang->us,2);
+    auto *lang = (struct retro_core_options_v2_intl *)data;
+    return retro->init_configvars_coreoptions(lang->us, 2);
   }
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
   {
-    return retro->init_configvars_coreoptions(data,2);
+    return retro->init_configvars_coreoptions(data, 2);
   }
 
   case RETRO_ENVIRONMENT_SET_VARIABLES:

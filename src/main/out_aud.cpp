@@ -138,8 +138,8 @@ void audio_mix(const int16_t *samples, size_t size)
     uint32_t in_len = size * 2;
     int half_size = (int)(audio_ctx_s._fifo->size / 2);
     int delta_mid = (int)fifo_write_avail(audio_ctx_s._fifo) - half_size;
-    float drc_ratio = (float)(audio_ctx_s.client_rate / audio_ctx_s.system_rate) * 
-    (1.0 + 0.005 * ((double)delta_mid / half_size));
+    float drc_ratio = (float)(audio_ctx_s.client_rate / audio_ctx_s.system_rate) *
+                      (1.0 + 0.005 * ((double)delta_mid / half_size));
     s16tof(audio_ctx_s.input_float, samples, in_len);
     src_data.input_frames = size;
     src_data.ratio = drc_ratio;
@@ -147,7 +147,7 @@ void audio_mix(const int16_t *samples, size_t size)
     src_data.data_out = audio_ctx_s.output_float;
     resampler_sinc_process(audio_ctx_s.resample, &src_data);
     size_t out_bytes = src_data.output_frames * 2 * sizeof(float);
-   
+
     while (written < out_bytes)
     {
         SDL_LockAudioDevice(audio_ctx_s.dev);
@@ -181,8 +181,8 @@ bool audio_init(float refreshra, float input_srate, float fps)
 {
     SDL_AudioSpec shit = {0};
     audio_changeratefps(refreshra, input_srate, fps);
-    SDL_AudioSpec shit2= {0};
-    SDL_GetDefaultAudioInfo(NULL,&shit2,0);
+    SDL_AudioSpec shit2 = {0};
+    SDL_GetDefaultAudioInfo(NULL, &shit2, 0);
 
     shit.freq = shit2.freq;
     shit.format = AUDIO_F32;
@@ -196,10 +196,10 @@ bool audio_init(float refreshra, float input_srate, float fps)
     audio_ctx_s.dev = SDL_OpenAudioDevice(NULL, 0, &shit, &out, 0);
     // allocate some in tank. Accounts for resampler too
     size_t sampsize = (out.size * 8);
-    audio_ctx_s.input_float=(float*)memalign_alloc(64, sampsize);
-    audio_ctx_s.output_float=(float*)memalign_alloc(64, sampsize);
-    memset(audio_ctx_s.input_float,0,sampsize);
-    memset(audio_ctx_s.output_float,0,sampsize);
+    audio_ctx_s.input_float = (float *)memalign_alloc(64, sampsize);
+    audio_ctx_s.output_float = (float *)memalign_alloc(64, sampsize);
+    memset(audio_ctx_s.input_float, 0, sampsize);
+    memset(audio_ctx_s.output_float, 0, sampsize);
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
     auto tmp = std::make_unique<uint8_t[]>(sampsize);
     fifo_write(audio_ctx_s._fifo, tmp.get(), sampsize);

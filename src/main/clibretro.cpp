@@ -215,105 +215,99 @@ const char *CLibretro::load_corevars(retro_variable *var)
   return NULL;
 }
 
-bool CLibretro::init_configvars_coreoptions(void* var, int version)
+bool CLibretro::init_configvars_coreoptions(void *var, int version)
 {
   std::vector<loadedcore_configvars> variables;
   core_variables.clear();
   core_categories.clear();
   variables_changed = false;
 
-
-  if(version>1)
+  if (version > 1)
   {
-    auto *var3 = (struct retro_core_options_v2*)var;
-    retro_core_option_v2_category* var2 = var3->categories;
-    retro_core_option_v2_definition* var1 = var3->definitions;
+    auto *var3 = (struct retro_core_options_v2 *)var;
+    retro_core_option_v2_category *var2 = var3->categories;
+    retro_core_option_v2_definition *var1 = var3->definitions;
 
-    while(var2->key != NULL)
+    while (var2->key != NULL)
     {
-    loadedcore_configcat cat;
-    cat.desc = var2->desc;
-    cat.info = var2->info;
-    cat.key = var2->key;
-    cat.visible = true;
-    core_categories.push_back(cat);
-    var2++;
+      loadedcore_configcat cat;
+      cat.desc = var2->desc;
+      cat.info = var2->info;
+      cat.key = var2->key;
+      cat.visible = true;
+      core_categories.push_back(cat);
+      var2++;
     }
 
-    
-
-  while(var1->key!= NULL)
-  {
-    retro_core_option_value* values = var1->values;
-    loadedcore_configvars vars_struct;
-    if(var1->category_key)
-    vars_struct.category_name = var1->category_key;
-
-    
-    while(values->value != NULL)
+    while (var1->key != NULL)
     {
-      if(values->value)
-      vars_struct.config_vals.push_back(values->value);
-      if(values->label)
-      vars_struct.config_vals_desc.push_back(values->label);
-      values++;
-    }
+      retro_core_option_value *values = var1->values;
+      loadedcore_configvars vars_struct;
+      if (var1->category_key)
+        vars_struct.category_name = var1->category_key;
 
+      while (values->value != NULL)
+      {
+        if (values->value)
+          vars_struct.config_vals.push_back(values->value);
+        if (values->label)
+          vars_struct.config_vals_desc.push_back(values->label);
+        values++;
+      }
 
-    if(var1->default_value)
-    {
-    vars_struct.default_val = var1->default_value;
-    vars_struct.var = var1->default_value;
-    }
-    else
-    {
-    
-      vars_struct.var = vars_struct.config_vals[vars_struct.sel_idx];
-    }
-    
+      if (var1->default_value)
+      {
+        vars_struct.default_val = var1->default_value;
+        vars_struct.var = var1->default_value;
+      }
+      else
+      {
+
+        vars_struct.var = vars_struct.config_vals[vars_struct.sel_idx];
+      }
+
       vars_struct.sel_idx = 0;
 
-     if(var1->desc)
-    vars_struct.description = var1->desc;
-    if(var1->info)
-    vars_struct.tooltip = var1->info;
-    if(var1->info_categorized)
-    vars_struct.tooltip_cat = var1->info_categorized;
-     if(var1->desc_categorized)
-    vars_struct.desc_cat = var1->desc_categorized;
-    vars_struct.name = var1->key;
-    vars_struct.config_visible = true;
+      if (var1->desc)
+        vars_struct.description = var1->desc;
+      if (var1->info)
+        vars_struct.tooltip = var1->info;
+      if (var1->info_categorized)
+        vars_struct.tooltip_cat = var1->info_categorized;
+      if (var1->desc_categorized)
+        vars_struct.desc_cat = var1->desc_categorized;
+      vars_struct.name = var1->key;
+      vars_struct.config_visible = true;
 
-
-    core_variables.push_back(vars_struct);
-    var1++;
-  }
-  v2_vars = true;
+      core_variables.push_back(vars_struct);
+      var1++;
+    }
+    v2_vars = true;
   }
   else
   {
-    auto *var3 = (struct retro_core_option_definition*)var;
-    while(var3->key != NULL)
+    auto *var3 = (struct retro_core_option_definition *)var;
+    while (var3->key != NULL)
     {
-    retro_core_option_value* var1 = var3->values;   
-    loadedcore_configvars vars_struct;
-    vars_struct.var = var3->default_value;
-    vars_struct.description = var3->desc;
-    if(var3->info)
-    vars_struct.tooltip = var3->info;
-    vars_struct.name = var3->key;
-    vars_struct.config_visible = true;
+      retro_core_option_value *var1 = var3->values;
+      loadedcore_configvars vars_struct;
+      vars_struct.var = var3->default_value;
+      vars_struct.description = var3->desc;
+      if (var3->info)
+        vars_struct.tooltip = var3->info;
+      vars_struct.name = var3->key;
+      vars_struct.config_visible = true;
 
-    while(var1->value != NULL)
-    {
-      if(var1->value)
-      vars_struct.config_vals.push_back(var1->value);
-      if(var1->label)
-      vars_struct.config_vals_desc.push_back(var1->label);
-     var1++;
-    }
-    core_variables.push_back(vars_struct);
-    var3++;
+      while (var1->value != NULL)
+      {
+        if (var1->value)
+          vars_struct.config_vals.push_back(var1->value);
+        if (var1->label)
+          vars_struct.config_vals_desc.push_back(var1->label);
+        var1++;
+      }
+      core_variables.push_back(vars_struct);
+      var3++;
     }
     v2_vars = false;
   }
@@ -326,7 +320,7 @@ bool CLibretro::init_configvars(retro_variable *var)
   core_variables.clear();
   variables_changed = false;
 
-  while(var->key != NULL)
+  while (var->key != NULL)
   {
     loadedcore_configvars vars_struct;
     const struct retro_variable *invar = var;
@@ -660,7 +654,6 @@ void CLibretro::get_cores()
           std::transform(segment.begin(), segment.end(), segment.begin(), ::tolower);
           corelist += segment + ",.";
         }
-          
     }
   }
   if (corelist != "")

@@ -32,8 +32,6 @@ static bool coreselect = false;
 bool pergame_ = false;
 static std::string filenamepath;
 
-
-
 static auto vector_getter = [](void *data, int n, const char **out_text)
 {
   const std::vector<core_info> *v = (std::vector<core_info> *)data;
@@ -41,17 +39,17 @@ static auto vector_getter = [](void *data, int n, const char **out_text)
   return true;
 };
 
-static void HelpMarker(const char* desc)
+static void HelpMarker(const char *desc)
 {
-    ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered())
-    {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(desc);
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+  ImGui::TextDisabled("(?)");
+  if (ImGui::IsItemHovered())
+  {
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(desc);
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
 }
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame)
@@ -112,7 +110,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           no_cores = true;
         }
         else
-        
+
           ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
       }
 
@@ -191,18 +189,18 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
   ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
   ImVec2 minSizedlg = ImVec2((float)io.DisplaySize.x * 0.4f, (float)io.DisplaySize.y * 0.4f);
-  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey",32, minSizedlg, maxSizedlg))
+  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey", 32, minSizedlg, maxSizedlg))
   {
     // action if OK
     if (ImGuiFileDialog::Instance()->IsOk())
     {
-      std::string filePathName =  ImGuiFileDialog::Instance()->GetFilePathName();
-      std::string filePath =  ImGuiFileDialog::Instance()->GetCurrentPath();
+      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       coreselect = loadfile(instance, (char *)filePathName.c_str(), NULL, false);
       filenamepath = filePathName;
     }
 
-     ImGuiFileDialog::Instance()->Close();
+    ImGuiFileDialog::Instance()->Close();
   }
 
   if (no_cores)
@@ -255,7 +253,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       ImGui::OpenPopup("Select a core");
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
-    ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
+                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -276,30 +274,30 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       ImGui::EndPopup();
     }
   }
- 
-  if (ImGuiFileDialog::Instance()->Display("LoadSaveState",32,minSizedlg, maxSizedlg))
-  {
-    // action if OK
-    if ( ImGuiFileDialog::Instance()->IsOk())
-    {
-      std::string filePathName =  ImGuiFileDialog::Instance()->GetFilePathName();
-      instance->core_savestate(filePathName.c_str(), false);
-      // action
-    }
-    // close
-     ImGuiFileDialog::Instance()->Close();
-  }
 
-  if (ImGuiFileDialog::Instance()->Display("SaveSaveState", 32,minSizedlg, maxSizedlg))
+  if (ImGuiFileDialog::Instance()->Display("LoadSaveState", 32, minSizedlg, maxSizedlg))
   {
     // action if OK
     if (ImGuiFileDialog::Instance()->IsOk())
     {
-      std::string filePathName =  ImGuiFileDialog::Instance()->GetFilePathName();
+      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+      instance->core_savestate(filePathName.c_str(), false);
+      // action
+    }
+    // close
+    ImGuiFileDialog::Instance()->Close();
+  }
+
+  if (ImGuiFileDialog::Instance()->Display("SaveSaveState", 32, minSizedlg, maxSizedlg))
+  {
+    // action if OK
+    if (ImGuiFileDialog::Instance()->IsOk())
+    {
+      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       instance->core_savestate(filePathName.c_str(), true);
     }
     // close
-     ImGuiFileDialog::Instance()->Close();
+    ImGuiFileDialog::Instance()->Close();
   }
 
   if (load_core)
@@ -321,7 +319,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     }
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
-    ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
+                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::OpenPopup("Select a contentless core to load");
     if (ImGui::BeginPopupModal("Select a contentless core to load", &load_core, ImGuiWindowFlags_AlwaysAutoResize))
@@ -344,8 +342,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     }
   }
 
-  
-
   if (inputsettings)
   {
     checkbuttons_forui(selected_inp, &isselected_inp, selected_port);
@@ -355,11 +351,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       return;
     }
 
-    
-
     ImGui::OpenPopup("Input Settings");
     ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.3f),
-    ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
+                                        ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
@@ -445,121 +439,124 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     ImGui::OpenPopup("Core Settings");
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.1f),
-    ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
+                                        ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     if (ImGui::BeginPopupModal("Core Settings", &coresettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
 
-
-      for(auto &bind2 : instance->core_categories)
+      for (auto &bind2 : instance->core_categories)
       {
-        if(bind2.visible)
-        if (ImGui::TreeNode(bind2.desc.c_str()))
-        {
-           for(auto &bind: instance->core_variables)
-           {
-            std::string descript = bind.description;
-            std::string hidden = "##" + descript;
-            std::string var = bind.var;
-            int sel_idx = bind.sel_idx;
-            std::string current_item = bind.config_vals[sel_idx];
-            bool checkbox_made = false;
-            bool checkbox_enabled = false;
-
-            if(bind2.key == bind.category_name && bind.config_visible)
-            {
-             for (int j = 0; j < IM_ARRAYSIZE(checkbox_allowable); j++){
-            if (checkbox_enabled)
-              break;
-             for (int l=0;l<bind.config_vals.size();l++)  {
-              if (stricmp(bind.config_vals[l].c_str(), checkbox_allowable[j]) == 0)
-            {
-              checkbox_made = true;
-              for (int k = 0; k < IM_ARRAYSIZE(true_vals); k++)
-                if (stricmp(var.c_str(), true_vals[k]) == 0)
-                  checkbox_enabled = true;
-            }
-             }
-           
-          }
-
-          if (checkbox_made)
+        if (bind2.visible)
+          if (ImGui::TreeNode(bind2.desc.c_str()))
           {
-
-            int total_w = descript.length();
-            ImGui::TextWrapped("%s", descript.c_str());
-            ImGui::SameLine(); HelpMarker(bind.tooltip.c_str());
-            float w = ImGui::CalcItemWidth();
-            ImVec2 sz = ImGui::GetWindowSize();
-            ImGui::SameLine(sz.x * 0.65);
-            ImGui::SetNextItemWidth(total_w);
-            if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
+            for (auto &bind : instance->core_variables)
             {
-              bind.sel_idx ^= 1;
-              std::string change = bind.config_vals[bind.sel_idx];
-              bind.var = change;
-              instance->variables_changed = true;
-            }
-          }
-          else
-          {
+              std::string descript = bind.description;
+              std::string hidden = "##" + descript;
+              std::string var = bind.var;
+              int sel_idx = bind.sel_idx;
+              std::string current_item = bind.config_vals[sel_idx];
+              bool checkbox_made = false;
+              bool checkbox_enabled = false;
 
-            ImGui::TextWrapped("%s", descript.c_str());
-            ImGui::SameLine(); HelpMarker(bind.tooltip.c_str());
-            ImVec2 sz = ImGui::GetWindowSize();
-            ImGui::SameLine(sz.x * 0.65);
-            ImGui::SetNextItemWidth(sz.x * 0.3);
-            if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
-            {
-              for (size_t n = 0; n < bind.config_vals.size(); n++)
+              if (bind2.key == bind.category_name && bind.config_visible)
               {
-                bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
-                if (ImGui::Selectable(bind.config_vals[n].c_str(), is_selected))
+                for (int j = 0; j < IM_ARRAYSIZE(checkbox_allowable); j++)
                 {
-                  bind.sel_idx = n;
-                  std::string change = bind.config_vals[bind.sel_idx];
-                  bind.var = change;
-                  instance->variables_changed = true;
+                  if (checkbox_enabled)
+                    break;
+                  for (int l = 0; l < bind.config_vals.size(); l++)
+                  {
+                    if (stricmp(bind.config_vals[l].c_str(), checkbox_allowable[j]) == 0)
+                    {
+                      checkbox_made = true;
+                      for (int k = 0; k < IM_ARRAYSIZE(true_vals); k++)
+                        if (stricmp(var.c_str(), true_vals[k]) == 0)
+                          checkbox_enabled = true;
+                    }
+                  }
                 }
 
-                if (is_selected)
-                  ImGui::SetItemDefaultFocus();
+                if (checkbox_made)
+                {
+
+                  int total_w = descript.length();
+                  ImGui::TextWrapped("%s", descript.c_str());
+                  ImGui::SameLine();
+                  HelpMarker(bind.tooltip.c_str());
+                  float w = ImGui::CalcItemWidth();
+                  ImVec2 sz = ImGui::GetWindowSize();
+                  ImGui::SameLine(sz.x * 0.65);
+                  ImGui::SetNextItemWidth(total_w);
+                  if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
+                  {
+                    bind.sel_idx ^= 1;
+                    std::string change = bind.config_vals[bind.sel_idx];
+                    bind.var = change;
+                    instance->variables_changed = true;
+                  }
+                }
+                else
+                {
+
+                  ImGui::TextWrapped("%s", descript.c_str());
+                  ImGui::SameLine();
+                  HelpMarker(bind.tooltip.c_str());
+                  ImVec2 sz = ImGui::GetWindowSize();
+                  ImGui::SameLine(sz.x * 0.65);
+                  ImGui::SetNextItemWidth(sz.x * 0.3);
+                  if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
+                  {
+                    for (size_t n = 0; n < bind.config_vals.size(); n++)
+                    {
+                      bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
+                      if (ImGui::Selectable(bind.config_vals[n].c_str(), is_selected))
+                      {
+                        bind.sel_idx = n;
+                        std::string change = bind.config_vals[bind.sel_idx];
+                        bind.var = change;
+                        instance->variables_changed = true;
+                      }
+
+                      if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                  }
+                }
               }
-              ImGui::EndCombo();
             }
+            ImGui::TreePop();
           }
-            }
-            
-           }
-         ImGui::TreePop();
-         }
       }
 
-      for(auto &bind: instance->core_variables)
+      for (auto &bind : instance->core_variables)
+      {
+        std::string descript = bind.description;
+        std::string hidden = "##" + descript;
+        std::string var = bind.var;
+        int sel_idx = bind.sel_idx;
+        std::string current_item = bind.config_vals[sel_idx];
+        bool checkbox_made = false;
+        bool checkbox_enabled = false;
+        if (bind.category_name == "")
         {
-          std::string descript = bind.description;
-          std::string hidden = "##" + descript;
-          std::string var = bind.var;
-          int sel_idx = bind.sel_idx;
-          std::string current_item = bind.config_vals[sel_idx];
-          bool checkbox_made = false;
-          bool checkbox_enabled = false;
-          if(bind.category_name == "")
+          for (int j = 0; j < IM_ARRAYSIZE(checkbox_allowable); j++)
           {
-          for (int j = 0; j < IM_ARRAYSIZE(checkbox_allowable); j++){
             if (checkbox_enabled)
               break;
-             for (int l=0;l<bind.config_vals.size();l++)  {
-              if (stricmp(instance->v2_vars?bind.config_vals[l].c_str():bind.usevars.c_str(), 
-              instance->v2_vars?checkbox_allowable[j]:checkbox_allowablev1[j]) == 0)
+            for (int l = 0; l < bind.config_vals.size(); l++)
             {
-              checkbox_made = true;
-              for (int k = 0; k < IM_ARRAYSIZE(true_vals); k++)
-                if (stricmp(var.c_str(), true_vals[k]) == 0)
-                  checkbox_enabled = true;
+              if (stricmp(instance->v2_vars ? bind.config_vals[l].c_str() : bind.usevars.c_str(),
+                          instance->v2_vars ? checkbox_allowable[j] : checkbox_allowablev1[j]) == 0)
+              {
+                checkbox_made = true;
+                for (int k = 0; k < IM_ARRAYSIZE(true_vals); k++)
+                  if (stricmp(var.c_str(), true_vals[k]) == 0)
+                    checkbox_enabled = true;
+              }
             }
-             }
           }
 
           if (checkbox_made)
@@ -567,9 +564,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
             int total_w = descript.length();
             ImGui::TextWrapped("%s", descript.c_str());
-            if(bind.tooltip != "")
+            if (bind.tooltip != "")
             {
-               ImGui::SameLine(); HelpMarker(bind.tooltip.c_str());
+              ImGui::SameLine();
+              HelpMarker(bind.tooltip.c_str());
             }
             float w = ImGui::CalcItemWidth();
             ImVec2 sz = ImGui::GetWindowSize();
@@ -587,9 +585,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           {
 
             ImGui::TextWrapped("%s", descript.c_str());
-            if(bind.tooltip != "")
+            if (bind.tooltip != "")
             {
-            ImGui::SameLine(); HelpMarker(bind.tooltip.c_str());
+              ImGui::SameLine();
+              HelpMarker(bind.tooltip.c_str());
             }
             ImVec2 sz = ImGui::GetWindowSize();
             ImGui::SameLine(sz.x * 0.65);
@@ -613,14 +612,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
               ImGui::EndCombo();
             }
           }
-
-
-
-
-
-          }
-
         }
+      }
 
       // click ok when finished adjusting
       if (ImGui::Button("OK"))
