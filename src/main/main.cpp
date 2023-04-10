@@ -227,6 +227,59 @@ int main2(const char *rom, const char *core, bool pergame)
   return 0;
 }
 
+#ifdef _WIN32
+
+#include <windows.h>
+
+void fetchCmdArgs(int* argc, char*** argv) {
+    // init results
+    *argc = 0;
+
+    // prepare extraction
+    char* winCmd = GetCommandLine();
+    int index = 0;
+    bool newOption = true;
+    // use static so converted command line can be
+    // accessed from outside this function
+    static std::vector<char*> argVector;
+
+    // walk over the command line and convert it to argv
+    while(winCmd[index] != 0){
+        if (winCmd[index] == ' ') {
+            // terminate option string
+            winCmd[index] = 0;
+            newOption = true;
+
+        } else  {
+            if(newOption){
+                argVector.push_back(&winCmd[index]);
+                (*argc)++;  
+            }
+            newOption = false;
+        }
+        index++;
+    }
+
+    // elements inside the vector are guaranteed to be continous
+    *argv = &argVector[0];
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                   LPSTR lpCmdLine, int nCmdShow) {
+    // avoid unused argument error while matching template
+    ((void)hInstance);
+    ((void)hPrevInstance);
+    ((void)lpCmdLine);
+    ((void)nCmdShow);
+    int argc = 0;
+    char** argv;
+    fetchCmdArgs(&argc, &argv);
+    return main(argc,argv);
+    return 0;
+}
+
+#endif
+
 int main(int argc, char *argv[])
 {
 
