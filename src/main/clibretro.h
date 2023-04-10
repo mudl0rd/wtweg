@@ -217,5 +217,6 @@ public:
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
 void sdlggerat_menu(CLibretro *instance, std::string *window_str);
+void add_log(enum retro_log_level level, const char *fmt);
 
 #endif
