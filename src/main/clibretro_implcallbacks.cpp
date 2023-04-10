@@ -250,7 +250,7 @@ static void core_log(enum retro_log_level level, const char *fmt, ...)
   va_end(va);
   if (level == 0)
     return;
-  fprintf(stdout, "[%s] %s", levelstr[level], buffer);
+  add_log(level, buffer);
 }
 
 static void core_kb_callback(retro_keyboard_event_t e)

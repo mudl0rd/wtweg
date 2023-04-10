@@ -39,6 +39,129 @@ static auto vector_getter = [](void *data, int n, const char **out_text)
   return true;
 };
 
+struct offsets{
+  ImU32 col;
+};
+offsets colors[4] = { IM_COL32(0,255,0,255),IM_COL32(0,255,0,255),IM_COL32(255,255,0,255),
+IM_COL32(255,0,0,255) };
+
+struct ExampleAppLog
+{
+    ImGuiTextBuffer     Buf;
+    ImVector<int>       LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
+    ImVector<ImU32>     LineCol;
+    bool                AutoScroll;  // Keep scrolling if already at the bottom.
+
+    ExampleAppLog()
+    {
+        AutoScroll = true;
+        Clear();
+    }
+
+    void    Clear()
+    {
+        Buf.clear();
+        LineOffsets.clear();
+        LineOffsets.push_back(0);
+        LineCol.clear();
+        LineCol.push_back(0);
+    }
+
+   
+
+    void    AddLog(enum retro_log_level level,const char* fmt, ...) IM_FMTARGS(3)
+    {
+        int old_size = Buf.size();
+        va_list args;
+        va_start(args, fmt);
+        Buf.appendfv(fmt, args);
+        va_end(args);
+         LineCol.push_back(colors[level].col);
+        for (int new_size = Buf.size(); old_size < new_size; old_size++)
+            if (Buf[old_size] == '\n')
+             LineOffsets.push_back(old_size + 1);
+               
+    }
+
+    void    Draw(const char* title, bool* p_open =NULL)
+    {
+    ImGuiIO &io = ImGui::GetIO();
+    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
+                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.2f, io.DisplaySize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
+        if (!ImGui::Begin(title, p_open,ImGuiWindowFlags_NoCollapse))
+        {
+            ImGui::End();
+            return;
+        }
+
+        // Main window
+        ImGui::SameLine();
+        bool clear = ImGui::Button("Clear");
+        ImGui::SameLine();
+        bool copy = ImGui::Button("Copy");
+        ImGui::Separator();
+        ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+        if (clear)
+            Clear();
+        if (copy)
+            ImGui::LogToClipboard();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+        const char* buf = Buf.begin();
+        const char* buf_end = Buf.end();
+        {
+            // The simplest and easy way to display the entire buffer:
+            //   ImGui::TextUnformatted(buf_begin, buf_end);
+            // And it'll just work. TextUnformatted() has specialization for large blob of text and will fast-forward
+            // to skip non-visible lines. Here we instead demonstrate using the clipper to only process lines that are
+            // within the visible area.
+            // If you have tens of thousands of items and their processing cost is non-negligible, coarse clipping them
+            // on your side is recommended. Using ImGuiListClipper requires
+            // - A) random access into your data
+            // - B) items all being the  same height,
+            // both of which we can handle since we an array pointing to the beginning of each line of text.
+            // When using the filter (in the block of code above) we don't have random access into the data to display
+            // anymore, which is why we don't use the clipper. Storing or skimming through the search result would make
+            // it possible (and would be recommended if you want to search through tens of thousands of entries).
+            ImGuiListClipper clipper;
+            clipper.Begin(LineOffsets.Size);
+            while (clipper.Step())
+            {
+                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+                {
+                    const char* line_start = buf + LineOffsets[line_no];
+                    const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+                    ImGui::PushStyleColor(ImGuiCol_Text, LineCol[line_no]);
+                    ImGui::TextUnformatted(line_start, line_end);
+                    ImGui::PopStyleColor();
+                }
+            }
+            clipper.End();
+        }
+        ImGui::PopStyleVar();
+
+        if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+            ImGui::SetScrollHereY(1.0f);
+
+        ImGui::EndChild();
+        ImGui::End();
+    }
+};
+static ExampleAppLog my_log;
+// Usage:
+//  static ExampleAppLog my_log;
+//  my_log.AddLog("Hello %d world\n", 123);
+//  my_log.Draw("title");
+
+void add_log(enum retro_log_level level, const char *fmt)
+{
+  my_log.AddLog(level,fmt);
+
+}
+
+
 static void HelpMarker(const char *desc)
 {
   ImGui::TextDisabled("(?)");
@@ -97,6 +220,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static int selected_inp = 0;
   static bool isselected_inp = false;
   static int selected_port = 0;
+  static bool open_log = false;
   ImGuiIO &io = ImGui::GetIO();
 
   if (ImGui::BeginMainMenuBar())
@@ -155,6 +279,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           coresettings = true;
         if (ImGui::MenuItem("Input Settings..."))
           inputsettings = true;
+         if (ImGui::MenuItem("Core log", nullptr,
+                                    open_log == true))
+         open_log = !open_log;
 
         if (instance->core_inputdesc[0].size() > 1)
         {
@@ -186,6 +313,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
     ImGui::EndMainMenuBar();
   }
+  
+  if(open_log)
+  my_log.Draw("Core Log");
 
   ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
   ImVec2 minSizedlg = ImVec2((float)io.DisplaySize.x * 0.4f, (float)io.DisplaySize.y * 0.4f);

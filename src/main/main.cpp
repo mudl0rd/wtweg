@@ -239,7 +239,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     ((void)lpCmdLine);
     ((void)nCmdShow);
     return main(__argc,__argv);
-    return 0;
 }
 
 #endif
