@@ -172,6 +172,8 @@ public:
 
 	void poll();
 
+	void reset();
+
 	void core_changinpt(int dev, int port);
 	bool core_isrunning();
 	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless);
@@ -209,8 +211,6 @@ public:
 	std::string coreexts;
 	std::string exe_path;
 	int save_slot;
-	float core_fps;
-	double coretime;
 	float refreshrate;
 	struct retro_perf_counter *perf_counter_last;
 };

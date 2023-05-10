@@ -51,10 +51,10 @@ bool CLibretro::core_savestate(const char *filename, bool save)
       else
       {
         unsigned sz;
-        std::vector<uint8_t> save_data = load_data(filename, &sz);
-        if (save_data.empty())
+        std::vector<uint8_t> save_ptr = load_data(filename, &sz);
+        if ( save_ptr.empty())
           return false;
-        memcpy(Memory.get(), save_data.data(), sz);
+        memcpy(Memory.get(), save_ptr.data(), sz);
         retro.retro_unserialize(Memory.get(), sz);
       }
       return true;
@@ -76,12 +76,12 @@ bool CLibretro::core_saveram(const char *filename, bool save)
     else
     {
       unsigned sz;
-      std::vector<uint8_t> save_data = load_data(filename, &sz);
-      if (save_data.empty())
+      std::vector<uint8_t> save_ptr = load_data(filename, &sz);
+      if (save_ptr.empty())
         return false;
       if (sz != size)
         return false;
-      memcpy(Memory, save_data.data(), sz);
+      memcpy(Memory, save_ptr.data(), sz);
       return true;
     }
   }
@@ -132,7 +132,7 @@ bool CLibretro::load_coresettings()
   else
   {
     std::vector<uint8_t> data = load_data(core_config.c_str(), (unsigned int *)&size_);
-    ini_t *ini = ini_load((char *)data.data(), NULL);
+    ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
     if (section != INI_NOT_FOUND)
     {
@@ -217,7 +217,6 @@ const char *CLibretro::load_corevars(retro_variable *var)
 
 bool CLibretro::init_configvars_coreoptions(void *var, int version)
 {
-  std::vector<loadedcore_configvars> variables;
   core_variables.clear();
   core_categories.clear();
   variables_changed = false;
@@ -243,15 +242,15 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
     {
       retro_core_option_value *values = var1->values;
       loadedcore_configvars vars_struct;
+      vars_struct.sel_idx = 0;
       if (var1->category_key)
         vars_struct.category_name = var1->category_key;
 
       while (values->value != NULL)
       {
-        if (values->value)
-          vars_struct.config_vals.push_back(values->value);
+        vars_struct.config_vals.push_back(values->value);
         if (values->label)
-          vars_struct.config_vals_desc.push_back(values->label);
+        vars_struct.config_vals_desc.push_back(values->label);
         values++;
       }
 
@@ -266,7 +265,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
         vars_struct.var = vars_struct.config_vals[vars_struct.sel_idx];
       }
 
-      vars_struct.sel_idx = 0;
+      
 
       if (var1->desc)
         vars_struct.description = var1->desc;
@@ -291,6 +290,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
     {
       retro_core_option_value *var1 = var3->values;
       loadedcore_configvars vars_struct;
+      vars_struct.sel_idx = 0;
       vars_struct.var = var3->default_value;
       vars_struct.description = var3->desc;
       if (var3->info)
@@ -300,8 +300,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
 
       while (var1->value != NULL)
       {
-        if (var1->value)
-          vars_struct.config_vals.push_back(var1->value);
+        vars_struct.config_vals.push_back(var1->value);
         if (var1->label)
           vars_struct.config_vals_desc.push_back(var1->label);
         var1++;
@@ -338,14 +337,13 @@ bool CLibretro::init_configvars(retro_variable *var)
 
     std::stringstream test(str1);
     std::string segment;
-    std::vector<std::string> seglist;
     while (std::getline(test, segment, '|'))
       vars_struct.config_vals.push_back(segment);
 
     pos = str1.find('|');
     // get first variable as default/current
     if (pos != std::string::npos)
-      str1 = str1.substr(0, pos);
+      str1.resize(pos);
     vars_struct.var = str1;
     vars_struct.sel_idx = 0;
     core_variables.push_back(vars_struct);
@@ -357,23 +355,41 @@ bool CLibretro::init_configvars(retro_variable *var)
   return true;
 }
 
+void CLibretro::reset()
+{
+  lr_isrunning = false;
+  save_slot = 0;
+  variables_changed = false;
+  perf_counter_last = 0;
+  refreshrate = 0;
+  controller_type[0] = RETRO_DEVICE_JOYPAD;
+  controller_type[1] = RETRO_DEVICE_JOYPAD;
+  // Assume "RetroPad"....fuck me
+  disk_intf.clear();
+  core_inputbinds[0].clear();
+  core_inputbinds[1].clear();
+  core_variables.clear();
+  core_inputdesc[0].clear();
+  core_inputdesc[1].clear();
+  v2_vars = false;
+  memset(&retro,0,sizeof(retro));
+}
+
 CLibretro::CLibretro(SDL_Window *window, char *exepath)
 {
-  std::filesystem::path p(get_wtfwegname());
-  exe_path = p.parent_path().string();
+  reset();
+  std::filesystem::path exe(get_wtfwegname());
   cores.clear();
 
   const char *dirs[3] = {"cores", "system", "saves"};
   for (int i = 0; i < 3; i++)
   {
-    std::filesystem::path p(exe_path);
+    std::filesystem::path p = exe.parent_path().string();
     std::filesystem::path path = p / dirs[i];
     std::filesystem::create_directory(path);
   }
   get_cores();
   sdl_window = window;
-  lr_isrunning = false;
-  save_slot = 0;
 }
 
 CLibretro::~CLibretro()
@@ -407,19 +423,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   if (lr_isrunning)
     core_unload();
 
-  controller_type[0] = RETRO_DEVICE_JOYPAD;
-  controller_type[1] = RETRO_DEVICE_JOYPAD;
-
-  // Assume "RetroPad"....fuck me
-
-  disk_intf.clear();
-
-  core_inputbinds[0].clear();
-  core_inputbinds[1].clear();
-  core_variables.clear();
-  core_inputdesc[0].clear();
-  core_inputdesc[1].clear();
-  v2_vars = false;
+  reset();
 
   int portage = 0;
 
@@ -647,7 +651,6 @@ void CLibretro::get_cores()
     {
       std::stringstream test(corez.core_extensions);
       std::string segment;
-      std::vector<std::string> seglist;
       while (std::getline(test, segment, '|'))
         if (corelist.find(segment) == std::string::npos)
         {

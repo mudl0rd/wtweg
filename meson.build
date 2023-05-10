@@ -34,9 +34,14 @@ common_ldflags,
 language: [ 'c', 'cpp' ],)
 endif
 
+
 dir_base = meson.current_source_dir()
 dir_install = join_paths(dir_base, 'compile_dir')
 
 executable('wtfweg',gui_app : true,install: true,install_dir: dir_install,include_directories : [inc,inc_imgui,inc_deps,inc_stb],sources : [src],dependencies : [sdl2dep,dl_dep]
 )
+
+
+run_target('cppcheck', command : ['cppcheck', '--project=' +
+join_paths(meson.build_root(), 'compile_commands.json')]) 
 

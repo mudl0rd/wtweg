@@ -1,9 +1,5 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mouse.h>
-#include "resampler.h"
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include "libretro.h"
 #include "io.h"
 #include <stdio.h>

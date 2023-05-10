@@ -40,6 +40,28 @@
 				"isDefault": true
 			}
 		},
+
+
+
+		{
+            "label": "cppcheck",
+            "group": "build",
+            "type": "shell",
+            "command": "cppcheck --template=gcc -isrc/deps --enable=warning --std=c++17 --force .",
+            "problemMatcher": {
+                "fileLocation": "relative",
+                "severity": "warning",
+                "pattern":{
+                    "regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "location": 2,
+                    "severity": 3,
+                    "message": 4
+                }
+            }
+        },
+
+
 		{
 			"windows": {
 				"command": "C:\\msys64\\usr\\bin\\bash.exe",

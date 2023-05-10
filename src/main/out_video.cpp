@@ -243,7 +243,7 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 		g_video.base_h = height;
 		g_video.base_w = width;
 	}
-	if (data && data != RETRO_HW_FRAME_BUFFER_VALID)
+	if (data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
 		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(pitch));

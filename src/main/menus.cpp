@@ -87,7 +87,7 @@ struct ExampleAppLog
     {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
-                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
+                                        ImVec2(io.DisplaySize.x * 0.6f, io.DisplaySize.y * 0.6f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.2f, io.DisplaySize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
         if (!ImGui::Begin(title, p_open,ImGuiWindowFlags_NoCollapse))
         {
