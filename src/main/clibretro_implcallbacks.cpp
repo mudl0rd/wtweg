@@ -263,11 +263,22 @@ static bool core_controller_info(struct retro_controller_info *info)
   if (!info)
     return false;
   auto retro = CLibretro::get_classinstance();
-  retro->core_inputdesc[0].clear();
-  retro->core_inputdesc[1].clear();
+
+  retro->core_inputdesc.clear();
+  int cnt=0;
+   struct retro_controller_info *info2 = info;
+  while(1)
+  {
+    if(info2->types == NULL)break;
+    info2++;
+    cnt++;
+  }
+  cnt++;
+  retro->core_inputdesc.resize(cnt);
+
   bool cont_found = false;
-  struct retro_controller_info *info2 = info;
-  for (int j = 0; j < 2; j++)
+  info2 = info;
+  for (int j = 0; j < cnt; j++)
   {
     if (info2 == NULL)
       break;
@@ -279,12 +290,13 @@ static bool core_controller_info(struct retro_controller_info *info)
         if (d.id == RETRO_DEVICE_JOYPAD && !cont_found)
         {
           cont_found = true;
-          retro->controller_type[j] = d.id;
+         retro->controller[j].controller_type = d.id;
         }
         coreinput_desc desc;
         desc.desc = d.desc;
         desc.id = d.id;
         retro->core_inputdesc[j].push_back(desc);
+
       }
     }
     info2++;
@@ -521,18 +533,24 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
   {
-    std::string str = retro->system_path;
-    static auto *sys_path = strdup(str.c_str());
-    auto **ppDir =reinterpret_cast<char **>(data);
-    *ppDir = sys_path;
+    static auto *sys_path = strdup(retro->system_path.c_str());
+    *(const char**)data = sys_path;
     return true;
   }
+
+ case RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK:
+	{
+   auto *ftcb= reinterpret_cast<const struct retro_frame_time_callback *>(data);
+		retro->frametime_cb = ftcb->callback;
+		retro->frametime_ref = ftcb->reference;
+    return true;
+	}
+
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
     std::string str = retro->saves_path;
     static auto *sys_path = strdup(str.c_str());
-    auto **ppDir = reinterpret_cast<const char **>(data);
-    *ppDir = sys_path;
+    *(const char**)data = sys_path;
     return true;
   }
 

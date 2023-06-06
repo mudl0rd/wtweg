@@ -150,6 +150,12 @@ struct retro_disk
 
 std::vector<core_info> get_cores();
 
+struct controller_input{
+	std::vector<coreinput_bind> core_inputbinds;
+	std::vector<coreinput_desc> core_inputdesc;
+	int controller_type;
+};
+
 class CLibretro
 {
 private:
@@ -158,7 +164,7 @@ private:
 	SDL_Window *sdl_window;
 
 public:
-	int controller_type[2];
+	
 	bool lr_isrunning;
 	CLibretro(SDL_Window *window, char *exepath);
 	~CLibretro();
@@ -171,9 +177,7 @@ public:
 	}
 
 	void poll();
-
 	void reset();
-
 	void core_changinpt(int dev, int port);
 	bool core_isrunning();
 	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless);
@@ -193,8 +197,8 @@ public:
 
 	const char *load_corevars(retro_variable *var);
 
-	std::vector<coreinput_bind> core_inputbinds[2];
-	std::vector<coreinput_desc> core_inputdesc[2];
+    std::vector<controller_input>controller;
+	std::vector<std::vector<coreinput_desc>> core_inputdesc;
 	std::vector<loadedcore_configvars> core_variables;
 	std::vector<loadedcore_configcat> core_categories;
 	std::vector<retro_disk> disk_intf;
@@ -213,6 +217,8 @@ public:
 	int save_slot;
 	float refreshrate;
 	struct retro_perf_counter *perf_counter_last;
+	retro_frame_time_callback_t frametime_cb;
+	retro_usec_t frametime_ref;
 };
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);

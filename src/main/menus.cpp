@@ -283,23 +283,23 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                                     open_log == true))
          open_log = !open_log;
 
-        if (instance->core_inputdesc[0].size() > 1)
+        if (instance->controller.size() > 1)
         {
           ImGui::Separator();
 
-          for (int i = 0; i < 2; i++)
+          for (int i = 0; i < instance->controller.size(); i++)
           {
             std::string player = "Player " + std::to_string(i + 1);
             if (ImGui::BeginMenu(player.c_str()))
             {
-              for (int j = 0; j < instance->core_inputdesc[i].size(); j++)
+              for (int j = 0; j < instance->controller[i].core_inputdesc.size(); j++)
               {
-                const char *label = instance->core_inputdesc[i][j].desc.c_str();
+                const char *label = instance->controller[i].core_inputdesc[j].desc.c_str();
                 if (ImGui::MenuItem(label, nullptr,
-                                    instance->controller_type[i] == instance->core_inputdesc[i][j].id))
+                                    instance->controller[i].controller_type == instance->controller[i].core_inputdesc[j].id))
                 {
-                  instance->controller_type[i] = instance->core_inputdesc[i][j].id;
-                  instance->core_changinpt(instance->controller_type[i], i);
+                  instance->controller[i].controller_type = instance->controller[i].core_inputdesc[j].id;
+                  instance->core_changinpt(instance->controller[i].controller_type, i);
                 }
               }
               ImGui::EndMenu();
@@ -475,7 +475,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   if (inputsettings)
   {
     checkbuttons_forui(selected_inp, &isselected_inp, selected_port);
-    if (!instance->core_inputbinds[0].size())
+    if (!instance->controller[0].core_inputbinds.size())
     {
       popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
       return;
@@ -488,12 +488,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
     if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
-      if (!instance->core_inputbinds[1].size())
+      if (instance->controller.size() < 2)
       {
         int descnum = 1;
-        for (size_t i = 0; i < instance->core_inputbinds[0].size(); i++)
+        for (size_t i = 0; i < instance->controller[0].core_inputbinds.size(); i++)
         {
-          auto &bind = instance->core_inputbinds[0][i];
+          auto &bind = instance->controller[0].core_inputbinds[i];
           if (bind.description == "")
             continue;
 
@@ -515,14 +515,15 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       else if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
       {
         int descnum = 1;
-        for (auto &controller : instance->core_inputbinds)
+        for (auto &control : instance->controller)
+       
         {
           std::string descstring = "Player " + std::to_string(descnum);
           if (ImGui::BeginTabItem(descstring.c_str()))
           {
-            for (size_t i = 0; i < controller.size(); i++)
+            for (size_t i = 0; i < control.core_inputbinds.size(); i++)
             {
-              auto &bind = controller[i];
+              auto &bind = control.core_inputbinds[i];
               if (bind.description == "")
                 continue;
 

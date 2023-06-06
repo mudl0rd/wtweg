@@ -223,7 +223,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
 
   if (version > 1)
   {
-    auto *var3 = (struct retro_core_options_v2 *)var;
+    auto *var3 = reinterpret_cast<struct retro_core_options_v2 *>(var);
     retro_core_option_v2_category *var2 = var3->categories;
     retro_core_option_v2_definition *var1 = var3->definitions;
 
@@ -285,7 +285,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
   }
   else
   {
-    auto *var3 = (struct retro_core_option_definition *)var;
+    auto *var3 = reinterpret_cast<struct retro_core_option_definition*>(var);
     while (var3->key != NULL)
     {
       retro_core_option_value *var1 = var3->values;
@@ -362,15 +362,38 @@ void CLibretro::reset()
   variables_changed = false;
   perf_counter_last = 0;
   refreshrate = 0;
-  controller_type[0] = RETRO_DEVICE_JOYPAD;
-  controller_type[1] = RETRO_DEVICE_JOYPAD;
-  // Assume "RetroPad"....fuck me
+  frametime_cb = NULL;
+  frametime_ref = 0;
+
+  controller.clear();
+
+  for (int i=0;i<2;i++)
+  {
+    controller_input inp;
+     // Assume "RetroPad"....fuck me
+    inp.core_inputbinds.clear();
+    
+    for (int j = 0; j < 20; j++)
+    {
+        coreinput_bind bind;
+        bind.isanalog = (j > 15);
+        bind.retro_id = j;
+        bind.config.bits.axistrigger = 0;
+        bind.config.bits.sdl_id = 0;
+        bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
+        bind.val = 0;
+        bind.SDL_port = -1;
+        bind.port = i;
+        bind.description = retro_descripts[j];
+        bind.joykey_desc = "None";
+        inp.core_inputbinds.push_back(bind);
+    }
+    inp.core_inputdesc.clear();
+    inp.controller_type = RETRO_DEVICE_JOYPAD;
+    controller.push_back(inp);
+  }
   disk_intf.clear();
-  core_inputbinds[0].clear();
-  core_inputbinds[1].clear();
   core_variables.clear();
-  core_inputdesc[0].clear();
-  core_inputdesc[1].clear();
   v2_vars = false;
   memset(&retro,0,sizeof(retro));
 }
@@ -401,7 +424,7 @@ void CLibretro::core_changinpt(int dev, int port)
 {
   if (lr_isrunning)
   {
-    controller_type[port] = dev;
+    controller[port].controller_type = dev;
     retro.retro_set_controller_port_device(port, dev);
   }
 }
@@ -411,7 +434,7 @@ static bool no_roms(unsigned cmd, void *data)
 {
   if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
   {
-    bool *bval = (bool *)data;
+    bool *bval = reinterpret_cast<bool*>(data);
     no_roms2 = bval;
     return true;
   }
@@ -425,30 +448,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   reset();
 
-  int portage = 0;
-
-  if (!core_inputbinds[0].size())
-  {
-    for (auto &controller : core_inputbinds)
-    {
-      for (int i = 0; i < 20; i++)
-      {
-        coreinput_bind bind;
-        bind.isanalog = (i > 15);
-        bind.retro_id = i;
-        bind.config.bits.axistrigger = 0;
-        bind.config.bits.sdl_id = 0;
-        bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
-        bind.val = 0;
-        bind.SDL_port = -1;
-        bind.port = portage;
-        bind.description = retro_descripts[i];
-        bind.joykey_desc = "None";
-        controller.push_back(bind);
-      }
-      portage++;
-    }
-  }
+  
 
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
   std::filesystem::path core_path_ = corepath;
@@ -543,6 +543,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
       info.data = malloc(info.size);
       if (!info.data)
         goto fail;
+       
       ifs.read((char *)info.data, info.size);
     }
   }
@@ -571,12 +572,15 @@ bool CLibretro::core_isrunning()
 
 void CLibretro::core_run()
 {
+  if(frametime_cb != NULL)
+		frametime_cb(frametime_ref);
+
   retro.retro_run();
   static bool connotset = true;
   if (connotset)
   {
-    core_changinpt(controller_type[0], 0);
-    core_changinpt(controller_type[1], 1);
+    for (int i=0;i<controller.size();i++)
+    core_changinpt(controller[i].controller_type, i);
     connotset = false;
   }
 }
@@ -597,11 +601,8 @@ void CLibretro::core_unload()
       memset((retro_core *)&retro, 0, sizeof(retro_core));
     }
     lr_isrunning = false;
-    core_inputbinds[0].clear();
-    core_inputbinds[1].clear();
+    controller.clear();
     core_variables.clear();
-    core_inputdesc[0].clear();
-    core_inputdesc[1].clear();
   }
 }
 
