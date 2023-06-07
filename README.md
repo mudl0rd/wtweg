@@ -6,7 +6,8 @@
 * **OGL 4.6 and above**
 * **Win8.1 and above/Linux**
 * **GCC/G++ with C++17 support**
-
+ 
+![th-4127567854](https://github.com/cruduxcru0/WTFweg/assets/130935534/7877ee1b-cc79-4d9e-810c-7eabcd11e67e)
 
 ## Where?
 
