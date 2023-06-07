@@ -7,7 +7,8 @@
 * **Win8.1 and above/Linux**
 * **GCC/G++ with C++17 support**
  
-![th-4127567854](https://github.com/cruduxcru0/WTFweg/assets/130935534/7877ee1b-cc79-4d9e-810c-7eabcd11e67e)
+![6a0120a85dcdae970b0128776ff992970c-pi](https://github.com/cruduxcru0/WTFweg/assets/130935534/1fd7a5f8-2254-4ac6-8bf2-f8b5753cb0d7)
+
 
 ## Where?
 
