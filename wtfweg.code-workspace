@@ -72,7 +72,9 @@
 			"optional": "cpp",
 			"future": "cpp",
 			"sdl.h": "c",
-			"regex": "cpp"
+			"regex": "cpp",
+			"shared_mutex": "cpp",
+			"variant": "cpp"
 		}
 	}
 }

@@ -3,7 +3,7 @@
 #include "resampler.h"
 #include "libretro.h"
 #include "io.h"
-#include "utils.h"
+#include "mudutils/utils.h"
 
 struct fifo_buffer
 {

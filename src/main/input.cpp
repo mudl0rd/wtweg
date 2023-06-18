@@ -8,7 +8,7 @@
 #include "clibretro.h"
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
-#include "utils.h"
+#include "mudutils/utils.h"
 #include <bitset>
 #include <array>
 
@@ -192,83 +192,82 @@ bool loadinpconf()
     int portage = 0;
 
     ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
-    int section = ini_find_section(ini, "Player0Settings", strlen("Player0Settings"));
-    if (section == INI_NOT_FOUND)
-    {
-    new_sec:
-
-        for (auto &controller : lib->controller)
+   
+    for (auto &controller : lib->controller)
         {
-            std::string section_desc = "Player" + std::to_string(portage) + "Settings";
+             std::string section_desc = "Player" + std::to_string(portage++) + "Settings";
+            int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
+            if (section == INI_NOT_FOUND){
+            //not found, add section
             section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
+             auto save_conf = [ini,section] (std::string keydesc,std::string value_str){
+            ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
+                                 value_str.c_str(), value_str.length());
+            };
+            save_conf("controller_type",std::to_string(controller.controller_type));
             for (auto &bind : controller.core_inputbinds)
             {
                 if (bind.description == "")
                     continue;
-                std::string val = std::to_string(bind.config.val);
-                ini_property_add(ini, section, (char *)bind.description.c_str(), bind.description.length(),
-                                 (char *)val.c_str(), val.length());
-                std::string keydesc = bind.description + "_keydesc";
-                ini_property_add(ini, section, (char *)keydesc.c_str(), keydesc.length(),
-                                 (char *)bind.joykey_desc.c_str(), bind.joykey_desc.length());
-
-                val = std::to_string(bind.config.bits.axistrigger);
-                keydesc = bind.description + "_anatrig";
-                ini_property_add(ini, section, (char *)keydesc.c_str(), keydesc.length(),
-                                 (char *)val.c_str(), val.length());
-                std::string coval = std::to_string(bind.SDL_port);
-                ini_property_add(ini, section, (char *)"sdl_contr",strlen("sdl_contr"),
-                                 (char *)coval.c_str(), coval.length());
+                save_conf(bind.description,std::to_string(bind.config.val));
+                save_conf(bind.description+"_keydesc",bind.joykey_desc);
+                save_conf(bind.description+"_anatrig",std::to_string(bind.config.bits.axistrigger));
+                save_conf(bind.description+"_sdl_contr",std::to_string(bind.SDL_port));
             }
-            std::string numvars = std::to_string(controller.core_inputbinds.size());
-            ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
-            portage++;
-        }
-        int size = ini_save(ini, NULL, 0); // Find the size needed
-        auto ini_data = std::make_unique<char[]>(size);
-        size = ini_save(ini, ini_data.get(), size); // Actually save the file
-        save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-        ini_destroy(ini);
-        return false;
-    }
-    else
-    {
-
-        for (auto &controller : lib->controller)
-        {
-            std::string section_desc = "Player" + std::to_string(portage) + "Settings";
-            section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
-            int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
-            const char *numvars = ini_property_value(ini, section, idx);
-            size_t vars_infile = atoi(numvars);
-            if (vars_infile != controller.core_inputbinds.size())
-            {
+            save_conf("usedvars_num", std::to_string(controller.core_inputbinds.size()));
+            int size = ini_save(ini, NULL, 0); // Find the size needed
+            auto ini_data = std::make_unique<char[]>(size);
+            size = ini_save(ini, ini_data.get(), size); // Actually save the file
+            save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+            continue;
+            }
+            auto load_conf = [ini,section] (std::string keydesc){
+            int idx = ini_find_property(ini, section, keydesc.c_str(),
+                                            keydesc.length());
+            return ini_property_value(ini, section, idx);
+            };
+             auto save_conf = [ini,section] (std::string keydesc,std::string value_str){
+            ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
+                                 value_str.c_str(), value_str.length());
+            };
+            size_t vars_infile = std::stoi(load_conf("usedvars_num"));
+            if (vars_infile != controller.core_inputbinds.size()){
                 ini_section_remove(ini, section);
-                goto new_sec;
-            }
+                section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
+                 save_conf("controller_type",std::to_string(controller.controller_type));
             for (auto &bind : controller.core_inputbinds)
             {
-                int idx = ini_find_property(ini, section, bind.description.c_str(),
-                                            bind.description.length());
-                std::string value = ini_property_value(ini, section, idx);
-                bind.config.val = static_cast<uint16_t>(std::stoul(value));
-                std::string keydesc = bind.description + "_keydesc";
-                int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(), keydesc.length());
-                std::string keyval = ini_property_value(ini, section, pro1);
-                bind.joykey_desc = keyval;
-                pro1 = ini_find_property(ini, section, (char *)"sdl_contr",strlen("sdl_contr"));
-                std::string controlval = ini_property_value(ini, section, pro1);
-                bind.SDL_port = static_cast<int16_t>(std::stoi(controlval));
-
-                keydesc = bind.description + "_anatrig";
-                idx = ini_find_property(ini, section, keydesc.c_str(),
-                                        keydesc.length());
-                value = ini_property_value(ini, section, idx);
-                bind.config.bits.axistrigger = static_cast<int16_t>(std::stoi(value));
+                if (bind.description == "")
+                    continue;
+                save_conf(bind.description,std::to_string(bind.config.val));
+                save_conf(bind.description+"_keydesc",bind.joykey_desc);
+                save_conf(bind.description+"_anatrig",std::to_string(bind.config.bits.axistrigger));
+                save_conf(bind.description+"_sdl_contr",std::to_string(bind.SDL_port));
             }
-            portage++;
+            save_conf("usedvars_num", std::to_string(controller.core_inputbinds.size()));
+            int size = ini_save(ini, NULL, 0); // Find the size needed
+            auto ini_data = std::make_unique<char[]>(size);
+            size = ini_save(ini, ini_data.get(), size); // Actually save the file
+            save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+            continue;
+            }
+            else
+            {
+            auto load_conf = [ini,section] (std::string keydesc){
+            int idx = ini_find_property(ini, section, keydesc.c_str(),
+                                            keydesc.length());
+            return ini_property_value(ini, section, idx);
+            };
+            controller.controller_type = static_cast<int32_t>(std::stoi(load_conf("controller_type")));
+            for (auto &bind : controller.core_inputbinds)
+            {
+                bind.config.val = static_cast<uint16_t>(std::stoul(load_conf(bind.description)));
+                bind.joykey_desc = load_conf(bind.description + "_keydesc");
+                bind.SDL_port =static_cast<int16_t>(std::stoi(load_conf(bind.description + "_sdl_contr")));
+                bind.config.bits.axistrigger =static_cast<int16_t>(std::stoi(load_conf(bind.description + "_anatrig")));
+            }
+            }
         }
-    }
     ini_destroy(ini);
     return true;
 }
@@ -278,8 +277,8 @@ bool load_inpcfg(retro_input_descriptor *var)
     auto lib = CLibretro::get_classinstance();
 
 
-    for(int i=0;i<lib->controller.size();i++)
-    lib->controller[i].core_inputbinds.clear();
+     for (auto &controller : lib->controller)
+        controller.core_inputbinds.clear();
 
     retro_input_descriptor *var2 = var;
     int ports=0;
@@ -295,61 +294,55 @@ bool load_inpcfg(retro_input_descriptor *var)
 
     lib->controller.resize(ports);
     if(lib->core_inputdesc.size())
-    for(int i=0;i<lib->controller.size();i++)
-    lib->controller[i].core_inputdesc = lib->core_inputdesc[i];
+      for (auto &controller : lib->controller)
+        controller.core_inputbinds.clear();
+
+if(lib->core_inputdesc.size())
+    for (auto index = std::size_t{};auto& controller : lib->controller) {
+    controller.core_inputdesc=lib->core_inputdesc[index++];
+   }
 
     while (1)
     {
         if (var->description == NULL)
             break;
 
-        if (var->device == RETRO_DEVICE_ANALOG || (var->device == RETRO_DEVICE_JOYPAD) ||
-            (var->device == RETRO_DEVICE_KEYBOARD))
-        {
-
             coreinput_bind bind;
             bind.description = var->description;
             bind.port = var->port;
+            bind.device = var->device;
             auto &settings = bind.config;
 
-            if (var->device == RETRO_DEVICE_ANALOG)
-            {
-                int var_index = var->index;
-                int axistocheck = var->id;
-                if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-                    axistocheck = joypad_analogx_l;
-                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-                    axistocheck = joypad_analogy_l;
-                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-                    axistocheck = joypad_analogx_r;
-                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-                    axistocheck = joypad_analogy_r;
+            
+        if ((var->device& RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || ((var->device& RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD) ||
+            ((var->device& RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD))
+        {
 
-                bind.isanalog = (uint8_t) true;
-                bind.retro_id = axistocheck;
+
+            int var_index = var->index;
+            int axistocheck = var->id;
+            if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+                axistocheck = joypad_analogx_l;
+            else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+                axistocheck = joypad_analogy_l;
+            else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
+                axistocheck = joypad_analogx_r;
+                else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
+            axistocheck = joypad_analogy_r;
+
+                bind.isanalog = (uint8_t) ((var->device& RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG);
+                bind.retro_id = ((var->device& RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG)?axistocheck:var->id;
                 bind.config.bits.axistrigger = 0;
                 settings.bits.sdl_id = 0;
                 bind.SDL_port = -1;
                 settings.bits.joytype = (uint8_t)joytype_::keyboard;
                 bind.val = 0;
                 bind.joykey_desc = "None";
-                lib->controller[var->port].core_inputbinds.push_back(bind);
-            }
-            else if (var->device == RETRO_DEVICE_JOYPAD || var->device == RETRO_DEVICE_KEYBOARD)
-            {
-                bind.isanalog = (uint8_t) false;
-                bind.retro_id = var->id;
-                bind.config.bits.axistrigger = 0;
-                settings.bits.sdl_id = 0;
-                settings.bits.joytype = (uint8_t)joytype_::keyboard;
-                bind.val = 0;
-                bind.SDL_port = -1;
-                bind.joykey_desc = "None";
-                lib->controller[var->port].core_inputbinds.push_back(bind);
-            }
+                lib->controller[var->port].core_inputbinds.push_back(bind);     
         }
         var++;
-    }
+        }
+        
     return loadinpconf();
 }
 bool save_inpcfg()
@@ -368,30 +361,20 @@ bool save_inpcfg()
         {
             std::string section_desc = "Player" + std::to_string(portage) + "Settings";
             int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
-            for (auto &bind : controller.core_inputbinds)
-            {
-                int idx = ini_find_property(ini, section, bind.description.c_str(), bind.description.length());
-                std::string value = std::to_string(bind.config.val);
-                ini_property_value_set(ini, section, idx, value.c_str(), value.length());
-                std::string keydesc = bind.description + "_keydesc";
-                int pro1 = ini_find_property(ini, section, (char *)keydesc.c_str(), keydesc.length());
-                ini_property_value_set(ini, section, pro1, bind.joykey_desc.c_str(), bind.joykey_desc.length());
 
-                keydesc = bind.description + "_anatrig";
-                idx = ini_find_property(ini, section, keydesc.c_str(),
-                                        keydesc.length());
-                value = std::to_string(bind.config.bits.axistrigger);
-                ini_property_value_set(ini, section, idx, value.c_str(), value.length());
+            auto save_conf = [ini,section] (std::string keydesc,std::string value_str){
+                 int idx = ini_find_property(ini, section, keydesc.c_str(),keydesc.length());
+                 ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
+                };
 
-             idx = ini_find_property(ini, section, (char *)"sdl_contr",strlen("sdl_contr"));
-            std::string coval = std::to_string(bind.SDL_port);
-                ini_property_value_set(ini, section,idx,  (char *)coval.c_str(), coval.length());
+            for (auto &bind : controller.core_inputbinds){
+            save_conf(bind.description,std::to_string(bind.config.val));
+            save_conf(bind.description+"_anatrig",std::to_string(bind.config.bits.axistrigger));
+            save_conf(bind.description+"_sdl_contr",std::to_string(bind.SDL_port));
+            save_conf(bind.description+"_keydesc",bind.joykey_desc);
             }
-            std::string numvars = std::to_string(controller.core_inputbinds.size());
-            int idx = ini_find_property(ini, section,
-                                        "usedvars_num", strlen("usedvars_num"));
-            ini_property_value_set(ini, section, idx, numvars.c_str(),
-                                   numvars.length());
+            save_conf("controller_type",std::to_string(controller.controller_type));
+            save_conf("usedvars_num",std::to_string(controller.core_inputbinds.size()));
             portage++;
         }
         int size = ini_save(ini, NULL, 0); // Find the size needed
@@ -604,7 +587,7 @@ static bool key_pressed(int key)
 
 void keys()
 {
-    if (inp_keys)
+    if (inp_keys != NULL)
     {
         int num_keys_km;
         const Uint8 *keymap = SDL_GetKeyboardState(&num_keys_km);
@@ -698,11 +681,9 @@ void poll_lr()
 int16_t input_state(unsigned port, unsigned device, unsigned index,
                     unsigned id)
 {
-    if (port > 1)
-        return 0;
     auto lib = CLibretro::get_classinstance();
 
-    if (device == RETRO_DEVICE_MOUSE || device == RETRO_DEVICE_LIGHTGUN)
+    if ((device& RETRO_DEVICE_MASK) == RETRO_DEVICE_MOUSE || (device& RETRO_DEVICE_MASK) == RETRO_DEVICE_LIGHTGUN)
     {
         switch (id)
         {
@@ -727,7 +708,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         }
     }
 
-    if (device == RETRO_DEVICE_POINTER)
+    if ((device& RETRO_DEVICE_MASK) == RETRO_DEVICE_POINTER)
     {
         vp widthheight = resize_cb();
 
@@ -756,10 +737,10 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         }
     }
 
-    if (device == RETRO_DEVICE_KEYBOARD)
+    if ((device& RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD)
         return (id < RETROK_LAST) && key_pressed(id);
 
-    if (device == RETRO_DEVICE_ANALOG)
+    if ((device& RETRO_DEVICE_MASK)== RETRO_DEVICE_ANALOG)
     {
         int axistocheck = id;
         int var_index = index;
@@ -777,7 +758,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
                 return bind.val;
         }
     }
-    if (device == RETRO_DEVICE_JOYPAD)
+    if ((device& RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
     {
         for (auto &bind : lib->controller[port].core_inputbinds)
         {

@@ -82,6 +82,7 @@ struct coreinput_bind
 {
 	int SDL_port;
 	int port;
+	int device;
 	std::string description;
 	std::string joykey_desc;
 	int16_t val;

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <filesystem>
 #include "io.h"
-#include "utils.h"
+#include "mudutils/utils.h"
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
 #ifdef _WIN32
@@ -265,42 +265,39 @@ static bool core_controller_info(struct retro_controller_info *info)
   auto retro = CLibretro::get_classinstance();
 
   retro->core_inputdesc.clear();
-  int cnt=0;
-   struct retro_controller_info *info2 = info;
-  while(1)
-  {
-    if(info2->types == NULL)break;
-    info2++;
-    cnt++;
-  }
-  cnt++;
-  retro->core_inputdesc.resize(cnt);
-
+  int cnt = 0;
+  struct retro_controller_info *info2 = info;
   bool cont_found = false;
-  info2 = info;
-  for (int j = 0; j < cnt; j++)
+  while (info2->types != NULL)
   {
-    if (info2 == NULL)
-      break;
-    for (unsigned i = 0; i < info2->num_types; i++)
+    std::vector<coreinput_desc> vec;
+    vec.clear();
+
+    const struct retro_controller_description *types = info2->types;
+    for(int i=0;i<info2->num_types;i++)
     {
-      const struct retro_controller_description d = info2->types[i];
-      if (d.desc)
+
+      if (types->desc != 0)
       {
-        if (d.id == RETRO_DEVICE_JOYPAD && !cont_found)
+        if ((types->id & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD && !cont_found)
         {
           cont_found = true;
-         retro->controller[j].controller_type = d.id;
+          retro->controller[cnt].controller_type = types->id;
         }
         coreinput_desc desc;
-        desc.desc = d.desc;
-        desc.id = d.id;
-        retro->core_inputdesc[j].push_back(desc);
-
+        desc.desc = types->desc;
+        desc.id = types->id;
+        vec.push_back(desc);
       }
+      types++;
     }
     info2++;
+    cnt++;
+    retro->core_inputdesc.push_back(vec);
   }
+
+  for(int i=0;i<retro->controller.size();i++)
+    retro->controller[i].core_inputdesc=retro->core_inputdesc[i];
   return true;
 }
 
@@ -381,7 +378,8 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_GET_LED_INTERFACE:
   {
-    auto *var = reinterpret_cast<struct retro_led_interface  *>(data);;
+    auto *var = reinterpret_cast<struct retro_led_interface *>(data);
+    ;
     var->set_led_state = core_set_led_state;
     return true;
   }
@@ -406,14 +404,14 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_GET_INPUT_MAX_USERS:
   {
-    auto *players =  reinterpret_cast<unsigned *>(data);
+    auto *players = reinterpret_cast<unsigned *>(data);
     *players = 2;
     return true;
   }
 
   case RETRO_ENVIRONMENT_GET_INPUT_DEVICE_CAPABILITIES:
   {
-    auto *capabilities =  reinterpret_cast<uint64_t *>(data);
+    auto *capabilities = reinterpret_cast<uint64_t *>(data);
     *capabilities = (1 << RETRO_DEVICE_JOYPAD) |
                     (1 << RETRO_DEVICE_MOUSE) |
                     (1 << RETRO_DEVICE_KEYBOARD) |
@@ -423,38 +421,38 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_GET_VFS_INTERFACE:
   {
-   struct retro_vfs_interface_info *cb = reinterpret_cast<struct retro_vfs_interface_info*>(data);
+    struct retro_vfs_interface_info *cb = reinterpret_cast<struct retro_vfs_interface_info *>(data);
     if (cb->required_interface_version > 2)
       return false;
-    struct retro_vfs_interface *vfs_iface = (struct retro_vfs_interface*)&vfs_intf;
+    struct retro_vfs_interface *vfs_iface = (struct retro_vfs_interface *)&vfs_intf;
     cb->iface = reinterpret_cast<struct retro_vfs_interface *>(vfs_iface);
     return true;
   }
 
   case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
   {
-    auto *cb = reinterpret_cast<struct retro_log_callback*>(data);
+    auto *cb = reinterpret_cast<struct retro_log_callback *>(data);
     cb->log = core_log;
     return true;
   }
 
   case RETRO_ENVIRONMENT_GET_LANGUAGE:
   {
-    unsigned *dat= reinterpret_cast<unsigned*>(data);
+    unsigned *dat = reinterpret_cast<unsigned *>(data);
     *dat = RETRO_LANGUAGE_ENGLISH;
     return true;
   }
 
   case RETRO_ENVIRONMENT_GET_FASTFORWARDING:
   {
-    bool* dat = reinterpret_cast<bool*>(data);
+    bool *dat = reinterpret_cast<bool *>(data);
     *dat = false;
     return true;
   }
 
   case RETRO_ENVIRONMENT_GET_USERNAME:
   {
-    const char** dat = reinterpret_cast<const char **>(data);
+    const char **dat = reinterpret_cast<const char **>(data);
     *dat = "mudlord";
     return true;
   }
@@ -500,15 +498,15 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER:
   {
-    unsigned * dat = reinterpret_cast<unsigned *>(data);
-  *dat = RETRO_HW_CONTEXT_OPENGL;
+    unsigned *dat = reinterpret_cast<unsigned *>(data);
+    *dat = RETRO_HW_CONTEXT_OPENGL;
     return true;
   }
 
   case RETRO_ENVIRONMENT_SET_HW_RENDER:
   {
     auto *hw =
-    reinterpret_cast<struct retro_hw_render_callback *>(data);
+        reinterpret_cast<struct retro_hw_render_callback *>(data);
     return video_sethw(hw);
   }
 
@@ -518,7 +516,7 @@ static bool core_environment(unsigned cmd, void *data)
   }
 
   case RETRO_ENVIRONMENT_GET_CAN_DUPE:
-    bval =  reinterpret_cast<bool *>(data);
+    bval = reinterpret_cast<bool *>(data);
     *bval = true;
     return true;
 
@@ -534,29 +532,29 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
   {
     static auto *sys_path = strdup(retro->system_path.c_str());
-    *(const char**)data = sys_path;
+    *(const char **)data = sys_path;
     return true;
   }
 
- case RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK:
-	{
-   auto *ftcb= reinterpret_cast<const struct retro_frame_time_callback *>(data);
-		retro->frametime_cb = ftcb->callback;
-		retro->frametime_ref = ftcb->reference;
+  case RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK:
+  {
+    auto *ftcb = reinterpret_cast<const struct retro_frame_time_callback *>(data);
+    retro->frametime_cb = ftcb->callback;
+    retro->frametime_ref = ftcb->reference;
     return true;
-	}
+  }
 
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
     std::string str = retro->saves_path;
     static auto *sys_path = strdup(str.c_str());
-    *(const char**)data = sys_path;
+    *(const char **)data = sys_path;
     return true;
   }
 
   case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
   {
-    auto *callback =  reinterpret_cast<const struct retro_keyboard_callback *>(data);
+    auto *callback = reinterpret_cast<const struct retro_keyboard_callback *>(data);
     core_kb_callback(callback->callback);
     return true;
   }
@@ -608,15 +606,15 @@ static bool core_environment(unsigned cmd, void *data)
   }
   case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
   {
-    bool* vars = reinterpret_cast<bool *>(data);
+    bool *vars = reinterpret_cast<bool *>(data);
     *vars = retro->variables_changed;
     retro->variables_changed = false;
     return true;
   }
   case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION:
   {
-  unsigned * dat = reinterpret_cast<unsigned *>(data);
-  *dat = 1;
+    unsigned *dat = reinterpret_cast<unsigned *>(data);
+    *dat = 1;
     return true;
   }
 

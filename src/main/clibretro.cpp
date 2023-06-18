@@ -3,7 +3,7 @@
 #include <iostream>
 #include <filesystem>
 #include "io.h"
-#include "utils.h"
+#include "mudutils/utils.h"
 #include <algorithm>
 #define INI_IMPLEMENTATION
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
@@ -376,6 +376,7 @@ void CLibretro::reset()
     for (int j = 0; j < 20; j++)
     {
         coreinput_bind bind;
+        bind.device = RETRO_DEVICE_JOYPAD;
         bind.isanalog = (j > 15);
         bind.retro_id = j;
         bind.config.bits.axistrigger = 0;

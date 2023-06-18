@@ -6,8 +6,6 @@
 #include <filesystem>
 #include <stdio.h>
 #include <io.h>
-#include <string>
-#include <iostream>
 #include <vector>
 #include <array>
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
@@ -25,51 +23,6 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 #else
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
-
-const char *b64tb = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-std::string base64_encode(const std::string &in)
-{
-	std::string out;
-	int val = 0, valb = -6;
-	for (unsigned char c : in)
-	{
-		val = (val << 8) + c;
-		valb += 8;
-		while (valb >= 0)
-		{
-			out.push_back(b64tb[(val >> valb) & 0x3F]);
-			valb -= 6;
-		}
-	}
-	if (valb > -6)
-		out.push_back(b64tb[((val << 8) >> (valb + 8)) & 0x3F]);
-	while (out.size() % 4)
-		out.push_back('=');
-	return out;
-}
-
-std::string base64_decode(const std::string &in)
-{
-	std::string out;
-	std::vector<int> T(256, -1);
-	for (int i = 0; i < 64; i++)
-		T[b64tb[i]] = i;
-	int val = 0, valb = -8;
-	for (unsigned char c : in)
-	{
-		if (T[c] == -1)
-			break;
-		val = (val << 6) + T[c];
-		valb += 6;
-		if (valb >= 0)
-		{
-			out.push_back(char((val >> valb) & 0xFF));
-			valb -= 8;
-		}
-	}
-	return out;
-}
 
 unsigned get_filesize(const char *path)
 {
@@ -112,30 +65,7 @@ uint32_t pow2up(uint32_t v)
 	return v;
 }
 
-unsigned int crc32(const void *data, unsigned int length)
-{
-	static const unsigned int tinf_crc32tab[16] = {
-		0x00000000, 0x1db71064, 0x3b6e20c8, 0x26d930ac, 0x76dc4190,
-		0x6b6b51f4, 0x4db26158, 0x5005713c, 0xedb88320, 0xf00f9344,
-		0xd6d6a3e8, 0xcb61b38c, 0x9b64c2b0, 0x86d3d2d4, 0xa00ae278,
-		0xbdbdf21c};
 
-	const unsigned char *buf = (const unsigned char *)data;
-	unsigned int crc = 0xffffffff;
-	unsigned int i;
-
-	if (length == 0)
-		return 0;
-
-	for (i = 0; i < length; ++i)
-	{
-		crc ^= buf[i];
-		crc = tinf_crc32tab[crc & 0x0f] ^ (crc >> 4);
-		crc = tinf_crc32tab[crc & 0x0f] ^ (crc >> 4);
-	}
-
-	return crc ^ 0xffffffff;
-}
 
 void vector_appendbytes(std::vector<uint8_t> &vec, uint8_t *bytes, size_t len)
 {
@@ -194,4 +124,49 @@ void freelib(void *handle)
 #else
 	SDL_UnloadObject(handle);
 #endif
+}
+
+const char *b64tb = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+std::string base64_encode(const std::string &in)
+{
+	std::string out;
+	int val = 0, valb = -6;
+	for (unsigned char c : in)
+	{
+		val = (val << 8) + c;
+		valb += 8;
+		while (valb >= 0)
+		{
+			out.push_back(b64tb[(val >> valb) & 0x3F]);
+			valb -= 6;
+		}
+	}
+	if (valb > -6)
+		out.push_back(b64tb[((val << 8) >> (valb + 8)) & 0x3F]);
+	while (out.size() % 4)
+		out.push_back('=');
+	return out;
+}
+
+std::string base64_decode(const std::string &in)
+{
+	std::string out;
+	std::vector<int> T(256, -1);
+	for (int i = 0; i < 64; i++)
+		T[b64tb[i]] = i;
+	int val = 0, valb = -8;
+	for (unsigned char c : in)
+	{
+		if (T[c] == -1)
+			break;
+		val = (val << 6) + T[c];
+		valb += 6;
+		if (valb >= 0)
+		{
+			out.push_back(char((val >> valb) & 0xFF));
+			valb -= 8;
+		}
+	}
+	return out;
 }

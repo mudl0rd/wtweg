@@ -8,7 +8,7 @@
 #include <filesystem>
 #include "clibretro.h"
 #include "cmdline.h"
-#include "utils.h"
+#include "mudutils/utils.h"
 #include "imgui_font.h"
 
 #define WIDTH 1280
