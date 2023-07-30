@@ -1,8 +1,10 @@
 import glob
-
-sources = glob.glob('./src/main/*.cpp')
-sources += glob.glob('./src/main/mudutils/*.cpp')
-sources += glob.glob('./src/deps/*.cpp')
-sources += glob.glob('./src/deps/imgui/*.cpp')
+import pathlib
+import sys
+import os
+desktop = pathlib.Path(sys.argv[1])
+sources = []
+for ext in ('*.cpp', '*.c'):
+   sources.extend(desktop.rglob(ext))
 for i in sources:
     print(i)
