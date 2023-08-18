@@ -10,10 +10,15 @@ sdl2dep = dependency('sdl2',
   static: true,
   method: 'pkg-config')
 endif
-inc = include_directories('src/main')
-inc_imgui = include_directories('src/deps/imgui')
-inc_deps = include_directories('src/deps')
-inc_stb = include_directories('src/deps/stb')
+
+inc = [
+  include_directories(
+    'src/main',
+    'src/deps/imgui',
+    'src/deps',
+    'src/deps/stb'
+  )
+]
 
 src = []
 
@@ -49,6 +54,6 @@ endif
 dir_base = meson.current_source_dir()
 dir_install = join_paths(dir_base, 'compile_dir')
 
-executable('wtfweg',gui_app : true,install: true,install_dir: dir_install,include_directories : [inc,inc_imgui,inc_deps,inc_stb],sources : [src],dependencies : [sdl2dep,dl_dep]
+executable('wtfweg',gui_app : true,install: true,install_dir: dir_install,include_directories : [inc],sources : [src],dependencies : [sdl2dep,dl_dep]
 )
 
