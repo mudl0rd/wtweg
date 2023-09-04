@@ -540,6 +540,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
       {
       fail:
         printf("FAILED TO LOAD ROMz!!!!!!!!!!!!!!!!!!");
+        core_unload();
         return false;
       }
       info.data = malloc(info.size);
@@ -565,6 +566,9 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   video_init(&av.geometry, sdl_window);
   
   core_saveram(romsavesstatespath.c_str(), false);
+
+  for (int i=0;i<controller.size();i++)
+  core_changinpt(controller[i].controller_type, i);
   return true;
 }
 
@@ -576,16 +580,8 @@ bool CLibretro::core_isrunning()
 void CLibretro::core_run()
 {
   if(frametime_cb != NULL)
-		frametime_cb(frametime_ref);
-
+	frametime_cb(frametime_ref);
   retro.retro_run();
-  static bool connotset = true;
-  if (connotset)
-  {
-    for (int i=0;i<controller.size();i++)
-    core_changinpt(controller[i].controller_type, i);
-    connotset = false;
-  }
 }
 
 void CLibretro::core_unload()

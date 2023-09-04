@@ -77,10 +77,7 @@ struct ExampleAppLog
         Buf.appendfv(fmt, args);
         va_end(args);
          LineCol.push_back(colors[level].col);
-        for (int new_size = Buf.size(); old_size < new_size; old_size++)
-            if (Buf[old_size] == '\n')
-             LineOffsets.push_back(old_size + 1);
-               
+         LineOffsets.push_back(old_size);
     }
 
     void    Draw(const char* title, bool* p_open =NULL)
