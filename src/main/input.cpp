@@ -181,7 +181,7 @@ bool checkjs(int port)
     else return false;
 }
 
-bool loadinpconf()
+bool loadinpconf(uint32_t checksum)
 {
     auto lib = CLibretro::get_classinstance();
     std::string core_config = lib->core_config;
@@ -195,7 +195,7 @@ bool loadinpconf()
    
     for (auto &controller : lib->controller)
         {
-             std::string section_desc = "Player" + std::to_string(portage++) + "Settings";
+            std::string section_desc = "Player"+ std::to_string(portage++)+"_"+std::to_string(checksum);
             int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
             if (section == INI_NOT_FOUND){
             //not found, add section
@@ -214,37 +214,6 @@ bool loadinpconf()
                 save_conf(bind.description+"_anatrig",std::to_string(bind.config.bits.axistrigger));
                 save_conf(bind.description+"_sdl_contr",std::to_string(bind.SDL_port));
             }
-            save_conf("usedvars_num", std::to_string(controller.core_inputbinds.size()));
-            int size = ini_save(ini, NULL, 0); // Find the size needed
-            auto ini_data = std::make_unique<char[]>(size);
-            size = ini_save(ini, ini_data.get(), size); // Actually save the file
-            save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-            continue;
-            }
-            auto load_conf = [ini,section] (std::string keydesc){
-            int idx = ini_find_property(ini, section, keydesc.c_str(),
-                                            keydesc.length());
-            return ini_property_value(ini, section, idx);
-            };
-             auto save_conf = [ini,section] (std::string keydesc,std::string value_str){
-            ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                 value_str.c_str(), value_str.length());
-            };
-            size_t vars_infile = std::stoi(load_conf("usedvars_num"));
-            if (vars_infile != controller.core_inputbinds.size()){
-                ini_section_remove(ini, section);
-                section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
-                 save_conf("controller_type",std::to_string(controller.controller_type));
-            for (auto &bind : controller.core_inputbinds)
-            {
-                if (bind.description == "")
-                    continue;
-                save_conf(bind.description,std::to_string(bind.config.val));
-                save_conf(bind.description+"_keydesc",bind.joykey_desc);
-                save_conf(bind.description+"_anatrig",std::to_string(bind.config.bits.axistrigger));
-                save_conf(bind.description+"_sdl_contr",std::to_string(bind.SDL_port));
-            }
-            save_conf("usedvars_num", std::to_string(controller.core_inputbinds.size()));
             int size = ini_save(ini, NULL, 0); // Find the size needed
             auto ini_data = std::make_unique<char[]>(size);
             size = ini_save(ini, ini_data.get(), size); // Actually save the file
@@ -342,10 +311,14 @@ if(lib->core_inputdesc.size())
         }
         var++;
         }
-        
-    return loadinpconf();
+
+    uint32_t crc = 0;
+    for (auto &controller : lib->controller)
+    for (auto &bind : controller.core_inputbinds)
+    crc=crc32(crc,bind.description.c_str(),bind.description.length());
+    return loadinpconf(crc);
 }
-bool save_inpcfg()
+bool save_inpcfg(uint32_t checksum)
 {
     auto lib = CLibretro::get_classinstance();
     std::string core_config = lib->core_config;
@@ -359,9 +332,8 @@ bool save_inpcfg()
 
         for (auto &controller : lib->controller)
         {
-            std::string section_desc = "Player" + std::to_string(portage) + "Settings";
+            std::string section_desc = "Player"+ std::to_string(portage++)+"_"+std::to_string(checksum);
             int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
-
             auto save_conf = [ini,section] (std::string keydesc,std::string value_str){
                  int idx = ini_find_property(ini, section, keydesc.c_str(),keydesc.length());
                  ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
@@ -374,8 +346,6 @@ bool save_inpcfg()
             save_conf(bind.description+"_keydesc",bind.joykey_desc);
             }
             save_conf("controller_type",std::to_string(controller.controller_type));
-            save_conf("usedvars_num",std::to_string(controller.core_inputbinds.size()));
-            portage++;
         }
         int size = ini_save(ini, NULL, 0); // Find the size needed
         auto ini_data = std::make_unique<char[]>(size);

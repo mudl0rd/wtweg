@@ -55,7 +55,7 @@ void audio_changeratefps(float refreshra, float input_srate, float fps);
 uintptr_t video_get_fb();
 static retro_keyboard_event_t inp_keys = NULL;
 bool video_set_pixelformat(retro_pixel_format fmt);
-bool loadinpconf();
+
 void init_inpt();
 void init_inp(int num);
 void close_inp(int num);
@@ -67,6 +67,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
 void poll_lr();
 
 bool load_inpcfg(retro_input_descriptor *var);
-bool save_inpcfg();
+bool loadinpconf(uint32_t checksum);
+bool save_inpcfg(uint32_t checksum);
 
 #endif

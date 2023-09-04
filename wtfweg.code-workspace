@@ -74,7 +74,11 @@
 			"sdl.h": "c",
 			"regex": "cpp",
 			"shared_mutex": "cpp",
-			"variant": "cpp"
+			"variant": "cpp",
+			"hash_map": "cpp",
+			"charconv": "cpp",
+			"format": "cpp",
+			"span": "cpp"
 		}
 	}
 }
