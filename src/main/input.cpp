@@ -195,7 +195,7 @@ bool loadinpconf(uint32_t checksum)
    
     for (auto &controller : lib->controller)
         {
-            std::string section_desc = "Player"+ std::to_string(portage++)+"_"+std::to_string(checksum);
+            std::string section_desc = "P"+ std::to_string(portage++)+"_"+std::to_string(checksum);
             int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
             if (section == INI_NOT_FOUND){
             //not found, add section
@@ -332,7 +332,7 @@ bool save_inpcfg(uint32_t checksum)
 
         for (auto &controller : lib->controller)
         {
-            std::string section_desc = "Player"+ std::to_string(portage++)+"_"+std::to_string(checksum);
+            std::string section_desc = "P"+ std::to_string(portage++)+"_"+std::to_string(checksum);
             int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
             auto save_conf = [ini,section] (std::string keydesc,std::string value_str){
                  int idx = ini_find_property(ini, section, keydesc.c_str(),keydesc.length());

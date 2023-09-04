@@ -448,6 +448,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     core_unload();
 
   reset();
+  lr_isrunning = true;
 
   
 
@@ -552,6 +553,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   if (!retro.retro_load_game(contentless ? NULL : &info))
   {
     printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
+    core_unload();
     return false;
   }
 
@@ -561,7 +563,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   refreshrate = dm.refresh_rate;
   audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, sdl_window);
-  lr_isrunning = true;
+  
   core_saveram(romsavesstatespath.c_str(), false);
   return true;
 }
