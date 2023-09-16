@@ -92,111 +92,101 @@ bool CLibretro::load_coresettings()
 {
   int size_ = get_filesize(core_config.c_str());
   ini_t *ini = NULL;
-  if (!size_)
-  {
-
-  // create a new file with defaults
-  // create cache of core options
-  redo:
-    if (core_variables.size())
-    {
-      ini = ini_create(NULL);
-      int section =
-          ini_section_add(ini, "Core Settings", strlen("Core Settings"));
-      for (size_t i = 0; i < core_variables.size(); i++)
-      {
-        ini_property_add(ini, section, (char *)core_variables[i].name.c_str(),
-                         core_variables[i].name.length(),
-                         (char *)core_variables[i].var.c_str(),
-                         core_variables[i].var.length());
-
-        for (size_t j = 0; j < core_variables[i].config_vals.size(); j++)
-        {
-          if (core_variables[i].config_vals[j] == core_variables[i].var)
-          {
-            core_variables[i].sel_idx = j;
-            break;
-          }
-        }
-      }
-      std::string numvars = std::to_string(core_variables.size());
-      ini_property_add(ini, section, "usedvars_num", strlen("usedvars_num"), numvars.c_str(), numvars.length());
-      int size = ini_save(ini, NULL, 0); // Find the size needed
-      auto ini_data = std::make_unique<char[]>(size);
-      size = ini_save(ini, ini_data.get(), size); // Actually save the file
-      save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-      ini_destroy(ini);
-    }
-    return false;
+  std::vector<uint8_t> data;
+  if (!size_){
+    save_coresettings();
+    size_ = get_filesize(core_config.c_str());
+    data = load_data(core_config.c_str(), (unsigned int *)&size_);
   }
   else
   {
-    std::vector<uint8_t> data = load_data(core_config.c_str(), (unsigned int *)&size_);
-    ini = ini_load((char *)data.data(), NULL);
-    int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
-    if (section != INI_NOT_FOUND)
-    {
-      int idx = ini_find_property(ini, section, "usedvars_num", strlen("usedvars_num"));
-      const char *numvars = ini_property_value(ini, section, idx);
-      size_t vars_infile = atoi(numvars);
-      if (core_variables.size() != vars_infile)
-      {
-        // rebuild cache.
-        ini_destroy(ini);
-        goto redo;
-      }
+    data = load_data(core_config.c_str(), (unsigned int *)&size_);
+  }
 
-      for (size_t i = 0; i < vars_infile; i++)
-      {
+   uint32_t crc = 0;
+    for (auto &vars : core_variables)
+    crc=crc32(crc,vars.name.c_str(),vars.name.length());
+    std::string crc_string="I_"+std::to_string(crc);
+
+    ini = ini_load((char *)data.data(), NULL);
+    int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
+    if(section == INI_NOT_FOUND)
+    {
+     section =ini_section_add(ini, crc_string.c_str(),crc_string.length());
+       for (auto &vars : core_variables)
+       ini_property_add(ini, section, (char *)vars.name.c_str(),
+                         vars.name.length(),
+                         (char *)vars.var.c_str(),
+                         vars.var.length());
+    }
+    for (auto i = std::size_t{};auto& vars : core_variables) {
         std::string name = ini_property_name(ini, section, i);
         std::string value = ini_property_value(ini, section, i);
-        core_variables[i].name = name;
-        core_variables[i].var = value;
-
-        for (size_t j = 0; j < core_variables[i].config_vals.size(); j++)
+        vars.name = name;
+        vars.var = value;
+        for (auto j = std::size_t{};auto& var_val : vars.config_vals)
         {
-          if (core_variables[i].config_vals[j] == core_variables[i].var)
+          if (var_val == vars.var)
           {
-            core_variables[i].sel_idx = j;
+            vars.sel_idx = j;
             break;
           }
+          j++;
         }
-      }
+      i++;
     }
     ini_destroy(ini);
-    return (section != INI_NOT_FOUND ? true : false);
-  }
-  return false;
+    return true;
 }
 
 void CLibretro::save_coresettings()
 {
   unsigned sz_coreconfig = get_filesize(core_config.c_str());
+  uint32_t crc = 0;
+  for (auto &vars : core_variables)
+  crc=crc32(crc,vars.name.c_str(),vars.name.length());
+  std::string crc_string="I_"+std::to_string(crc);
+  ini_t *ini = NULL;
   if (sz_coreconfig)
   {
     unsigned size_;
     std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
-    ini_t *ini = ini_load((char *)data.data(), NULL);
-    int section = ini_find_section(ini, "Core Settings", strlen("Core Settings"));
-    for (size_t i = 0; i < core_variables.size(); i++)
+    ini = ini_load((char *)data.data(), NULL);
+    int section = ini_find_section(ini, crc_string.c_str(),crc_string.length());
+    if(section == INI_NOT_FOUND)
+    {
+      section =ini_section_add(ini, crc_string.c_str(),crc_string.length());
+       for (auto &vars : core_variables)
+       ini_property_add(ini, section, (char *)vars.name.c_str(),
+                         vars.name.length(),
+                         (char *)vars.var.c_str(),
+                         vars.var.length());
+    }
+    else
+    for (auto &vars: core_variables)
     {
       int idx = ini_find_property(ini, section,
-                                  core_variables[i].name.c_str(),
-                                  core_variables[i].name.length());
-      ini_property_value_set(ini, section, idx, core_variables[i].var.c_str(),
-                             core_variables[i].var.length());
+                                  vars.name.c_str(),
+                                  vars.name.length());
+      ini_property_value_set(ini, section, idx, vars.var.c_str(),
+                             vars.var.length());
     }
-    std::string numvars = std::to_string(core_variables.size());
-    int idx = ini_find_property(ini, section,
-                                "usedvars_num", strlen("usedvars_num"));
-    ini_property_value_set(ini, section, idx, numvars.c_str(),
-                           numvars.length());
-    int size = ini_save(ini, NULL, 0); // Find the size needed
-    auto ini_data = std::make_unique<char[]>(size);
-    size = ini_save(ini, ini_data.get(), size); // Actually save the file
-    save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-    ini_destroy(ini);
   }
+  else
+  {
+   ini = ini_create(NULL);
+   int section =ini_section_add(ini, crc_string.c_str(),crc_string.length());
+       for (auto &vars : core_variables)
+       ini_property_add(ini, section, (char *)vars.name.c_str(),
+                         vars.name.length(),
+                         (char *)vars.var.c_str(),
+                         vars.var.length());
+  }
+  int size = ini_save(ini, NULL, 0); // Find the size needed
+  auto ini_data = std::make_unique<char[]>(size);
+  size = ini_save(ini, ini_data.get(), size); // Actually save the file
+  save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+  ini_destroy(ini);
 }
 
 bool CLibretro::init_inputvars(retro_input_descriptor *var)
