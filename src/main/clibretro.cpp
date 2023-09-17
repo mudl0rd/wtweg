@@ -119,10 +119,9 @@ bool CLibretro::load_coresettings()
                          (char *)vars.var.c_str(),
                          vars.var.length());
     }
-    for (auto i = std::size_t{};auto& vars : core_variables) {
-        std::string name = ini_property_name(ini, section, i);
+    for (auto& vars : core_variables) {
+        int i =ini_find_property(ini,section,vars.name.c_str(),vars.name.length());
         std::string value = ini_property_value(ini, section, i);
-        vars.name = name;
         vars.var = value;
         for (auto j = std::size_t{};auto& var_val : vars.config_vals)
         {
@@ -133,7 +132,6 @@ bool CLibretro::load_coresettings()
           }
           j++;
         }
-      i++;
     }
     ini_destroy(ini);
     return true;
