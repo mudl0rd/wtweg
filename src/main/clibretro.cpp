@@ -103,10 +103,10 @@ bool CLibretro::load_coresettings()
     data = load_data(core_config.c_str(), (unsigned int *)&size_);
   }
 
-   uint32_t crc = 0;
+    uint32_t crc = 0;
     for (auto &vars : core_variables)
     crc=crc32(crc,vars.name.c_str(),vars.name.length());
-    std::string crc_string="I_"+std::to_string(crc);
+    std::string crc_string="C_"+std::to_string(crc);
 
     ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
@@ -197,11 +197,9 @@ bool CLibretro::init_inputvars(retro_input_descriptor *var)
 
 const char *CLibretro::load_corevars(retro_variable *var)
 {
-  for (size_t i = 0; i < core_variables.size(); i++)
-  {
-    if (strcmp(core_variables[i].name.c_str(), var->key) == 0)
-      return core_variables[i].var.c_str();
-  }
+   for (auto &vars : core_variables)
+     if (strcmp(vars.name.c_str(), var->key) == 0)
+      return vars.var.c_str();
   return NULL;
 }
 
@@ -396,7 +394,7 @@ CLibretro::CLibretro(SDL_Window *window, char *exepath)
   cores.clear();
 
   const char *dirs[3] = {"cores", "system", "saves"};
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < ARRAYSIZE(dirs); i++)
   {
     std::filesystem::path p = exe.parent_path().string();
     std::filesystem::path path = p / dirs[i];
