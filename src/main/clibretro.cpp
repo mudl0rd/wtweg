@@ -121,8 +121,7 @@ bool CLibretro::load_coresettings()
     }
     for (auto& vars : core_variables) {
         int i =ini_find_property(ini,section,vars.name.c_str(),vars.name.length());
-        std::string value = ini_property_value(ini, section, i);
-        vars.var = value;
+        vars.var = ini_property_value(ini, section, i);
         for (auto j = std::size_t{};auto& var_val : vars.config_vals)
         {
           if (var_val == vars.var)
@@ -153,14 +152,13 @@ void CLibretro::save_coresettings()
     int section = ini_find_section(ini, crc_string.c_str(),crc_string.length());
     if(section == INI_NOT_FOUND)
     {
-      section =ini_section_add(ini, crc_string.c_str(),crc_string.length());
+       section =ini_section_add(ini, crc_string.c_str(),crc_string.length());
        for (auto &vars : core_variables)
        ini_property_add(ini, section, (char *)vars.name.c_str(),
                          vars.name.length(),
                          (char *)vars.var.c_str(),
                          vars.var.length());
     }
-    else
     for (auto &vars: core_variables)
     {
       int idx = ini_find_property(ini, section,
