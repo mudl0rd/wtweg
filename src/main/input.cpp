@@ -186,8 +186,7 @@ bool loadinpconf(uint32_t checksum)
     auto lib = CLibretro::get_classinstance();
     std::string core_config = lib->core_config;
     unsigned sz_coreconfig = get_filesize(core_config.c_str());
-    unsigned size_;
-    std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
+    std::vector<uint8_t> data = load_data((const char *)core_config.c_str());
     ini_t *ini = NULL;
     int portage = 0;
 
@@ -326,8 +325,7 @@ bool save_inpcfg(uint32_t checksum)
     unsigned sz_coreconfig = get_filesize(core_config.c_str());
     if (sz_coreconfig)
     {
-        unsigned size_;
-        std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
+        std::vector<uint8_t> data = load_data((const char *)core_config.c_str());
         ini_t *ini = ini_load((char *)data.data(), NULL);
 
         for (auto &controller : lib->controller)

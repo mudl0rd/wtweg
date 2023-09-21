@@ -85,6 +85,13 @@ int main2(const char *rom, const char *core, bool pergame)
   font_cfg.FontDataOwnedByAtlas = false;
   io.Fonts->AddFontFromMemoryTTF((unsigned char *)Roboto_Regular, sizeof(Roboto_Regular), dpi_scaling * 12.0f, &font_cfg, io.Fonts->GetGlyphRangesJapanese());
   ImGuiStyle *style = &ImGui::GetStyle();
+      style->TabRounding = 4;
+    style->ScrollbarRounding = 9;
+    style->WindowRounding = 7;
+    style->GrabRounding = 3;
+    style->FrameRounding = 3;
+    style->PopupRounding = 4;
+    style->ChildRounding = 4;
   style->ScaleAllSizes(dpi_scaling);
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);

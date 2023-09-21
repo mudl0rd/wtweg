@@ -50,12 +50,11 @@ bool CLibretro::core_savestate(const char *filename, bool save)
       }
       else
       {
-        unsigned sz;
-        std::vector<uint8_t> save_ptr = load_data(filename, &sz);
+        std::vector<uint8_t> save_ptr = load_data(filename);
         if ( save_ptr.empty())
           return false;
-        memcpy(Memory.get(), save_ptr.data(), sz);
-        retro.retro_unserialize(Memory.get(), sz);
+        memcpy(Memory.get(), save_ptr.data(), save_ptr.size());
+        retro.retro_unserialize(Memory.get(), save_ptr.size());
       }
       return true;
     }
@@ -75,13 +74,12 @@ bool CLibretro::core_saveram(const char *filename, bool save)
       return save_data(Memory, size, filename);
     else
     {
-      unsigned sz;
-      std::vector<uint8_t> save_ptr = load_data(filename, &sz);
+      std::vector<uint8_t> save_ptr = load_data(filename);
       if (save_ptr.empty())
         return false;
-      if (sz != size)
+      if (save_ptr.size() != size)
         return false;
-      memcpy(Memory, save_ptr.data(), sz);
+      memcpy(Memory, save_ptr.data(), save_ptr.size() );
       return true;
     }
   }
@@ -96,11 +94,11 @@ bool CLibretro::load_coresettings()
   if (!size_){
     save_coresettings();
     size_ = get_filesize(core_config.c_str());
-    data = load_data(core_config.c_str(), (unsigned int *)&size_);
+    data = load_data(core_config.c_str());
   }
   else
   {
-    data = load_data(core_config.c_str(), (unsigned int *)&size_);
+    data = load_data(core_config.c_str());
   }
 
     uint32_t crc = 0;
@@ -146,8 +144,7 @@ void CLibretro::save_coresettings()
   ini_t *ini = NULL;
   if (sz_coreconfig)
   {
-    unsigned size_;
-    std::vector<uint8_t> data = load_data((const char *)core_config.c_str(), &size_);
+    std::vector<uint8_t> data = load_data((const char *)core_config.c_str());
     ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, crc_string.c_str(),crc_string.length());
     if(section == INI_NOT_FOUND)
