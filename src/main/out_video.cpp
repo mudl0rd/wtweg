@@ -13,6 +13,7 @@ struct
 	GLuint pitch;
 	GLint tex_w, tex_h;
 	GLuint base_w, base_h;
+	GLuint current_w, current_h;
 	unsigned rend_width, rend_height;
 	float aspect;
 
@@ -77,11 +78,11 @@ uintptr_t video_get_fb()
 
 void video_bindfb()
 {
-		int w = (!g_video.software_rast)?g_video.base_w:g_video.rend_width;
-		int h = (!g_video.software_rast)?g_video.base_w:g_video.rend_height;
-		glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
-		glViewport(0, 0, w, h);
-		glScissor(0, 0, w, h);
+	int w = (!g_video.software_rast) ? g_video.current_w : g_video.rend_width;
+	int h = (!g_video.software_rast) ? g_video.current_h : g_video.rend_height;
+	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
+	glViewport(0, 0, w, h);
+	glScissor(0, 0, w, h);
 }
 
 bool video_sethw(struct retro_hw_render_callback *hw)
@@ -131,17 +132,23 @@ void init_framebuffer(int width, int height)
 vp resize_cb()
 {
 	vp vp_ = {0};
-	float aspect = g_video.aspect;
-	unsigned height = g_video.rend_height;
-	unsigned width = height * aspect;
-	if (width > g_video.rend_width)
+	unsigned out_width = g_video.current_w;
+	unsigned out_height = g_video.current_h;
+	if (!out_height || !out_width)
+		return vp_;
+	while (out_width > g_video.rend_width || out_height > g_video.rend_height)
 	{
-		height = g_video.rend_width / aspect;
-		width = g_video.rend_width;
+		out_width /= 2;
+		out_height /= 2;
 	}
-	unsigned x = SDL_floor(g_video.rend_width - width) / 2;
-	unsigned y = SDL_floor(g_video.rend_height - height) / 2;
-	vp_ = {x, y, width, height};
+	while (out_width * 2 <= g_video.rend_width && out_height * 2 <= g_video.rend_height)
+	{
+		out_width *= 2;
+		out_height *= 2;
+	}
+	unsigned out_x = (g_video.rend_width - out_width) / 2;
+	unsigned out_y = (g_video.rend_height - out_height) / 2;
+	vp_ = {out_x, out_y, out_width, out_height};
 	return vp_;
 }
 
@@ -220,17 +227,17 @@ static inline unsigned get_alignment(unsigned pitch)
 void video_render()
 {
 	vp vpx = resize_cb();
-		
+
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	int dest_x0 = vpx.x;
-	int dest_x1 = vpx.x + vpx.width;
-	int dest_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
-	int dest_y1 = (g_video.software_rast) ? vpx.y : (vpx.y + vpx.height);
-	glBlitFramebuffer(0, 0, g_video.base_w, g_video.base_h,
-					  dest_x0, dest_y0, dest_x1, dest_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	GLint dst_x0 = vpx.x;
+	GLint dst_x1 = dst_x0 + vpx.width;
+	GLint dst_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
+	GLint dst_y1 = (g_video.software_rast) ? vpx.y : (vpx.y + vpx.height);
+	glBlitFramebuffer(0, 0, g_video.current_w, g_video.current_h, 
+	dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -238,10 +245,10 @@ void video_refresh(const void *data, unsigned width, unsigned height, unsigned p
 {
 	if (data == NULL)
 		return;
-	if (g_video.base_w != width || g_video.base_h != height)
+	if (g_video.current_w != width || g_video.current_h != height)
 	{
-		g_video.base_h = height;
-		g_video.base_w = width;
+		g_video.current_h = height;
+		g_video.current_w = width;
 	}
 	if (data != RETRO_HW_FRAME_BUFFER_VALID)
 	{

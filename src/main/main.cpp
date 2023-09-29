@@ -85,13 +85,14 @@ int main2(const char *rom, const char *core, bool pergame)
   font_cfg.FontDataOwnedByAtlas = false;
   io.Fonts->AddFontFromMemoryTTF((unsigned char *)Roboto_Regular, sizeof(Roboto_Regular), dpi_scaling * 12.0f, &font_cfg, io.Fonts->GetGlyphRangesJapanese());
   ImGuiStyle *style = &ImGui::GetStyle();
-      style->TabRounding = 4;
-    style->ScrollbarRounding = 9;
-    style->WindowRounding = 7;
-    style->GrabRounding = 3;
-    style->FrameRounding = 3;
-    style->PopupRounding = 4;
-    style->ChildRounding = 4;
+  style->TabRounding = 4;
+  style->ScrollbarRounding = 9;
+  style->WindowRounding = 7;
+  style->GrabRounding = 3;
+  style->FrameRounding = 3;
+  style->PopupRounding = 4;
+  style->ChildRounding = 4;
+  style->ScrollbarSize = 10.0f;
   style->ScaleAllSizes(dpi_scaling);
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
@@ -208,7 +209,6 @@ int main2(const char *rom, const char *core, bool pergame)
       }
     }
 
-   
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (instance->core_isrunning())
@@ -239,13 +239,14 @@ int main2(const char *rom, const char *core, bool pergame)
 #include <windows.h>
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                   LPSTR lpCmdLine, int nCmdShow) {
-    // avoid unused argument error while matching template
-    ((void)hInstance);
-    ((void)hPrevInstance);
-    ((void)lpCmdLine);
-    ((void)nCmdShow);
-    return main(__argc,__argv);
+                   LPSTR lpCmdLine, int nCmdShow)
+{
+  // avoid unused argument error while matching template
+  ((void)hInstance);
+  ((void)hPrevInstance);
+  ((void)lpCmdLine);
+  ((void)nCmdShow);
+  return main(__argc, __argv);
 }
 
 #endif
