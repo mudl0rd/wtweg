@@ -136,16 +136,11 @@ vp resize_cb()
 	unsigned out_height = g_video.current_h;
 	if (!out_height || !out_width)
 		return vp_;
-	while (out_width > g_video.rend_width || out_height > g_video.rend_height)
-	{
-		out_width /= 2;
-		out_height /= 2;
-	}
-	while (out_width * 2 <= g_video.rend_width && out_height * 2 <= g_video.rend_height)
-	{
-		out_width *= 2;
-		out_height *= 2;
-	}
+    unsigned max_scale=1;
+	 max_scale = std::min(g_video.rend_width / out_width,
+                     g_video.rend_height / out_height);
+    out_width  *=max_scale;
+	out_height *= max_scale;
 	unsigned out_x = (g_video.rend_width - out_width) / 2;
 	unsigned out_y = (g_video.rend_height - out_height) / 2;
 	vp_ = {out_x, out_y, out_width, out_height};

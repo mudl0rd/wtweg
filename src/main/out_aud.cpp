@@ -186,7 +186,7 @@ bool audio_init(float refreshra, float input_srate, float fps)
 
     shit.freq = shit2.freq;
     shit.format = AUDIO_F32;
-    shit.samples = 2048;
+    shit.samples = 1024;
     shit.callback = func_callback;
     shit.userdata = (audio_ctx *)&audio_ctx_s;
     shit.channels = 2;
