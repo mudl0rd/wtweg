@@ -10,13 +10,13 @@ struct
 	GLuint rbo_id;
 	GLuint fbo_id;
 	bool software_rast;
+	bool integer_scale;
 	GLuint pitch;
 	GLint tex_w, tex_h;
 	GLuint base_w, base_h;
 	GLuint current_w, current_h;
 	unsigned rend_width, rend_height;
 	float aspect;
-
 	struct
 	{
 		GLuint pixfmt;
@@ -76,6 +76,11 @@ uintptr_t video_get_fb()
 	return g_video.fbo_id;
 }
 
+void video_integerscale(bool yes)
+{
+	g_video.integer_scale=yes;
+}
+
 void video_bindfb()
 {
 	int w = (!g_video.software_rast) ? g_video.current_w : g_video.rend_width;
@@ -132,18 +137,49 @@ void init_framebuffer(int width, int height)
 vp resize_cb()
 {
 	vp vp_ = {0};
-	unsigned out_width = g_video.current_w;
-	unsigned out_height = g_video.current_h;
-	if (!out_height || !out_width)
-		return vp_;
-    unsigned max_scale=1;
-	 max_scale = std::min(g_video.rend_width / out_width,
-                     g_video.rend_height / out_height);
-    out_width  *=max_scale;
-	out_height *= max_scale;
-	unsigned out_x = (g_video.rend_width - out_width) / 2;
-	unsigned out_y = (g_video.rend_height - out_height) / 2;
-	vp_ = {out_x, out_y, out_width, out_height};
+	unsigned width = 0;
+	unsigned height = 0;
+	unsigned x = 0;
+	unsigned y = 0;
+	if (g_video.integer_scale)
+	{
+		width = g_video.current_w;
+		height = g_video.current_h;
+		if (!height || !width)
+			return vp_;
+		unsigned max_scale = 1;
+		max_scale = std::min(g_video.rend_width / width,
+							 g_video.rend_height / height);
+		width *= max_scale;
+		height *= max_scale;
+	}
+	else
+	{
+		int32_t hw = g_video.current_h * g_video.rend_height;
+		int32_t wh = g_video.current_w * g_video.rend_width;
+		if (hw > wh)
+		{
+			int32_t w_max = wh / g_video.current_h;
+			x += (g_video.rend_width - w_max) / 2;
+			width = w_max;
+			height = g_video.rend_height;
+		}
+		else if (hw < wh)
+		{
+			int32_t h_max = hw / g_video.current_w;
+			y += (g_video.rend_height - h_max) / 2;
+			width = g_video.rend_width;
+			height = h_max;
+		}
+		else
+		{
+			width = g_video.rend_width;
+			height = g_video.rend_height;
+		}
+	}
+	unsigned x = SDL_floor(g_video.rend_width - width) / 2;
+	unsigned y = SDL_floor(g_video.rend_height - height) / 2;
+	vp_ = {x, y, width, height};
 	return vp_;
 }
 
@@ -156,6 +192,7 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 		glDeleteTextures(1, &g_video.tex_id);
 
 	g_video.tex_id = 0;
+	g_video.integer_scale=true;
 
 	if (g_video.software_rast)
 	{
@@ -231,8 +268,8 @@ void video_render()
 	GLint dst_x1 = dst_x0 + vpx.width;
 	GLint dst_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
 	GLint dst_y1 = (g_video.software_rast) ? vpx.y : (vpx.y + vpx.height);
-	glBlitFramebuffer(0, 0, g_video.current_w, g_video.current_h, 
-	dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	glBlitFramebuffer(0, 0, g_video.current_w, g_video.current_h,
+					  dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
