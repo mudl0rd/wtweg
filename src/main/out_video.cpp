@@ -177,8 +177,8 @@ vp resize_cb()
 			height = g_video.rend_height;
 		}
 	}
-	unsigned x = SDL_floor(g_video.rend_width - width) / 2;
-	unsigned y = SDL_floor(g_video.rend_height - height) / 2;
+	x = SDL_floor(g_video.rend_width - width) / 2;
+	y = SDL_floor(g_video.rend_height - height) / 2;
 	vp_ = {x, y, width, height};
 	return vp_;
 }
