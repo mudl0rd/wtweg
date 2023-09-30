@@ -137,14 +137,16 @@ void init_framebuffer(int width, int height)
 vp resize_cb()
 {
 	vp vp_ = {0};
-	unsigned width = 0;
-	unsigned height = 0;
 	unsigned x = 0;
 	unsigned y = 0;
+	unsigned height = g_video.current_h;
+	unsigned width = height * g_video.aspect;
+	if (width > g_video.current_w){
+		height = g_video.current_w / g_video.aspect;
+		width = g_video.current_w;
+	}
 	if (g_video.integer_scale)
 	{
-		width = g_video.current_w;
-		height = g_video.current_h;
 		if (!height || !width)
 			return vp_;
 		unsigned max_scale = 1;

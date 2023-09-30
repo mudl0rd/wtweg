@@ -100,11 +100,7 @@ bool CLibretro::load_coresettings()
   {
     data = load_data(core_config.c_str());
   }
-
-    uint32_t crc = 0;
-    for (auto &vars : core_variables)
-    crc=crc32(crc,vars.name.c_str(),vars.name.length());
-    std::string crc_string="C_"+std::to_string(crc);
+    std::string crc_string="Core";
 
     ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
@@ -137,10 +133,7 @@ bool CLibretro::load_coresettings()
 void CLibretro::save_coresettings()
 {
   unsigned sz_coreconfig = get_filesize(core_config.c_str());
-  uint32_t crc = 0;
-  for (auto &vars : core_variables)
-  crc=crc32(crc,vars.name.c_str(),vars.name.length());
-  std::string crc_string="I_"+std::to_string(crc);
+  std::string crc_string="Core";
   ini_t *ini = NULL;
   if (sz_coreconfig)
   {
