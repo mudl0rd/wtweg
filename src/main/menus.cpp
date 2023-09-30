@@ -579,7 +579,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
       for (auto &bind2 : instance->core_categories)
       {
-        if (bind2.visible)
+        bool visible=false;
+        for (auto &bind1 : instance->core_variables)
+        if(bind1.category_name == bind2.key && bind1.config_visible)visible=true;
+        if (visible)
           if (ImGui::TreeNode(bind2.desc.c_str()))
           {
             for (auto &bind : instance->core_variables)

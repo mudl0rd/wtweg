@@ -224,6 +224,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
       retro_core_option_value *values = var1->values;
       loadedcore_configvars vars_struct;
       vars_struct.sel_idx = 0;
+      vars_struct.config_visible=true;
       if (var1->category_key)
         vars_struct.category_name = var1->category_key;
 

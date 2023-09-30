@@ -296,8 +296,9 @@ static bool core_controller_info(struct retro_controller_info *info)
     retro->core_inputdesc.push_back(vec);
   }
 
-  for(int i=0;i<retro->controller.size();i++)
-    retro->controller[i].core_inputdesc=retro->core_inputdesc[i];
+   for (auto &vars : retro->controller)
+   for(auto&var2 : retro->core_inputdesc)
+   vars.core_inputdesc=var2;
   return true;
 }
 
@@ -471,6 +472,14 @@ static bool core_environment(unsigned cmd, void *data)
     return true;
   }
 
+  case RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS:
+  {
+    bval = reinterpret_cast<bool *>(data);
+    *bval = false;
+    return false;
+  }
+
+
   case RETRO_ENVIRONMENT_SET_GEOMETRY:
   {
     auto *geom = reinterpret_cast<struct retro_game_geometry *>(data);
@@ -481,17 +490,23 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
   {
     auto *cb = reinterpret_cast<struct retro_core_option_display *>(data);
-
     for (auto &var : retro->core_variables)
     {
       if (strcmp(var.name.c_str(), cb->key) == 0)
       {
-        var.config_visible = cb->visible;
-        for (auto &var2 : retro->core_categories)
-          if ((var.category_name == var2.key))
-            var2.visible = cb->visible;
-        return true;
-      }
+          if(var.category_name != "")
+          {
+             for (auto &var2 : retro->core_categories)
+             if(var2.key == var.category_name)
+             {
+              var.config_visible = cb->visible;
+              return true;
+             }
+          }
+          else
+          var.config_visible = cb->visible;
+          return true;
+      } 
     }
     return false;
   }
