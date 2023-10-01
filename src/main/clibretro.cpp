@@ -580,6 +580,8 @@ void CLibretro::core_unload()
   }
 }
 
+
+
 void CLibretro::get_cores()
 {
   std::filesystem::path p(exe_path);
@@ -620,18 +622,14 @@ void CLibretro::get_cores()
 
   coreexts = "";
   std::string corelist = "";
+
   for (auto &corez : cores)
   {
     if (!corez.no_roms)
     {
-      std::stringstream test(corez.core_extensions);
-      std::string segment;
-      while (std::getline(test, segment, '|'))
-        if (corelist.find(segment) == std::string::npos)
-        {
-          std::transform(segment.begin(), segment.end(), segment.begin(), ::tolower);
-          corelist += segment + ",.";
-        }
+      std::string test=corez.core_extensions;
+      test=replace_all(test,"|",",.");
+      corelist += test + ",.";
     }
   }
   if (corelist != "")
