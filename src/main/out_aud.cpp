@@ -22,6 +22,13 @@ void func_callback(void *userdata, Uint8 *stream, int len)
     amount = (len > amount) ? amount : len;
     int get = SDL_AudioStreamGet(context->stream, stream, (int)amount);
     memset(stream + amount, 0, len - get);
+
+}
+
+void audio_flush()
+{
+    if(audio_ctx_s.stream != NULL)
+        SDL_AudioStreamFlush(audio_ctx_s.stream);
 }
 
 void audio_mix(const int16_t *samples, size_t size)

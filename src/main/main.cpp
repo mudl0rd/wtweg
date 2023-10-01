@@ -147,6 +147,8 @@ int main2(const char *rom, const char *core, bool pergame)
             int i = SDL_GetWindowDisplayIndex(window);
             SDL_Rect j;
             SDL_GetDisplayBounds(i, &j);
+            j.w--;
+            j.h--;
             SDL_SetWindowSize(window, j.w, j.h);
             SDL_SetWindowPosition(window, 0, 0);
             video_setsize(j.w, j.h);

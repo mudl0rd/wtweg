@@ -40,6 +40,7 @@ static const char *retro_descripts[] = {
 
 void audio_mix(const int16_t *samples, size_t size);
 bool audio_init(float refreshra, float input_srate, float fps);
+void audio_flush();
 void audio_destroy();
 void video_render();
 void video_bindfb();
