@@ -261,14 +261,15 @@ bool load_inpcfg(retro_input_descriptor *var)
     ports++;
 
     lib->controller.resize(ports);
-    if(lib->core_inputdesc.size())
-      for (auto &controller : lib->controller)
+    for (auto &controller : lib->controller)
         controller.core_inputbinds.clear();
 
-if(lib->core_inputdesc.size())
-    for (auto index = std::size_t{};auto& controller : lib->controller) {
-    controller.core_inputdesc=lib->core_inputdesc[index++];
-   }
+
+ 
+
+//if(lib->core_inputdesc.size())
+  //  for (auto index = std::size_t{};auto& controller : lib->controller) {
+   // controller.core_inputdesc=lib->core_inputdesc[index++];
 
     while (1)
     {

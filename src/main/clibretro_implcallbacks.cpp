@@ -263,8 +263,9 @@ static bool core_controller_info(struct retro_controller_info *info)
   if (!info)
     return false;
   auto retro = CLibretro::get_classinstance();
+  for(auto &vec : retro->controller)
+  vec.core_inputdesc.clear();
 
-  retro->core_inputdesc.clear();
   int cnt = 0;
   struct retro_controller_info *info2 = info;
   bool cont_found = false;
@@ -292,13 +293,9 @@ static bool core_controller_info(struct retro_controller_info *info)
       types++;
     }
     info2++;
+    retro->controller[cnt].core_inputdesc=vec;
     cnt++;
-    retro->core_inputdesc.push_back(vec);
   }
-
-   for (auto &vars : retro->controller)
-   for(auto&var2 : retro->core_inputdesc)
-   vars.core_inputdesc=var2;
   return true;
 }
 

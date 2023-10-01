@@ -342,7 +342,7 @@ void CLibretro::reset()
 
   controller.clear();
 
-  for (int i=0;i<2;i++)
+  for (int i=0;i<8;i++)
   {
     controller_input inp;
      // Assume "RetroPad"....fuck me

@@ -286,6 +286,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
           for (int i = 0; i < instance->controller.size(); i++)
           {
+            if(instance->controller[i].core_inputdesc.size())
+            {
             std::string player = "Player " + std::to_string(i + 1);
             if (ImGui::BeginMenu(player.c_str()))
             {
@@ -301,6 +303,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
               }
               ImGui::EndMenu();
             }
+            }
+            
           }
         }
 
@@ -513,7 +517,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       {
         int descnum = 1;
         for (auto &control : instance->controller)
-       
+        if(control.core_inputbinds.size())
         {
           std::string descstring = "Player " + std::to_string(descnum);
           if (ImGui::BeginTabItem(descstring.c_str()))

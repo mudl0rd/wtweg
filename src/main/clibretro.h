@@ -199,7 +199,6 @@ public:
 	const char *load_corevars(retro_variable *var);
 
     std::vector<controller_input>controller;
-	std::vector<std::vector<coreinput_desc>> core_inputdesc;
 	std::vector<loadedcore_configvars> core_variables;
 	std::vector<loadedcore_configcat> core_categories;
 	std::vector<retro_disk> disk_intf;
