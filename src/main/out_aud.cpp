@@ -9,8 +9,8 @@ struct fifo_buffer
 {
     uint8_t *buffer;
     size_t size;
-    size_t readpos;
-    size_t writepos;
+    volatile int readpos;
+    volatile int writepos;
 };
 
 struct audio_ctx
@@ -25,9 +25,7 @@ struct audio_ctx
 } audio_ctx_s;
 
 
-
 typedef struct fifo_buffer fifo_buffer_t;
-
 static inline void fifo_clear(fifo_buffer_t *buffer)
 {
     buffer->readpos = 0;
@@ -95,6 +93,21 @@ int fifo_write(fifo_buffer_t *buffer, void *in_buf, size_t size,bool read)
 	buffer->writepos = i + size;
     }
 	return total;
+}
+
+int fifo_writespin(fifo_buffer_t *f, void *buf, unsigned len)
+{
+	while(fifo_write_avail(f) < len)
+		;
+	return fifo_write(f, buf, len,false);
+}
+
+
+int fifo_readspin(fifo_buffer_t *f, void *buf, unsigned len)
+{
+	while(fifo_read_avail(f) < len)
+		;
+	return fifo_write(f, buf, len,true);
 }
 
 
