@@ -51,7 +51,7 @@ bool CLibretro::core_savestate(const char *filename, bool save)
       else
       {
         std::vector<uint8_t> save_ptr = load_data(filename);
-        if ( save_ptr.empty())
+        if (save_ptr.empty())
           return false;
         memcpy(Memory.get(), save_ptr.data(), save_ptr.size());
         retro.retro_unserialize(Memory.get(), save_ptr.size());
@@ -79,7 +79,7 @@ bool CLibretro::core_saveram(const char *filename, bool save)
         return false;
       if (save_ptr.size() != size)
         return false;
-      memcpy(Memory, save_ptr.data(), save_ptr.size() );
+      memcpy(Memory, save_ptr.data(), save_ptr.size());
       return true;
     }
   }
@@ -91,7 +91,8 @@ bool CLibretro::load_coresettings()
   int size_ = get_filesize(core_config.c_str());
   ini_t *ini = NULL;
   std::vector<uint8_t> data;
-  if (!size_){
+  if (!size_)
+  {
     save_coresettings();
     size_ = get_filesize(core_config.c_str());
     data = load_data(core_config.c_str());
@@ -100,56 +101,76 @@ bool CLibretro::load_coresettings()
   {
     data = load_data(core_config.c_str());
   }
-    std::string crc_string="Core";
+  uint32_t crc = 0;
+  for (auto &vars : core_variables)
+    crc = crc32(crc, vars.name.c_str(), vars.name.length());
+  std::string crc_string = "Core";
 
-    ini = ini_load((char *)data.data(), NULL);
-    int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
-    if(section == INI_NOT_FOUND)
-    {
+  ini = ini_load((char *)data.data(), NULL);
+  int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
+  if (section == INI_NOT_FOUND)
+  {
     ini_destroy(ini);
     save_coresettings();
     size_ = get_filesize(core_config.c_str());
     data = load_data(core_config.c_str());
     ini = ini_load((char *)data.data(), NULL);
     section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
+  }
+  for (auto &vars : core_variables)
+  {
+    int i = ini_find_property(ini, section, vars.name.c_str(), vars.name.length());
+    if(i == INI_NOT_FOUND)
+    {
+         ini_property_add(ini, section, (char *)vars.name.c_str(),
+                         vars.name.length(),
+                         (char *)vars.var.c_str(),
+                         vars.var.length());
+                         int size = ini_save(ini, NULL, 0); // Find the size needed
+  auto ini_data = std::make_unique<char[]>(size);
+  size = ini_save(ini, ini_data.get(), size); // Actually save the file
+  save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+  i = ini_find_property(ini, section, vars.name.c_str(), vars.name.length());
     }
-    for (auto& vars : core_variables) {
-        int i =ini_find_property(ini,section,vars.name.c_str(),vars.name.length());
-        vars.var = ini_property_value(ini, section, i);
-        for (auto j = std::size_t{};auto& var_val : vars.config_vals)
-        {
-          if (var_val == vars.var)
-          {
-            vars.sel_idx = j;
-            break;
-          }
-          j++;
-        }
+    vars.var = ini_property_value(ini, section, i);
+    for (auto j = std::size_t{}; auto &var_val : vars.config_vals)
+    {
+      if (var_val == vars.var)
+      {
+        vars.sel_idx = j;
+        break;
+      }
+      j++;
     }
-    ini_destroy(ini);
-    return true;
+  }
+  ini_destroy(ini);
+  return true;
 }
 
 void CLibretro::save_coresettings()
 {
+  uint32_t crc = 0;
+  for (auto &vars : core_variables)
+    crc = crc32(crc, vars.name.c_str(), vars.name.length());
+  std::string crc_string = "Core";
   unsigned sz_coreconfig = get_filesize(core_config.c_str());
-  std::string crc_string="Core";
+
   ini_t *ini = NULL;
   if (sz_coreconfig)
   {
     std::vector<uint8_t> data = load_data((const char *)core_config.c_str());
     ini = ini_load((char *)data.data(), NULL);
-    int section = ini_find_section(ini, crc_string.c_str(),crc_string.length());
-    if(section == INI_NOT_FOUND)
+    int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
+    if (section == INI_NOT_FOUND)
     {
-       section =ini_section_add(ini, crc_string.c_str(),crc_string.length());
-       for (auto &vars : core_variables)
-       ini_property_add(ini, section, (char *)vars.name.c_str(),
+      section = ini_section_add(ini, crc_string.c_str(), crc_string.length());
+      for (auto &vars : core_variables)
+        ini_property_add(ini, section, (char *)vars.name.c_str(),
                          vars.name.length(),
                          (char *)vars.var.c_str(),
                          vars.var.length());
     }
-    for (auto &vars: core_variables)
+    for (auto &vars : core_variables)
     {
       int idx = ini_find_property(ini, section,
                                   vars.name.c_str(),
@@ -160,13 +181,13 @@ void CLibretro::save_coresettings()
   }
   else
   {
-   ini = ini_create(NULL);
-   int section =ini_section_add(ini, crc_string.c_str(),crc_string.length());
-       for (auto &vars : core_variables)
-       ini_property_add(ini, section, (char *)vars.name.c_str(),
-                         vars.name.length(),
-                         (char *)vars.var.c_str(),
-                         vars.var.length());
+    ini = ini_create(NULL);
+    int section = ini_section_add(ini, crc_string.c_str(), crc_string.length());
+    for (auto &vars : core_variables)
+      ini_property_add(ini, section, (char *)vars.name.c_str(),
+                       vars.name.length(),
+                       (char *)vars.var.c_str(),
+                       vars.var.length());
   }
   int size = ini_save(ini, NULL, 0); // Find the size needed
   auto ini_data = std::make_unique<char[]>(size);
@@ -183,8 +204,8 @@ bool CLibretro::init_inputvars(retro_input_descriptor *var)
 
 const char *CLibretro::load_corevars(retro_variable *var)
 {
-   for (auto &vars : core_variables)
-     if (strcmp(vars.name.c_str(), var->key) == 0)
+  for (auto &vars : core_variables)
+    if (strcmp(vars.name.c_str(), var->key) == 0)
       return vars.var.c_str();
   return NULL;
 }
@@ -217,7 +238,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
       retro_core_option_value *values = var1->values;
       loadedcore_configvars vars_struct;
       vars_struct.sel_idx = 0;
-      vars_struct.config_visible=true;
+      vars_struct.config_visible = true;
       if (var1->category_key)
         vars_struct.category_name = var1->category_key;
 
@@ -225,7 +246,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
       {
         vars_struct.config_vals.push_back(values->value);
         if (values->label)
-        vars_struct.config_vals_desc.push_back(values->label);
+          vars_struct.config_vals_desc.push_back(values->label);
         values++;
       }
 
@@ -239,8 +260,6 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
 
         vars_struct.var = vars_struct.config_vals[vars_struct.sel_idx];
       }
-
-      
 
       if (var1->desc)
         vars_struct.description = var1->desc;
@@ -260,7 +279,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
   }
   else
   {
-    auto *var3 = reinterpret_cast<struct retro_core_option_definition*>(var);
+    auto *var3 = reinterpret_cast<struct retro_core_option_definition *>(var);
     while (var3->key != NULL)
     {
       retro_core_option_value *var1 = var3->values;
@@ -342,27 +361,27 @@ void CLibretro::reset()
 
   controller.clear();
 
-  for (int i=0;i<8;i++)
+  for (int i = 0; i < 8; i++)
   {
     controller_input inp;
-     // Assume "RetroPad"....fuck me
+    // Assume "RetroPad"....fuck me
     inp.core_inputbinds.clear();
-    
+
     for (int j = 0; j < 20; j++)
     {
-        coreinput_bind bind;
-        bind.device = RETRO_DEVICE_JOYPAD;
-        bind.isanalog = (j > 15);
-        bind.retro_id = j;
-        bind.config.bits.axistrigger = 0;
-        bind.config.bits.sdl_id = 0;
-        bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
-        bind.val = 0;
-        bind.SDL_port = -1;
-        bind.port = i;
-        bind.description = retro_descripts[j];
-        bind.joykey_desc = "None";
-        inp.core_inputbinds.push_back(bind);
+      coreinput_bind bind;
+      bind.device = RETRO_DEVICE_JOYPAD;
+      bind.isanalog = (j > 15);
+      bind.retro_id = j;
+      bind.config.bits.axistrigger = 0;
+      bind.config.bits.sdl_id = 0;
+      bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
+      bind.val = 0;
+      bind.SDL_port = -1;
+      bind.port = i;
+      bind.description = retro_descripts[j];
+      bind.joykey_desc = "None";
+      inp.core_inputbinds.push_back(bind);
     }
     inp.core_inputdesc.clear();
     inp.controller_type = RETRO_DEVICE_JOYPAD;
@@ -371,7 +390,7 @@ void CLibretro::reset()
   disk_intf.clear();
   core_variables.clear();
   v2_vars = false;
-  memset(&retro,0,sizeof(retro));
+  memset(&retro, 0, sizeof(retro));
 }
 
 CLibretro::CLibretro(SDL_Window *window, char *exepath)
@@ -410,7 +429,7 @@ static bool no_roms(unsigned cmd, void *data)
 {
   if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
   {
-    bool *bval = reinterpret_cast<bool*>(data);
+    bool *bval = reinterpret_cast<bool *>(data);
     no_roms2 = bval;
     return true;
   }
@@ -424,8 +443,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   reset();
   lr_isrunning = true;
-
-  
 
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
   std::filesystem::path core_path_ = corepath;
@@ -521,7 +538,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
       info.data = malloc(info.size);
       if (!info.data)
         goto fail;
-       
+
       ifs.read((char *)info.data, info.size);
     }
   }
@@ -539,11 +556,11 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   refreshrate = dm.refresh_rate;
   audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps);
   video_init(&av.geometry, sdl_window);
-  
+
   core_saveram(romsavesstatespath.c_str(), false);
 
-  for (int i=0;i<controller.size();i++)
-  core_changinpt(controller[i].controller_type, i);
+  for (int i = 0; i < controller.size(); i++)
+    core_changinpt(controller[i].controller_type, i);
   return true;
 }
 
@@ -554,8 +571,8 @@ bool CLibretro::core_isrunning()
 
 void CLibretro::core_run()
 {
-  if(frametime_cb != NULL)
-	frametime_cb(frametime_ref);
+  if (frametime_cb != NULL)
+    frametime_cb(frametime_ref);
   retro.retro_run();
 }
 
@@ -579,8 +596,6 @@ void CLibretro::core_unload()
     core_variables.clear();
   }
 }
-
-
 
 void CLibretro::get_cores()
 {
@@ -627,8 +642,8 @@ void CLibretro::get_cores()
   {
     if (!corez.no_roms)
     {
-      std::string test=corez.core_extensions;
-      test=replace_all(test,"|",",.");
+      std::string test = corez.core_extensions;
+      test = replace_all(test, "|", ",.");
       corelist += test + ",.";
     }
   }

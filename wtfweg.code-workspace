@@ -78,7 +78,17 @@
 			"hash_map": "cpp",
 			"charconv": "cpp",
 			"format": "cpp",
-			"span": "cpp"
+			"span": "cpp",
+			"csignal": "cpp",
+			"any": "cpp",
+			"strstream": "cpp",
+			"cfenv": "cpp",
+			"complex": "cpp",
+			"forward_list": "cpp",
+			"netfwd": "cpp",
+			"source_location": "cpp",
+			"stdfloat": "cpp",
+			"typeindex": "cpp"
 		}
 	}
 }
