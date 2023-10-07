@@ -283,8 +283,7 @@ bool load_inpcfg(retro_input_descriptor *var)
             auto &settings = bind.config;
 
             
-        if ((var->device& RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || ((var->device& RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD) ||
-            ((var->device& RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD))
+        if (var->device& (RETRO_DEVICE_ANALOG | RETRO_DEVICE_JOYPAD))
         {
 
 

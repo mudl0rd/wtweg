@@ -280,7 +280,7 @@ static bool core_controller_info(struct retro_controller_info *info)
 
       if (types->desc != 0)
       {
-        if ((types->id & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD && !cont_found)
+        if ((types->id & RETRO_DEVICE_JOYPAD) && !cont_found)
         {
           cont_found = true;
           retro->controller[cnt].controller_type = types->id;

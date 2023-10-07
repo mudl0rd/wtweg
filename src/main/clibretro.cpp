@@ -106,12 +106,12 @@ bool CLibretro::load_coresettings()
     int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
     if(section == INI_NOT_FOUND)
     {
-     section =ini_section_add(ini, crc_string.c_str(),crc_string.length());
-       for (auto &vars : core_variables)
-       ini_property_add(ini, section, (char *)vars.name.c_str(),
-                         vars.name.length(),
-                         (char *)vars.var.c_str(),
-                         vars.var.length());
+    ini_destroy(ini);
+    save_coresettings();
+    size_ = get_filesize(core_config.c_str());
+    data = load_data(core_config.c_str());
+    ini = ini_load((char *)data.data(), NULL);
+    section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
     }
     for (auto& vars : core_variables) {
         int i =ini_find_property(ini,section,vars.name.c_str(),vars.name.length());
