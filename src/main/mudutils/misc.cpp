@@ -12,6 +12,8 @@
 #include "ini.h"
 #ifdef _WIN32
 #include <windows.h>
+#include "zip.h"
+#include "MemoryModulePP.h"
 #else
 #include <SDL2/SDL.h>
 #include <unistd.h>
@@ -24,13 +26,15 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
 
-std::string replace_all(std::string str, const std::string& from, const std::string& to) {
-    size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
-    }
-    return str;
+std::string replace_all(std::string str, const std::string &from, const std::string &to)
+{
+	size_t start_pos = 0;
+	while ((start_pos = str.find(from, start_pos)) != std::string::npos)
+	{
+		str.replace(start_pos, from.length(), to);
+		start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+	}
+	return str;
 }
 
 unsigned get_filesize(const char *path)
@@ -74,8 +78,6 @@ uint32_t pow2up(uint32_t v)
 	return v;
 }
 
-
-
 void vector_appendbytes(std::vector<uint8_t> &vec, uint8_t *bytes, size_t len)
 {
 	vec.insert(vec.end(), bytes, bytes + len);
@@ -103,10 +105,51 @@ bool save_data(unsigned char *data, unsigned size, const char *path)
 	return true;
 }
 
+const char *get_filename_ext(const char *filename)
+{
+	const char *dot = strrchr(filename, '.');
+	if (!dot || dot == filename)
+		return "";
+	return dot + 1;
+}
+
 void *openlib(const char *path)
 {
 #ifdef _WIN32
-	HMODULE handle = LoadLibrary(path);
+	if (strcmp(get_filename_ext(path), "zip") == 0)
+	{
+		struct zip_t *zip = zip_open(path, 0, 'r');
+		if (zip)
+		{
+			int n = zip_entries_total(zip);
+			for (int i = 0; i < n; ++i)
+			{
+				zip_entry_openbyindex(zip, i);
+				if (strcmp(get_filename_ext(zip_entry_name(zip)), "dll") == 0)
+				{
+					char *buf = NULL;
+					size_t bufsize = 0;
+					zip_entry_read(zip, (void **)&buf, &bufsize);
+					PMEMORYMODULE handle = MemoryLoadLibrary(buf, bufsize);
+					free(buf);
+					if (!handle)
+					{
+						zip_entry_close(zip);
+						zip_close(zip);
+						return NULL;
+					}
+					zip_entry_close(zip);
+					zip_close(zip);
+					return handle;
+				}
+				zip_entry_close(zip);
+			}
+			zip_close(zip);
+			return NULL;
+		}
+	}
+	std::vector<uint8_t> exedata = load_data(path);
+	PMEMORYMODULE handle = MemoryLoadLibrary(exedata.data(), exedata.size());
 	if (!handle)
 		return NULL;
 	return handle;
@@ -120,7 +163,7 @@ void *openlib(const char *path)
 void *getfunc(void *handle, const char *funcname)
 {
 #ifdef _WIN32
-	return (void *)GetProcAddress((HMODULE)handle, funcname);
+	return (void *)MemoryGetProcAddress((PMEMORYMODULE)handle, funcname);
 #else
 	return SDL_LoadFunction(handle, funcname);
 #endif
@@ -128,7 +171,7 @@ void *getfunc(void *handle, const char *funcname)
 void freelib(void *handle)
 {
 #ifdef _WIN32
-	FreeLibrary((HMODULE)handle);
+	MemoryFreeLibrary((PMEMORYMODULE)handle);
 #else
 	SDL_UnloadObject(handle);
 #endif

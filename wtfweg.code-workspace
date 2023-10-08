@@ -88,7 +88,8 @@
 			"netfwd": "cpp",
 			"source_location": "cpp",
 			"stdfloat": "cpp",
-			"typeindex": "cpp"
+			"typeindex": "cpp",
+			"io.h": "c"
 		}
 	}
 }

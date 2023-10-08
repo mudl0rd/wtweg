@@ -7,12 +7,9 @@
 #include <iostream>
 #include <filesystem>
 #include <stdio.h>
-#include <io.h>
 #include <string>
 #include <iostream>
 #include <vector>
-
-
 
 //misc
 unsigned get_filesize(const char *path);

@@ -615,9 +615,12 @@ void CLibretro::get_cores()
   for (auto &entry : std::filesystem::directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
   {
     string str = entry.path().string();
-    if (entry.is_regular_file() && entry.path().extension() == SHLIB_EXTENSION)
+    if (entry.is_regular_file() && (entry.path().extension() == SHLIB_EXTENSION 
+    #ifdef _WIN32
+    || entry.path().extension() == ".zip"
+    #endif
+    ))
     {
-
       struct retro_system_info system = {0};
       void *hDLL = openlib(str.c_str());
       if (!hDLL)

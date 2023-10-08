@@ -4,7 +4,7 @@
 #include <list>
 #include <mutex>
 #include <vector>
-#include "io.h"
+#include "inout.h"
 
 struct loadedcore_configcat
 {

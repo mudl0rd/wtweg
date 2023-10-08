@@ -1,6 +1,6 @@
 #include <SDL2/SDL.h>
 #include "libretro.h"
-#include "io.h"
+#include "inout.h"
 #include "glad.h"
 #include <vector>
 

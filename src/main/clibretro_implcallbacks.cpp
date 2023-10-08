@@ -2,7 +2,7 @@
 #include <string>
 #include <iostream>
 #include <filesystem>
-#include "io.h"
+#include "inout.h"
 #include "mudutils/utils.h"
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
@@ -672,7 +672,7 @@ static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
 
 void CLibretro::load_envsymb(void *handle, bool first)
 {
-#define libload(name) SDL_LoadFunction(handle, name)
+#define libload(name) getfunc(handle, name)
 #define load_sym(V, name) if (!(*(void **)(&V) = (void *)libload(#name)))
 
   if (first)
