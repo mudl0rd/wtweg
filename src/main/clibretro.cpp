@@ -120,18 +120,18 @@ bool CLibretro::load_coresettings()
   for (auto &vars : core_variables)
   {
     int i = ini_find_property(ini, section, vars.name.c_str(), vars.name.length());
-    if(i == INI_NOT_FOUND)
+    if (i == INI_NOT_FOUND)
     {
-         ini_property_add(ini, section, (char *)vars.name.c_str(),
-                         vars.name.length(),
-                         (char *)vars.var.c_str(),
-                         vars.var.length());
-                         int size = ini_save(ini, NULL, 0); // Find the size needed
-  auto ini_data = std::make_unique<char[]>(size);
-  size = ini_save(ini, ini_data.get(), size); // Actually save the file
-  save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-  i = ini_find_property(ini, section, vars.name.c_str(), vars.name.length());
+      ini_property_add(ini, section, (char *)vars.name.c_str(),
+                       vars.name.length(),
+                       (char *)vars.var.c_str(),
+                       vars.var.length());
+      int size = ini_save(ini, NULL, 0); // Find the size needed
+      auto ini_data = std::make_unique<char[]>(size);
+      size = ini_save(ini, ini_data.get(), size); // Actually save the file
+      save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
     }
+    else
     vars.var = ini_property_value(ini, section, i);
     for (auto j = std::size_t{}; auto &var_val : vars.config_vals)
     {
@@ -175,8 +175,19 @@ void CLibretro::save_coresettings()
       int idx = ini_find_property(ini, section,
                                   vars.name.c_str(),
                                   vars.name.length());
-      ini_property_value_set(ini, section, idx, vars.var.c_str(),
-                             vars.var.length());
+      if (idx == INI_NOT_FOUND)
+      {
+        ini_property_add(ini, section, (char *)vars.name.c_str(),
+                         vars.name.length(),
+                         (char *)vars.var.c_str(),
+                         vars.var.length());
+        idx = ini_find_property(ini, section,
+                                vars.name.c_str(),
+                                vars.name.length());
+      }
+      else
+        ini_property_value_set(ini, section, idx, vars.var.c_str(),
+                               vars.var.length());
     }
   }
   else
