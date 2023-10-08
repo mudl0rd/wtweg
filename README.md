@@ -16,7 +16,7 @@
 
 [A list of tested cores is here](https://raw.githubusercontent.com/cruduxcru0/WTFweg/master/cores.txt)
 
-* "cores" is where all libretro cores go
+* "cores" is where all libretro cores go. Cores on Windows can be left inside zip files from buildbot, no depacking needed.
 * "saves" is where all saves are
 * "system" is where all BIOSes/system files go
 
