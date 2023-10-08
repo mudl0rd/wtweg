@@ -21,6 +21,7 @@
 * "system" is where all BIOSes/system files go
 
 ## Recommended cores for use with WTFweg:
+* mame2003_plus_libretro.dll.zip (Arcade)
 * mednafen_psx_libretro.dll.zip (PSX)
 * mednafen_pce_libretro.dll.zip (PCE)
 * mednafen_wswan_libretro.dll.zip (Wonderswan)
