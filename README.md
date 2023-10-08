@@ -42,6 +42,7 @@
 * [Dynamic rate control](https://docs.libretro.com/development/cores/dynamic-rate-control/).
 * Support for GL-based libretro cores.
 * Support for contentless libretro cores (like game engine reimplementations)
+* Support for loading cores directly from libretro's buildbot as ZIP files, no depacking needed at all.
 * Savestates/SRAM saving/loading.
 * [dear-imgui based UI](https://github.com/ocornut/imgui).
 * Commandline support for debugging cores with GDB.
