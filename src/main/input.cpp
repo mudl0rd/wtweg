@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mouse.h>
 #include "libretro.h"
-#include "io.h"
+#include "inout.h"
 #include <stdio.h>
 #include "imgui.h"
 #include <filesystem>

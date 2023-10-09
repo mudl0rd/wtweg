@@ -2,7 +2,7 @@
 #include <SDL2/SDL.h>
 #include "resampler.h"
 #include "libretro.h"
-#include "io.h"
+#include "inout.h"
 #include "mudutils/utils.h"
 
 struct fifo_buffer

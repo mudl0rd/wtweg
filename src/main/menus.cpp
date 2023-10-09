@@ -5,7 +5,7 @@
 
 #include <sstream>
 #include "mudutils/utils.h"
-#include "io.h"
+#include "inout.h"
 #include "clibretro.h"
 
 #ifndef _WIN32
