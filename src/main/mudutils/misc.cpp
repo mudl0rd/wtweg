@@ -5,11 +5,12 @@
 #include <iostream>
 #include <filesystem>
 #include <stdio.h>
-#include <io.h>
+#include "inout.h"
 #include <vector>
 #include <array>
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
+#include <SDL2/SDL.h>
 #ifdef _WIN32
 #include <windows.h>
 #include "zip.h"
@@ -148,8 +149,8 @@ void *openlib(const char *path)
 			return NULL;
 		}
 	}
-	std::vector<uint8_t> exedata = load_data(path);
-	PMEMORYMODULE handle = MemoryLoadLibrary(exedata.data(), exedata.size());
+	std::vector<uint8_t> dll_ptr = load_data(path);
+    PMEMORYMODULE handle = MemoryLoadLibrary(dll_ptr.data(),dll_ptr.size());
 	if (!handle)
 		return NULL;
 	return handle;

@@ -642,7 +642,7 @@ void CLibretro::get_cores()
         entry_.core_name = system.library_name;
         entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
         entry_.core_path = str;
-        entry_.no_roms = no_roms2;
+        entry_.no_roms = (system.valid_extensions == NULL) &&  no_roms2;
         cores.push_back(entry_);
         freelib(hDLL);
       }

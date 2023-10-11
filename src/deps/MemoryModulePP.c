@@ -28,8 +28,8 @@ int __fastcall RtlInsertInvertedFunctionTable(PVOID BaseAddress, ULONG uImageSiz
 
 .text:6B2D7980 33 FF                                         xor     edi, edi
 .text:6B2D7982
-.text:6B2D7982                               loc_6B2D7982:                           ; CODE XREF: LdrpProcessMappedModule(x,x)+160¡üj
-.text:6B2D7982                                                                       ; LdrpProcessMappedModule(x,x)+169¡üj ...
+.text:6B2D7982                               loc_6B2D7982:                           ; CODE XREF: LdrpProcessMappedModule(x,x)+160ï¿½ï¿½j
+.text:6B2D7982                                                                       ; LdrpProcessMappedModule(x,x)+169ï¿½ï¿½j ...
 .text:6B2D7982 8B 56 20                                      mov     edx, [esi+20h]  ; uImageSize
 .text:6B2D7985 8B CB                                         mov     ecx, ebx        ; BaseAddress
 .text:6B2D7987 E8 45 0A 00 00                                call    _RtlInsertInvertedFunctionTable@8 ; RtlInsertInvertedFunctionTable(x,x)
@@ -599,7 +599,7 @@ InsertExceptionTable(PMEMORYMODULE module)
 		(PIMAGE_RUNTIME_FUNCTION_ENTRY)((ULONG_PTR)module->codeBase + pDataTable->VirtualAddress);
 
 
-	if (pfnRtlAddFunctionTable64 != NULL)
+	if (pfnRtlAddFunctionTable64 != NULL && pDataTable->Size)
 	{
 		pfnRtlAddFunctionTable64(pFuncTable, pDataTable->Size / sizeof(IMAGE_RUNTIME_FUNCTION_ENTRY), (DWORD64)module->codeBase);
 	}
