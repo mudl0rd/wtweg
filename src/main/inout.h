@@ -61,7 +61,8 @@ bool video_set_pixelformat(retro_pixel_format fmt);
 void init_inpt();
 void init_inp(int num);
 void close_inp(int num);
-void reset_inp();
+void reset_inpt();
+void close_inpt();
 
 void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port);
 int16_t input_state(unsigned port, unsigned device, unsigned index,

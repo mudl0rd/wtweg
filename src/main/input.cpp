@@ -177,7 +177,10 @@ std::vector<SDL_GameController *> Joystick = {};
 bool checkjs(int port)
 {
     if (Joystick.size())
-        return (Joystick[port]) ? SDL_GameControllerGetAttached(Joystick[port]) : false;
+    {
+          return (Joystick[port]) ? SDL_GameControllerGetAttached(Joystick[port]) : false;
+    }
+      
     else
         return false;
 }
@@ -384,7 +387,7 @@ bool save_inpcfg(uint32_t checksum)
     return true;
 }
 
-void reset_inp()
+void close_inpt()
 {
     for (auto &bind : Joystick)
     {
@@ -401,6 +404,17 @@ void close_inp(int num)
         SDL_GameControllerClose(Joystick[num]);
         Joystick[num] = NULL;
         Joystick.pop_back();
+    }
+}
+
+void init_inpt()
+{
+    Joystick.clear();
+    int num = SDL_NumJoysticks();
+    if (num)
+    {
+        for (int i = 0; i < num; i++)
+            Joystick.push_back(SDL_GameControllerOpen(num));
     }
 }
 
@@ -483,11 +497,12 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
     }
 
     int num = SDL_NumJoysticks();
+    SDL_GameControllerUpdate();
     if (num)
     {
         for (int k = 0; k < num; k++)
         {
-            if (checkjs(k) && bind.SDL_port != -1)
+            if (checkjs(k))
             {
                 for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
                 {

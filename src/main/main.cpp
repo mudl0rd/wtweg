@@ -110,7 +110,7 @@ int main2(const char *rom, const char *core, bool pergame)
 
   bool done = false;
   bool show_menu = true;
-  reset_inp();
+//  init_inpt();
 
   SDL_Rect window_rect = {0};
 
@@ -223,7 +223,7 @@ int main2(const char *rom, const char *core, bool pergame)
   }
 
   instance->core_unload();
-  reset_inp();
+  reset_inpt();
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
