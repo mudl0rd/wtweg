@@ -153,6 +153,10 @@ void audio_mix(const int16_t *samples, size_t size)
     float drc_ratio = (float)(audio_ctx_s.client_rate / audio_ctx_s.system_rate) *
                       (1.0 + 0.005 * ((double)delta_mid / half_size));
     s16tof(audio_ctx_s.input_float, samples, in_len);
+
+
+
+    
     src_data.input_frames = size;
     src_data.ratio = drc_ratio;
     src_data.data_in = audio_ctx_s.input_float;

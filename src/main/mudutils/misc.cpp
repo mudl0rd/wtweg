@@ -16,7 +16,6 @@
 #include "zip.h"
 #include "MemoryModulePP.h"
 #else
-#include <SDL2/SDL.h>
 #include <unistd.h>
 #endif
 using namespace std;
@@ -149,11 +148,18 @@ void *openlib(const char *path)
 			return NULL;
 		}
 	}
-	std::vector<uint8_t> dll_ptr = load_data(path);
-    PMEMORYMODULE handle = MemoryLoadLibrary(dll_ptr.data(),dll_ptr.size());
+#ifdef DEBUG
+	void *handle = SDL_LoadObject(path);
 	if (!handle)
 		return NULL;
 	return handle;
+#else
+	std::vector<uint8_t> dll_ptr = load_data(path);
+	PMEMORYMODULE handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
+	if (!handle)
+		return NULL;
+	return handle;
+#endif
 #else
 	void *handle = SDL_LoadObject(path);
 	if (!handle)
@@ -164,7 +170,11 @@ void *openlib(const char *path)
 void *getfunc(void *handle, const char *funcname)
 {
 #ifdef _WIN32
+#ifdef DEBUG
+	return SDL_LoadFunction(handle, funcname);
+#else
 	return (void *)MemoryGetProcAddress((PMEMORYMODULE)handle, funcname);
+#endif
 #else
 	return SDL_LoadFunction(handle, funcname);
 #endif
@@ -172,7 +182,11 @@ void *getfunc(void *handle, const char *funcname)
 void freelib(void *handle)
 {
 #ifdef _WIN32
+#ifdef DEBUG
+	SDL_UnloadObject(handle);
+#else
 	MemoryFreeLibrary((PMEMORYMODULE)handle);
+#endif
 #else
 	SDL_UnloadObject(handle);
 #endif

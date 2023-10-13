@@ -22,6 +22,7 @@
 
 ## Recommended cores for use with WTFweg:
 * mame2003_plus_libretro.dll.zip (Arcade)
+* dosbox_pure_libretro.dll.zip (MSDOS)
 * mednafen_psx_libretro.dll.zip (PSX)
 * mednafen_pce_libretro.dll.zip (PCE)
 * mednafen_wswan_libretro.dll.zip (Wonderswan)

@@ -34,6 +34,8 @@ foreach srcitem : srcdirs
   src += glob.stdout().strip().split('\n')
 endforeach
 
+
+
 test_ldflags = []
 common_ldflags = meson.get_compiler('cpp').get_supported_link_arguments (
   test_ldflags)
@@ -45,6 +47,11 @@ else
   common_ldflags += [
     '-static'
     ]
+
+if get_option('buildtype') == 'debug'
+  add_global_arguments('-DDEBUG', language: [ 'c', 'cpp' ])
+endif
+
 add_project_link_arguments (
 common_ldflags,
 language: [ 'c', 'cpp' ],)
