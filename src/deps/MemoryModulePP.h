@@ -50,7 +50,6 @@ typedef struct {
 
 typedef struct {
 	LPVOID address;
-	LPVOID alignedAddress;
 	SIZE_T size;
 	DWORD characteristics;
 	BOOL last;

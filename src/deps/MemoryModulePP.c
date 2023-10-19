@@ -1,6 +1,4 @@
-/*
- * modify by xjun
- */
+
 
 /*
 
@@ -267,13 +265,18 @@ CheckSize(size_t size, size_t expected)
 static BOOL
 CopySections(const unsigned char *data, size_t size, PIMAGE_NT_HEADERS old_headers, PMEMORYMODULE module)
 {
-	int i, section_size;
+	int i;
 	unsigned char *codeBase = module->codeBase;
 	unsigned char *dest;
 	PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(module->headers);
 	for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
 	{
-		section_size = section->Misc.VirtualSize;
+        int section_size =0;
+        if (section->Misc.VirtualSize > 0) {
+          section_size = section->Misc.VirtualSize;
+        } else {
+          section_size = module->headers->OptionalHeader.SectionAlignment;
+        }
 		dest = (unsigned char *)module->alloc(codeBase + section->VirtualAddress,
 											  section_size,
 											  MEM_COMMIT,
@@ -287,9 +290,7 @@ CopySections(const unsigned char *data, size_t size, PIMAGE_NT_HEADERS old_heade
 		memset(dest, 0, section_size);
 		if (section->SizeOfRawData)
 			memcpy(dest, data + section->PointerToRawData, section->SizeOfRawData);
-		// NOTE: On 64bit systems we truncate to 32bit here but expand
-		// again later when "PhysicalAddress" is used.
-		section->Misc.PhysicalAddress = (DWORD)((uintptr_t)dest & 0xffffffff);
+		section->Misc.PhysicalAddress = (DWORD)(ULONGLONG)dest;
 	}
 	return TRUE;
 }
@@ -308,24 +309,6 @@ static int ProtectionFlags[2][2][2] = {
 	},
 };
 
-static SIZE_T
-GetRealSectionSize(PMEMORYMODULE module, PIMAGE_SECTION_HEADER section)
-{
-	DWORD size = section->SizeOfRawData;
-	if (size == 0)
-	{
-		if (section->Characteristics & IMAGE_SCN_CNT_INITIALIZED_DATA)
-		{
-			size = module->headers->OptionalHeader.SizeOfInitializedData;
-		}
-		else if (section->Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA)
-		{
-			size = module->headers->OptionalHeader.SizeOfUninitializedData;
-		}
-	}
-	return (SIZE_T)size;
-}
-
 static BOOL
 FinalizeSection(PMEMORYMODULE module, PSECTIONFINALIZEDATA sectionData)
 {
@@ -333,24 +316,13 @@ FinalizeSection(PMEMORYMODULE module, PSECTIONFINALIZEDATA sectionData)
 	BOOL executable;
 	BOOL readable;
 	BOOL writeable;
-
 	if (sectionData->size == 0)
 	{
 		return TRUE;
 	}
-
-	if (sectionData->characteristics & IMAGE_SCN_MEM_DISCARDABLE)
-	{
-		// section is not needed any more and can safely be freed
-		if (sectionData->address == sectionData->alignedAddress &&
-			(sectionData->last ||
-			 module->headers->OptionalHeader.SectionAlignment == module->pageSize ||
-			 (sectionData->size % module->pageSize) == 0))
-		{
-			// Only allowed to decommit whole pages
-			module->free(sectionData->address, sectionData->size, MEM_DECOMMIT, module->userdata);
-		}
-		return TRUE;
+	if (sectionData->characteristics & IMAGE_SCN_MEM_DISCARDABLE){
+	module->free(sectionData->address, sectionData->size, MEM_DECOMMIT, module->userdata);
+	return TRUE;
 	}
 
 	// determine protection flags based on characteristics
@@ -362,7 +334,6 @@ FinalizeSection(PMEMORYMODULE module, PSECTIONFINALIZEDATA sectionData)
 	{
 		protect |= PAGE_NOCACHE;
 	}
-
 	// change memory access flags
 	if (VirtualProtect(sectionData->address, sectionData->size, protect, &oldProtect) == 0)
 	{
@@ -387,8 +358,7 @@ FinalizeSections(PMEMORYMODULE module)
 #endif
 	SECTIONFINALIZEDATA sectionData;
 	sectionData.address = (LPVOID)((uintptr_t)section->Misc.PhysicalAddress | imageOffset);
-	sectionData.alignedAddress = AlignAddressDown(sectionData.address, module->pageSize);
-	sectionData.size = GetRealSectionSize(module, section);
+	sectionData.size = section->SizeOfRawData;
 	sectionData.characteristics = section->Characteristics;
 	sectionData.last = FALSE;
 	section++;
@@ -397,32 +367,13 @@ FinalizeSections(PMEMORYMODULE module)
 	for (i = 1; i < module->headers->FileHeader.NumberOfSections; i++, section++)
 	{
 		LPVOID sectionAddress = (LPVOID)((uintptr_t)section->Misc.PhysicalAddress | imageOffset);
-		LPVOID alignedAddress = AlignAddressDown(sectionAddress, module->pageSize);
-		SIZE_T sectionSize = GetRealSectionSize(module, section);
-		// Combine access flags of all sections that share a page
-		// TODO(fancycode): We currently share flags of a trailing large section
-		//   with the page of a first small section. This should be optimized.
-		if (sectionData.alignedAddress == alignedAddress || (uintptr_t)sectionData.address + sectionData.size > (uintptr_t)alignedAddress)
-		{
-			// Section shares page with previous
-			if ((section->Characteristics & IMAGE_SCN_MEM_DISCARDABLE) == 0 || (sectionData.characteristics & IMAGE_SCN_MEM_DISCARDABLE) == 0)
-			{
-				sectionData.characteristics = (sectionData.characteristics | section->Characteristics) & ~IMAGE_SCN_MEM_DISCARDABLE;
-			}
-			else
-			{
-				sectionData.characteristics |= section->Characteristics;
-			}
-			sectionData.size = (((uintptr_t)sectionAddress) + ((uintptr_t)sectionSize)) - (uintptr_t)sectionData.address;
-			continue;
-		}
+		SIZE_T sectionSize = section->SizeOfRawData;
 
 		if (!FinalizeSection(module, &sectionData))
 		{
 			return FALSE;
 		}
 		sectionData.address = sectionAddress;
-		sectionData.alignedAddress = alignedAddress;
 		sectionData.size = sectionSize;
 		sectionData.characteristics = section->Characteristics;
 	}
