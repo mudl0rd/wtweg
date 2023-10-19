@@ -178,9 +178,9 @@ bool checkjs(int port)
 {
     if (Joystick.size())
     {
-          return (Joystick[port]) ? SDL_GameControllerGetAttached(Joystick[port]) : false;
+        return (Joystick[port]) ? SDL_GameControllerGetAttached(Joystick[port]) : false;
     }
-      
+
     else
         return false;
 }
@@ -254,14 +254,14 @@ bool loadinpconf(uint32_t checksum)
                                                                                   std::to_string(controller.controller_type), true)));
             for (auto &bind : controller.core_inputbinds)
             {
-                bind.config.val = static_cast<int32_t>(std::stoi(load_conf(bind.description, 
-                std::to_string(bind.config.val), true)));
-                bind.joykey_desc = load_conf(bind.description + "_keydesc", 
-                bind.joykey_desc, false);
-                bind.SDL_port = static_cast<int16_t>(std::stoi(load_conf(bind.description + "_sdl_contr", 
-                std::to_string(bind.SDL_port), true)));
+                bind.config.val = static_cast<int32_t>(std::stoi(load_conf(bind.description,
+                                                                           std::to_string(bind.config.val), true)));
+                bind.joykey_desc = load_conf(bind.description + "_keydesc",
+                                             bind.joykey_desc, false);
+                bind.SDL_port = static_cast<int16_t>(std::stoi(load_conf(bind.description + "_sdl_contr",
+                                                                         std::to_string(bind.SDL_port), true)));
                 bind.config.bits.axistrigger = static_cast<int32_t>(std::stoi(load_conf(bind.description + "_anatrig",
-                std::to_string(bind.config.bits.axistrigger), true)));
+                                                                                        std::to_string(bind.config.bits.axistrigger), true)));
             }
         }
     }
@@ -355,8 +355,8 @@ bool save_inpcfg(uint32_t checksum)
         {
             std::string section_desc = "P" + std::to_string(portage++) + "_" + std::to_string(checksum);
             int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
-            if(section == INI_NOT_FOUND)
-            section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
+            if (section == INI_NOT_FOUND)
+                section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
             auto save_conf = [=](std::string keydesc, std::string value_str)
             {
                 int idx = ini_find_property(ini, section, keydesc.c_str(), keydesc.length());
@@ -441,16 +441,20 @@ void init_inp(int num)
 {
     if (Joystick.size())
     {
-        if (Joystick[num] != NULL)
+        for (int i = 0; i < Joystick.size(); i++)
         {
-            SDL_GameControllerClose(Joystick[num]);
-            Joystick[num] = SDL_GameControllerOpen(num);
+            if (i == num)
+            {
+                if (Joystick[i])
+                {
+                    SDL_GameControllerClose(Joystick[num]);
+                    Joystick[num] = SDL_GameControllerOpen(num);
+                    return;
+                }
+            }
         }
-        else
-            Joystick.push_back(SDL_GameControllerOpen(num));
     }
-    else
-        Joystick.push_back(SDL_GameControllerOpen(num));
+    Joystick.push_back(SDL_GameControllerOpen(num));
 }
 
 struct axisarrdig

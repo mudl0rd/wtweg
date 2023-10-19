@@ -116,6 +116,7 @@ const char *get_filename_ext(const char *filename)
 void *openlib(const char *path)
 {
 #ifdef _WIN32
+PMEMORYMODULE handle;
 	if (strcmp(get_filename_ext(path), "zip") == 0)
 	{
 		struct zip_t *zip = zip_open(path, 0, 'r');
@@ -130,7 +131,7 @@ void *openlib(const char *path)
 					char *buf = NULL;
 					size_t bufsize = 0;
 					zip_entry_read(zip, (void **)&buf, &bufsize);
-					PMEMORYMODULE handle = MemoryLoadLibrary(buf, bufsize);
+					handle = MemoryLoadLibrary(buf, bufsize);
 					free(buf);
 					if (!handle)
 					{
@@ -148,18 +149,13 @@ void *openlib(const char *path)
 			return NULL;
 		}
 	}
-#ifdef DEBUG
-	void *handle = SDL_LoadObject(path);
-	if (!handle)
-		return NULL;
-	return handle;
-#else
+
 	std::vector<uint8_t> dll_ptr = load_data(path);
-	PMEMORYMODULE handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
+	handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
 	if (!handle)
 		return NULL;
 	return handle;
-#endif
+	
 #else
 	void *handle = SDL_LoadObject(path);
 	if (!handle)
@@ -170,11 +166,11 @@ void *openlib(const char *path)
 void *getfunc(void *handle, const char *funcname)
 {
 #ifdef _WIN32
-#ifdef DEBUG
-	return SDL_LoadFunction(handle, funcname);
-#else
+//#ifdef DEBUG
+	//return SDL_LoadFunction(handle, funcname);
+//#else
 	return (void *)MemoryGetProcAddress((PMEMORYMODULE)handle, funcname);
-#endif
+//#endif
 #else
 	return SDL_LoadFunction(handle, funcname);
 #endif
@@ -182,11 +178,11 @@ void *getfunc(void *handle, const char *funcname)
 void freelib(void *handle)
 {
 #ifdef _WIN32
-#ifdef DEBUG
-	SDL_UnloadObject(handle);
-#else
+//#ifdef DEBUG
+	//SDL_UnloadObject(handle);
+//#else
 	MemoryFreeLibrary((PMEMORYMODULE)handle);
-#endif
+//#endif
 #else
 	SDL_UnloadObject(handle);
 #endif

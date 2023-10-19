@@ -153,6 +153,12 @@ int __fastcall RtlInsertInvertedFunctionTable(PVOID BaseAddress, ULONG uImageSiz
 
 #include "MemoryModulePP.h"
 
+#ifdef _WIN64
+__forceinline struct _TEB *RCurrentTeb() { return (struct _TEB *)__readgsqword(FIELD_OFFSET(NT_TIB, Self)); }
+#else
+__forceinline struct _TEB *RCurrentTeb() { return (struct _TEB *)(ULONG_PTR)__readfsdword(PcTeb); }
+#endif
+
 ULONG dwMajorVersion = 0;
 ULONG dwMinorVersion = 0;
 ULONG dwBuildNumber = 0;
@@ -267,44 +273,9 @@ CopySections(const unsigned char *data, size_t size, PIMAGE_NT_HEADERS old_heade
 	PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(module->headers);
 	for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
 	{
-		if (section->SizeOfRawData == 0)
-		{
-			// section doesn't contain data in the dll itself, but may define
-			// uninitialized data
-			section_size = old_headers->OptionalHeader.SectionAlignment;
-			if (section_size > 0)
-			{
-				dest = (unsigned char *)module->alloc(codeBase + section->VirtualAddress,
-													  section_size,
-													  MEM_COMMIT,
-													  PAGE_READWRITE,
-													  module->userdata);
-				if (dest == NULL)
-				{
-					return FALSE;
-				}
-
-				// Always use position from file to support alignments smaller
-				// than page size (allocation above will align to page size).
-				dest = codeBase + section->VirtualAddress;
-				// NOTE: On 64bit systems we truncate to 32bit here but expand
-				// again later when "PhysicalAddress" is used.
-				section->Misc.PhysicalAddress = (DWORD)((uintptr_t)dest & 0xffffffff);
-				memset(dest, 0, section_size);
-			}
-
-			// section is empty
-			continue;
-		}
-
-		if (!CheckSize(size, section->PointerToRawData + section->SizeOfRawData))
-		{
-			return FALSE;
-		}
-
-		// commit memory block and copy data from dll
+		section_size = section->Misc.VirtualSize;
 		dest = (unsigned char *)module->alloc(codeBase + section->VirtualAddress,
-											  section->SizeOfRawData,
+											  section_size,
 											  MEM_COMMIT,
 											  PAGE_READWRITE,
 											  module->userdata);
@@ -312,16 +283,14 @@ CopySections(const unsigned char *data, size_t size, PIMAGE_NT_HEADERS old_heade
 		{
 			return FALSE;
 		}
-
-		// Always use position from file to support alignments smaller
-		// than page size (allocation above will align to page size).
 		dest = codeBase + section->VirtualAddress;
-		memcpy(dest, data + section->PointerToRawData, section->SizeOfRawData);
+		memset(dest, 0, section_size);
+		if (section->SizeOfRawData)
+			memcpy(dest, data + section->PointerToRawData, section->SizeOfRawData);
 		// NOTE: On 64bit systems we truncate to 32bit here but expand
 		// again later when "PhysicalAddress" is used.
 		section->Misc.PhysicalAddress = (DWORD)((uintptr_t)dest & 0xffffffff);
 	}
-
 	return TRUE;
 }
 
@@ -959,7 +928,6 @@ PMEMORYMODULE MemoryLoadLibraryEx(const void *data, size_t size,
 	SYSTEM_INFO sysInfo;
 	PIMAGE_SECTION_HEADER section;
 	DWORD i;
-	size_t optionalSectionSize;
 	size_t lastSectionEnd = 0;
 	size_t alignedImageSize;
 
@@ -1019,20 +987,9 @@ PMEMORYMODULE MemoryLoadLibraryEx(const void *data, size_t size,
 	}
 
 	section = IMAGE_FIRST_SECTION(old_header);
-	optionalSectionSize = old_header->OptionalHeader.SectionAlignment;
 	for (i = 0; i < old_header->FileHeader.NumberOfSections; i++, section++)
 	{
-		size_t endOfSection;
-		if (section->SizeOfRawData == 0)
-		{
-			// Section without data in the DLL
-			endOfSection = section->VirtualAddress + optionalSectionSize;
-		}
-		else
-		{
-			endOfSection = section->VirtualAddress + section->SizeOfRawData;
-		}
-
+		size_t endOfSection = section->VirtualAddress + section->Misc.VirtualSize;
 		if (endOfSection > lastSectionEnd)
 		{
 			lastSectionEnd = endOfSection;
@@ -1136,7 +1093,7 @@ PMEMORYMODULE MemoryLoadLibraryEx(const void *data, size_t size,
 		goto error;
 	}
 
-	if(!BuildDelayedImportTable(result))
+	if (!BuildDelayedImportTable(result))
 	{
 		goto error;
 	}
