@@ -189,8 +189,8 @@ bool loadinpconf(uint32_t checksum)
 {
     auto lib = CLibretro::get_classinstance();
     std::string core_config = lib->core_config;
-    unsigned sz_coreconfig = get_filesize(core_config.c_str());
-    std::vector<uint8_t> data = load_data((const char *)core_config.c_str());
+    unsigned sz_coreconfig =  MudUtil::get_filesize(core_config.c_str());
+    std::vector<uint8_t> data =  MudUtil::load_data((const char *)core_config.c_str());
     ini_t *ini = NULL;
     int portage = 0;
 
@@ -222,7 +222,7 @@ bool loadinpconf(uint32_t checksum)
             int size = ini_save(ini, NULL, 0); // Find the size needed
             auto ini_data = std::make_unique<char[]>(size);
             size = ini_save(ini, ini_data.get(), size); // Actually save the file
-            save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+             MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
             continue;
         }
         else
@@ -244,7 +244,7 @@ bool loadinpconf(uint32_t checksum)
                     int size = ini_save(ini, NULL, 0); // Find the size needed
                     auto ini_data = std::make_unique<char[]>(size);
                     size = ini_save(ini, ini_data.get(), size); // Actually save the file
-                    save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+                     MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
                     return value_str;
                 }
                 std::string str = ini_property_value(ini, section, idx);
@@ -337,7 +337,7 @@ bool load_inpcfg(retro_input_descriptor *var)
     uint32_t crc = 0;
     for (auto &controller : lib->controller)
         for (auto &bind : controller.core_inputbinds)
-            crc = crc32(crc, bind.description.c_str(), bind.description.length());
+            crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
     return loadinpconf(crc);
 }
 bool save_inpcfg(uint32_t checksum)
@@ -345,10 +345,10 @@ bool save_inpcfg(uint32_t checksum)
     auto lib = CLibretro::get_classinstance();
     std::string core_config = lib->core_config;
     int portage = 0;
-    unsigned sz_coreconfig = get_filesize(core_config.c_str());
+    unsigned sz_coreconfig =  MudUtil::get_filesize(core_config.c_str());
     if (sz_coreconfig)
     {
-        std::vector<uint8_t> data = load_data((const char *)core_config.c_str());
+        std::vector<uint8_t> data =  MudUtil::load_data((const char *)core_config.c_str());
         ini_t *ini = ini_load((char *)data.data(), NULL);
 
         for (auto &controller : lib->controller)
@@ -381,7 +381,7 @@ bool save_inpcfg(uint32_t checksum)
         int size = ini_save(ini, NULL, 0); // Find the size needed
         auto ini_data = std::make_unique<char[]>(size);
         size = ini_save(ini, ini_data.get(), size); // Actually save the file
-        save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+        MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
         ini_destroy(ini);
     }
     return true;

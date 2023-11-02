@@ -271,21 +271,23 @@ CopySections(const unsigned char *data, size_t size, PIMAGE_NT_HEADERS old_heade
 	PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(module->headers);
 	for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
 	{
-        int section_size =0;
-        if (section->Misc.VirtualSize > 0) {
-          section_size = section->Misc.VirtualSize;
-        } else {
-          section_size = module->headers->OptionalHeader.SectionAlignment;
-        }
+		int section_size = 0;
+		if (section->Misc.VirtualSize > 0)
+		{
+			section_size = section->Misc.VirtualSize;
+		}
+		else
+		{
+			section_size = module->headers->OptionalHeader.SectionAlignment;
+		}
 		dest = (unsigned char *)module->alloc(codeBase + section->VirtualAddress,
 											  section_size,
 											  MEM_COMMIT,
 											  PAGE_READWRITE,
 											  module->userdata);
 		if (dest == NULL)
-		{
 			return FALSE;
-		}
+		
 		dest = codeBase + section->VirtualAddress;
 		memset(dest, 0, section_size);
 		if (section->SizeOfRawData)
@@ -317,12 +319,11 @@ FinalizeSection(PMEMORYMODULE module, PSECTIONFINALIZEDATA sectionData)
 	BOOL readable;
 	BOOL writeable;
 	if (sectionData->size == 0)
-	{
 		return TRUE;
-	}
-	if (sectionData->characteristics & IMAGE_SCN_MEM_DISCARDABLE){
-	module->free(sectionData->address, sectionData->size, MEM_DECOMMIT, module->userdata);
-	return TRUE;
+	if (sectionData->characteristics & IMAGE_SCN_MEM_DISCARDABLE)
+	{
+		module->free(sectionData->address, sectionData->size, MEM_DECOMMIT, module->userdata);
+		return TRUE;
 	}
 
 	// determine protection flags based on characteristics
@@ -331,9 +332,7 @@ FinalizeSection(PMEMORYMODULE module, PSECTIONFINALIZEDATA sectionData)
 	writeable = (sectionData->characteristics & IMAGE_SCN_MEM_WRITE) != 0;
 	protect = ProtectionFlags[executable][readable][writeable];
 	if (sectionData->characteristics & IMAGE_SCN_MEM_NOT_CACHED)
-	{
 		protect |= PAGE_NOCACHE;
-	}
 	// change memory access flags
 	if (VirtualProtect(sectionData->address, sectionData->size, protect, &oldProtect) == 0)
 	{
@@ -356,31 +355,19 @@ FinalizeSections(PMEMORYMODULE module)
 #else
 	static const uintptr_t imageOffset = 0;
 #endif
-	SECTIONFINALIZEDATA sectionData;
-	sectionData.address = (LPVOID)((uintptr_t)section->Misc.PhysicalAddress | imageOffset);
-	sectionData.size = section->SizeOfRawData;
-	sectionData.characteristics = section->Characteristics;
-	sectionData.last = FALSE;
-	section++;
-
 	// loop through all sections and change access flags
-	for (i = 1; i < module->headers->FileHeader.NumberOfSections; i++, section++)
+	for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
 	{
+		SECTIONFINALIZEDATA sectionData;
 		LPVOID sectionAddress = (LPVOID)((uintptr_t)section->Misc.PhysicalAddress | imageOffset);
 		SIZE_T sectionSize = section->SizeOfRawData;
-
+		sectionData.address = sectionAddress;
+		sectionData.size = sectionSize;
+		sectionData.characteristics = section->Characteristics;
 		if (!FinalizeSection(module, &sectionData))
 		{
 			return FALSE;
 		}
-		sectionData.address = sectionAddress;
-		sectionData.size = sectionSize;
-		sectionData.characteristics = section->Characteristics;
-	}
-	sectionData.last = TRUE;
-	if (!FinalizeSection(module, &sectionData))
-	{
-		return FALSE;
 	}
 	return TRUE;
 }

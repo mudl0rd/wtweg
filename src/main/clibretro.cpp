@@ -3,14 +3,17 @@
 #include <iostream>
 #include <filesystem>
 #include "inout.h"
-#include "mudutils/utils.h"
 #include <algorithm>
 #define INI_IMPLEMENTATION
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
+
 #ifdef _WIN32
+#include "fex/fex.h"
+#include "MemoryModulePP.h"
 #include <windows.h>
 #endif
+#include "mudutils/utils.h"
 using namespace std;
 
 #ifdef _WIN32
@@ -46,11 +49,11 @@ bool CLibretro::core_savestate(const char *filename, bool save)
       {
         // Get the filesize
         retro.retro_serialize(Memory.get(), size);
-        save_data(Memory.get(), size, filename);
+        MudUtil::save_data(Memory.get(), size, filename);
       }
       else
       {
-        std::vector<uint8_t> save_ptr = load_data(filename);
+        std::vector<uint8_t> save_ptr = MudUtil::load_data(filename);
         if (save_ptr.empty())
           return false;
         memcpy(Memory.get(), save_ptr.data(), save_ptr.size());
@@ -71,10 +74,10 @@ bool CLibretro::core_saveram(const char *filename, bool save)
     if (!size || !Memory)
       return false;
     if (save)
-      return save_data(Memory, size, filename);
+      return MudUtil::save_data(Memory, size, filename);
     else
     {
-      std::vector<uint8_t> save_ptr = load_data(filename);
+      std::vector<uint8_t> save_ptr = MudUtil::load_data(filename);
       if (save_ptr.empty())
         return false;
       if (save_ptr.size() != size)
@@ -88,22 +91,22 @@ bool CLibretro::core_saveram(const char *filename, bool save)
 
 bool CLibretro::load_coresettings()
 {
-  int size_ = get_filesize(core_config.c_str());
+  int size_ = MudUtil::get_filesize(core_config.c_str());
   ini_t *ini = NULL;
   std::vector<uint8_t> data;
   if (!size_)
   {
     save_coresettings();
-    size_ = get_filesize(core_config.c_str());
-    data = load_data(core_config.c_str());
+    size_ = MudUtil::get_filesize(core_config.c_str());
+    data = MudUtil::load_data(core_config.c_str());
   }
   else
   {
-    data = load_data(core_config.c_str());
+    data = MudUtil::load_data(core_config.c_str());
   }
   uint32_t crc = 0;
   for (auto &vars : core_variables)
-    crc = crc32(crc, vars.name.c_str(), vars.name.length());
+    crc = MudUtil::crc32(crc, (const void *)vars.name.c_str(), vars.name.length());
   std::string crc_string = "Core";
 
   ini = ini_load((char *)data.data(), NULL);
@@ -112,8 +115,8 @@ bool CLibretro::load_coresettings()
   {
     ini_destroy(ini);
     save_coresettings();
-    size_ = get_filesize(core_config.c_str());
-    data = load_data(core_config.c_str());
+    size_ = MudUtil::get_filesize(core_config.c_str());
+    data = MudUtil::load_data(core_config.c_str());
     ini = ini_load((char *)data.data(), NULL);
     section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
   }
@@ -129,10 +132,10 @@ bool CLibretro::load_coresettings()
       int size = ini_save(ini, NULL, 0); // Find the size needed
       auto ini_data = std::make_unique<char[]>(size);
       size = ini_save(ini, ini_data.get(), size); // Actually save the file
-      save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+      MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
     }
     else
-    vars.var = ini_property_value(ini, section, i);
+      vars.var = ini_property_value(ini, section, i);
     for (auto j = std::size_t{}; auto &var_val : vars.config_vals)
     {
       if (var_val == vars.var)
@@ -151,14 +154,14 @@ void CLibretro::save_coresettings()
 {
   uint32_t crc = 0;
   for (auto &vars : core_variables)
-    crc = crc32(crc, vars.name.c_str(), vars.name.length());
+    crc = MudUtil::crc32(crc, vars.name.c_str(), vars.name.length());
   std::string crc_string = "Core";
-  unsigned sz_coreconfig = get_filesize(core_config.c_str());
+  unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
 
   ini_t *ini = NULL;
   if (sz_coreconfig)
   {
-    std::vector<uint8_t> data = load_data((const char *)core_config.c_str());
+    std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
     ini = ini_load((char *)data.data(), NULL);
     int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
     if (section == INI_NOT_FOUND)
@@ -203,7 +206,7 @@ void CLibretro::save_coresettings()
   int size = ini_save(ini, NULL, 0); // Find the size needed
   auto ini_data = std::make_unique<char[]>(size);
   size = ini_save(ini, ini_data.get(), size); // Actually save the file
-  save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+  MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
   ini_destroy(ini);
 }
 
@@ -407,7 +410,7 @@ void CLibretro::reset()
 CLibretro::CLibretro(SDL_Window *window, char *exepath)
 {
   reset();
-  std::filesystem::path exe(get_wtfwegname());
+  std::filesystem::path exe(MudUtil::get_wtfwegname());
   cores.clear();
 
   const char *dirs[3] = {"cores", "system", "saves"};
@@ -488,14 +491,14 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   core_config = std::filesystem::absolute(save_path).string();
 
-  void *hDLL = openlib((const char *)corepath);
+  void *hDLL = MudUtil::openlib((const char *)corepath);
   if (!hDLL)
   {
     const char *err = SDL_GetError();
     return false;
   }
 
-#define libload(name) getfunc(hDLL, name)
+#define libload(name) MudUtil::getfunc(hDLL, name)
 #define load_sym(V, name)                         \
   if (!(*(void **)(&V) = (void *)libload(#name))) \
     return false;
@@ -535,7 +538,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     info.meta = "";
     if (!system.need_fullpath)
     {
-      info.size = get_filesize(ROM);
+      info.size = MudUtil::get_filesize(ROM);
 
       std::ifstream ifs;
       ifs.open(ROM, ios::binary);
@@ -565,7 +568,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
   refreshrate = dm.refresh_rate;
-  audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps);
+  audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps, true);
   video_init(&av.geometry, sdl_window);
 
   core_saveram(romsavesstatespath.c_str(), false);
@@ -598,7 +601,7 @@ void CLibretro::core_unload()
       video_deinit();
       retro.retro_unload_game();
       retro.retro_deinit();
-      freelib(retro.handle);
+      MudUtil::freelib(retro.handle);
       retro.handle = NULL;
       memset((retro_core *)&retro, 0, sizeof(retro_core));
     }
@@ -611,25 +614,112 @@ void CLibretro::core_unload()
 void CLibretro::get_cores()
 {
   std::filesystem::path p(exe_path);
+  coreexts = "";
+  std::string corelist = "";
+#ifdef _WIN32
+  const char *ext[] = {"cores.zip", "cores.rar", "cores.7z"};
+  bool corefound = false;
+  std::filesystem::path corezippath;
+  for (int i = 0; i < ARRAYSIZE(ext); i++)
+  {
+    std::filesystem::path corepath(p / ext[i]);
+    if (std::filesystem::exists(corepath))
+    {
+      corefound = true;
+      corezippath = corepath;
+      break;
+    }
+  }
+
+  if (corefound)
+  {
+    fex_t *fex = NULL;
+    fex_err_t err = fex_open(&fex, corezippath.string().c_str());
+    if (err == NULL)
+      while (!fex_done(fex))
+      {
+        if (fex_has_extension(fex_name(fex), ".dll"))
+        {
+          fex_stat(fex);
+          int sz = fex_size(fex);
+          PMEMORYMODULE handle;
+          char *buf = (char *)malloc(sz);
+          fex_read(fex, buf, sz);
+          handle = MemoryLoadLibrary(buf, sz);
+          free(buf);
+          if (!handle)
+          {
+            fex_close(fex);
+            fex = NULL;
+            continue;
+          }
+          else
+          {
+            struct retro_system_info system = {0};
+            auto *getinfo = (void (*)(retro_system_info *))MudUtil::getfunc(handle, "retro_get_system_info");
+            auto *set_environment =
+                (void (*)(retro_environment_t))MudUtil::getfunc(handle, "retro_set_environment");
+            no_roms2 = false;
+            set_environment(no_roms);
+            if (getinfo)
+            {
+              getinfo(&system);
+              core_info entry_;
+              entry_.fps = 60;
+              entry_.samplerate = 44100;
+              entry_.aspect_ratio = 4 / 3;
+              entry_.core_name = system.library_name;
+              entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
+              entry_.core_path = corezippath.string().c_str();
+              entry_.in_corezip = true;
+              entry_.no_roms = (system.valid_extensions == NULL) && no_roms2;
+              if (!entry_.no_roms)
+              {
+                std::string test = entry_.core_extensions;
+                test = MudUtil::replace_all(test, "|", ",.");
+                corelist += test + ",.";
+              }
+              cores.push_back(entry_);
+              MudUtil::freelib(handle);
+            }
+          }
+        }
+        fex_next(fex);
+      }
+    if (corelist != "")
+    {
+      coreexts = "All supported {.";
+      coreexts += corelist;
+      coreexts.resize(coreexts.size() - 2);
+      coreexts += "}";
+    }
+    fex_close(fex);
+    fex = NULL;
+    return;
+  }
+
+#endif
+
   std::filesystem::path path = p / "cores";
   for (auto &entry : std::filesystem::directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
   {
     string str = entry.path().string();
-    if (entry.is_regular_file() && (entry.path().extension() == SHLIB_EXTENSION 
-    #ifdef _WIN32
-    || entry.path().extension() == ".zip"
-    #endif
-    ))
+    if (entry.is_regular_file() && (entry.path().extension() == SHLIB_EXTENSION
+#ifdef _WIN32
+                                    || entry.path().extension() == ".zip" ||
+                                    entry.path().extension() == ".rar" || entry.path().extension() == ".7z"
+#endif
+                                    ))
     {
       struct retro_system_info system = {0};
-      void *hDLL = openlib(str.c_str());
+      void *hDLL = MudUtil::openlib(str.c_str());
       if (!hDLL)
       {
         continue;
       }
-      auto *getinfo = (void (*)(retro_system_info *))getfunc(hDLL, "retro_get_system_info");
+      auto *getinfo = (void (*)(retro_system_info *))MudUtil::getfunc(hDLL, "retro_get_system_info");
       auto *set_environment =
-          (void (*)(retro_environment_t))getfunc(hDLL, "retro_set_environment");
+          (void (*)(retro_environment_t))MudUtil::getfunc(hDLL, "retro_set_environment");
       no_roms2 = false;
       set_environment(no_roms);
       if (getinfo)
@@ -637,27 +727,31 @@ void CLibretro::get_cores()
         getinfo(&system);
         core_info entry_;
         entry_.fps = 60;
+        entry_.in_corezip = false;
         entry_.samplerate = 44100;
         entry_.aspect_ratio = 4 / 3;
         entry_.core_name = system.library_name;
         entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
         entry_.core_path = str;
-        entry_.no_roms = (system.valid_extensions == NULL) &&  no_roms2;
+        entry_.no_roms = (system.valid_extensions == NULL) && no_roms2;
+        if (!entry_.no_roms)
+        {
+          std::string test = entry_.core_extensions;
+          test = MudUtil::replace_all(test, "|", ",.");
+          corelist += test + ",.";
+        }
         cores.push_back(entry_);
-        freelib(hDLL);
+        MudUtil::freelib(hDLL);
       }
     }
   }
-
-  coreexts = "";
-  std::string corelist = "";
 
   for (auto &corez : cores)
   {
     if (!corez.no_roms)
     {
       std::string test = corez.core_extensions;
-      test = replace_all(test, "|", ",.");
+      test = MudUtil::replace_all(test, "|", ",.");
       corelist += test + ",.";
     }
   }

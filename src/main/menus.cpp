@@ -556,7 +556,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         uint32_t crc=0;
         for (auto &controller : instance->controller)
     for (auto &bind : controller.core_inputbinds)
-    crc=crc32(crc,bind.description.c_str(),bind.description.length());
+    crc= MudUtil::crc32(crc,bind.description.c_str(),bind.description.length());
         save_inpcfg(crc);
       }
       ImGui::EndPopup();

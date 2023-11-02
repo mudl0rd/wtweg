@@ -16,6 +16,8 @@
 #endif
 using namespace std;
 
+namespace MudUtil
+{
 
 uint32_t adler32(uint32_t adler, const uint8_t *data, size_t len) {
 	uint32_t s1 =(adler)?adler & 0xFFFF:1&0xFFFF;
@@ -50,9 +52,6 @@ uint32_t crc32(uint32_t initial,const void *data, size_t length)
 
 	return crc ^ 0xffffffff;
 }
-
-
-
 
 void MD5(uint8_t *hash_data,uint8_t *data, size_t len ) {
   HCRYPTPROV hProv = 0;
@@ -90,3 +89,4 @@ void SHA256(uint8_t *hash_data,uint8_t *data, size_t len) {
   CryptReleaseContext(hProv, 0);
 }
 
+}

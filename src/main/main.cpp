@@ -98,7 +98,7 @@ int main2(const char *rom, const char *core, bool pergame)
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
 
-  std::filesystem::path p(get_wtfwegname());
+  std::filesystem::path p( MudUtil::get_wtfwegname());
   std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
   std::filesystem::path path2 = p.parent_path() / "mudmaps.txt";
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());

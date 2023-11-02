@@ -3,6 +3,7 @@
 #include <iostream>
 #include <filesystem>
 #include "inout.h"
+#include "out_aud.h"
 #include "mudutils/utils.h"
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
@@ -235,7 +236,7 @@ static size_t core_audio_sample_batch(const int16_t *data, size_t frames)
   auto lib = CLibretro::get_classinstance();
   if (lib->core_isrunning())
   {
-    audio_mix(data, frames);
+    audio_mix((const int16_t*)data, frames);
   }
   return frames;
 }
@@ -535,7 +536,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_LIBRETRO_PATH:
   {
     const char **dir = reinterpret_cast<const char **>(data);
-    std::filesystem::path p(get_wtfwegname());
+    std::filesystem::path p(MudUtil::get_wtfwegname());
     static auto *lr_path = strdup(p.parent_path().string().c_str());
     *dir = lr_path;
     return true;
@@ -672,7 +673,7 @@ static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
 
 void CLibretro::load_envsymb(void *handle, bool first)
 {
-#define libload(name) getfunc(handle, name)
+#define libload(name) MudUtil::getfunc(handle, name)
 #define load_sym(V, name) if (!(*(void **)(&V) = (void *)libload(#name)))
 
   if (first)

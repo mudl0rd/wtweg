@@ -15,18 +15,53 @@ inc = [
   include_directories(
     'src/main',
     'src/deps/imgui',
-    'src/deps',
-    'src/deps/stb'
+    'src/deps/misc',
+    'src/deps/stb',
+    'src/deps/fex',
   )
 ]
 
 src = []
+src += [
+	  './src/deps/fex/7z_C/LzmaLib.c',
+    './src/deps/fex/7z_C/LzmaEnc.c',
+    './src/deps/fex/7z_C/LzmaDec.c',
+    './src/deps/fex/7z_C/Lzma86Enc.c',
+    './src/deps/fex/7z_C/Lzma86Dec.c',
+    './src/deps/fex/7z_C/Lzma2Enc.c',
+    './src/deps/fex/7z_C/Lzma2Dec.c',
+    './src/deps/fex/7z_C/LzFind.c',
+    './src/deps/fex/7z_C/Delta.c',
+    './src/deps/fex/7z_C/CpuArch.c',
+    './src/deps/fex/7z_C/BraIA64.c',
+    './src/deps/fex/7z_C/Bra86.c',
+    './src/deps/fex/7z_C/Bra.c',
+    './src/deps/fex/7z_C/Bcj2.c',
+    './src/deps/fex/7z_C/Alloc.c',
+    './src/deps/fex/7z_C/7zStream.c',
+    './src/deps/fex/7z_C/7zIn.c',
+    './src/deps/fex/7z_C/Ppmd7Enc.c',
+    './src/deps/fex/7z_C/Ppmd7Dec.c',
+    './src/deps/fex/7z_C/Ppmd7.c',
+    './src/deps/fex/7z_C/7zDec.c',
+    './src/deps/fex/7z_C/7zCrcOpt.c',
+    './src/deps/fex/7z_C/7zCrc.c',
+    './src/deps/fex/7z_C/7zBuf2.c',
+    './src/deps/fex/7z_C/7zBuf.c',
+    './src/deps/fex/7z_C/7zAlloc.c',
+    './src/deps/fex/7z_C/MtCoder.c',
+    './src/deps/fex/7z_C/LzFindMt.c',
+    './src/deps/fex/7z_C/Threads.c'
+
+]
 
 srcdirs = [
     './src/main/',
     './src/main/mudutils',
-    './src/deps/',
-    './src/deps/imgui/'
+    './src/deps/misc',
+    './src/deps/imgui/',
+    './src/deps/fex/fex',
+    './src/deps/fex/unrar/'
 ]
 
 foreach srcitem : srcdirs

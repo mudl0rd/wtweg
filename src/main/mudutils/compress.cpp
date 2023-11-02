@@ -14,3 +14,9 @@
 #include <unistd.h>
 #endif
 using namespace std;
+
+namespace MudUtil
+{
+
+
+}

@@ -41,6 +41,7 @@ struct core_info
 	float samplerate;
 	float fps;
 	bool no_roms;
+	bool in_corezip;
 };
 
 struct retro_core
