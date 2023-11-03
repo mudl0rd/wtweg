@@ -176,7 +176,7 @@ bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool
 {
   if (core_file != NULL)
   {
-    instance->core_load((char *)file, pergame, (char *)core_file, false);
+    instance->core_load((char *)file, pergame, (char *)core_file, false,false);
     return false;
   }
   else
@@ -370,7 +370,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     }
     if (hits == 1 && found)
     {
-      instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(0).core_path.c_str(), false);
+      instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(0).core_path.c_str(), false,cores_info.at(0).in_corezip);
       coreselect = false;
       return;
     }
@@ -393,7 +393,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(listbox_item_current).core_path.c_str(), false);
+        instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(listbox_item_current).core_path.c_str(),false,cores_info.at(listbox_item_current).in_corezip);
         coreselect = false;
       }
       ImGui::Bullet();
@@ -460,7 +460,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str(), true);
+        instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str(), true,cores_info.at(listbox_item_current).in_corezip);
         load_core = false;
       }
       ImGui::Bullet();

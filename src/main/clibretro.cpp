@@ -450,7 +450,7 @@ static bool no_roms(unsigned cmd, void *data)
   return false;
 }
 
-bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless)
+bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless,bool inzip)
 {
   if (lr_isrunning)
     core_unload();
@@ -491,12 +491,62 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   core_config = std::filesystem::absolute(save_path).string();
 
-  void *hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
+
+  void *hDLL = NULL;
+#ifdef _WIN32
+if(inzip)
+{
+  std::filesystem::path p(exe_path);
+  const char *ext[] = {"cores.zip", "cores.rar", "cores.7z"};
+  bool corefound = false;
+  std::filesystem::path corezippath;
+  for (int i = 0; i < ARRAYSIZE(ext); i++)
+  {
+    std::filesystem::path corepath2(p / ext[i]);
+    if (std::filesystem::exists(corepath2))
+    {
+      fex_t *fex = NULL;
+      fex_err_t err = fex_open(&fex, corepath2.string().c_str());
+      if (err == NULL)
+        while (!fex_done(fex))
+        {
+          if (strcmp(fex_name(fex),corepath)==0)
+          {
+            fex_stat(fex);
+            int sz = fex_size(fex);
+            char *buf = (char *)malloc(sz);
+            fex_read(fex, buf, sz);
+            hDLL = MemoryLoadLibrary(buf, sz);
+            free(buf);
+            if (!hDLL)
+            {
+              fex_close(fex);
+              fex = NULL;
+              return false;
+            }
+            break;
+          }
+          fex_next(fex);
+        }
+        fex_close(fex);
+     }
+  }
+}
+else
+{
+  hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
   if (!hDLL)
   {
     const char *err = SDL_GetError();
     return false;
   }
+}
+#else
+hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
+#endif
+
+  
+  
 
 #define libload(name) MudUtil::getfunc(hDLL, name)
 #define load_sym(V, name)                         \
@@ -663,7 +713,7 @@ void CLibretro::get_cores()
                 entry_.aspect_ratio = 4 / 3;
                 entry_.core_name = system.library_name;
                 entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
-                entry_.core_path = corezippath.string().c_str();
+                entry_.core_path = fex_name(fex);
                 entry_.in_corezip = true;
                 entry_.no_roms = (system.valid_extensions == NULL) && no_roms2;
                 if (!entry_.no_roms)

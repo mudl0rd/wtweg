@@ -206,7 +206,7 @@ int main2(const char *rom, const char *core, bool pergame)
       if (event.type == SDL_DROPFILE)
       {
         char *filez = (char *)event.drop.file;
-        loadfile(instance.get(), event.drop.file, NULL, false);
+        loadfile(instance.get(), event.drop.file, NULL,false);
         SDL_free(filez);
       }
     }
