@@ -16,7 +16,7 @@
 
 [A list of tested cores is here](https://raw.githubusercontent.com/cruduxcru0/WTFweg/master/cores.txt)
 
-* "cores" is where all libretro cores go. Cores on Windows can be transparently depacked from ZIPs.
+* "cores" is where all libretro cores go. Cores on Windows can be transparently depacked from ZIP/RAR/7-Zip files.
 * "saves" is where all saves are
 * "system" is where all BIOSes/system files go
 
@@ -43,7 +43,7 @@
 * [Dynamic rate control](https://docs.libretro.com/development/cores/dynamic-rate-control/).
 * Support for GL-based libretro cores.
 * Support for contentless libretro cores (like game engine reimplementations)
-* Support for transparently loading Windows cores from ZIP files.
+* Support for transparently loading Windows cores from ZIP/RAR/7z files.
 * Savestates/SRAM saving/loading.
 * [dear-imgui based UI](https://github.com/ocornut/imgui).
 * Commandline support for debugging cores with GDB.

@@ -120,7 +120,7 @@ namespace MudUtil
 	{
 #ifdef _WIN32
 		PMEMORYMODULE handle;
-		if (strcmp(get_filename_ext(path), "zip") ||strcmp(get_filename_ext(path), "7z")||
+		if (strcmp(get_filename_ext(path), "zip")==0||strcmp(get_filename_ext(path), "7z")==0||
 		strcmp(get_filename_ext(path), "rar") == 0)
 		{
 			fex_t *fex = NULL;
@@ -140,7 +140,6 @@ namespace MudUtil
 					{
 						fex_close(fex);
 						fex = NULL;
-						continue;
 					}
 					else
 					{

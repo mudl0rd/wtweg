@@ -456,10 +456,10 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     core_unload();
 
   reset();
-  lr_isrunning = true;
+  lr_isrunning = false;
 
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
-  std::filesystem::path core_path_ = corepath;
+  std::filesystem::path core_path_ =  std::filesystem::path(corepath).native();
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path;
@@ -491,7 +491,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   core_config = std::filesystem::absolute(save_path).string();
 
-  void *hDLL = MudUtil::openlib((const char *)corepath);
+  void *hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
   if (!hDLL)
   {
     const char *err = SDL_GetError();
@@ -568,13 +568,14 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
   refreshrate = dm.refresh_rate;
-  audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps, true);
+  audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps, false);
   video_init(&av.geometry, sdl_window);
 
   core_saveram(romsavesstatespath.c_str(), false);
 
   for (int i = 0; i < controller.size(); i++)
     core_changinpt(controller[i].controller_type, i);
+  lr_isrunning = true;
   return true;
 }
 
@@ -625,79 +626,71 @@ void CLibretro::get_cores()
     std::filesystem::path corepath(p / ext[i]);
     if (std::filesystem::exists(corepath))
     {
-      corefound = true;
-      corezippath = corepath;
-      break;
-    }
-  }
-
-  if (corefound)
-  {
-    fex_t *fex = NULL;
-    fex_err_t err = fex_open(&fex, corezippath.string().c_str());
-    if (err == NULL)
-      while (!fex_done(fex))
-      {
-        if (fex_has_extension(fex_name(fex), ".dll"))
+      fex_t *fex = NULL;
+      fex_err_t err = fex_open(&fex, corepath.string().c_str());
+      if (err == NULL)
+        while (!fex_done(fex))
         {
-          fex_stat(fex);
-          int sz = fex_size(fex);
-          PMEMORYMODULE handle;
-          char *buf = (char *)malloc(sz);
-          fex_read(fex, buf, sz);
-          handle = MemoryLoadLibrary(buf, sz);
-          free(buf);
-          if (!handle)
+          if (fex_has_extension(fex_name(fex), ".dll"))
           {
-            fex_close(fex);
-            fex = NULL;
-            continue;
-          }
-          else
-          {
-            struct retro_system_info system = {0};
-            auto *getinfo = (void (*)(retro_system_info *))MudUtil::getfunc(handle, "retro_get_system_info");
-            auto *set_environment =
-                (void (*)(retro_environment_t))MudUtil::getfunc(handle, "retro_set_environment");
-            no_roms2 = false;
-            set_environment(no_roms);
-            if (getinfo)
+            fex_stat(fex);
+            int sz = fex_size(fex);
+            PMEMORYMODULE handle;
+            char *buf = (char *)malloc(sz);
+            fex_read(fex, buf, sz);
+            handle = MemoryLoadLibrary(buf, sz);
+            free(buf);
+            if (!handle)
             {
-              getinfo(&system);
-              core_info entry_;
-              entry_.fps = 60;
-              entry_.samplerate = 44100;
-              entry_.aspect_ratio = 4 / 3;
-              entry_.core_name = system.library_name;
-              entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
-              entry_.core_path = corezippath.string().c_str();
-              entry_.in_corezip = true;
-              entry_.no_roms = (system.valid_extensions == NULL) && no_roms2;
-              if (!entry_.no_roms)
+              fex_close(fex);
+              fex = NULL;
+              continue;
+            }
+            else
+            {
+              struct retro_system_info system = {0};
+              auto *getinfo = (void (*)(retro_system_info *))MudUtil::getfunc(handle, "retro_get_system_info");
+              auto *set_environment =
+                  (void (*)(retro_environment_t))MudUtil::getfunc(handle, "retro_set_environment");
+              no_roms2 = false;
+              set_environment(no_roms);
+              if (getinfo)
               {
-                std::string test = entry_.core_extensions;
-                test = MudUtil::replace_all(test, "|", ",.");
-                corelist += test + ",.";
+                getinfo(&system);
+                core_info entry_;
+                entry_.fps = 60;
+                entry_.samplerate = 44100;
+                entry_.aspect_ratio = 4 / 3;
+                entry_.core_name = system.library_name;
+                entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
+                entry_.core_path = corezippath.string().c_str();
+                entry_.in_corezip = true;
+                entry_.no_roms = (system.valid_extensions == NULL) && no_roms2;
+                if (!entry_.no_roms)
+                {
+                  std::string test = entry_.core_extensions;
+                  test = MudUtil::replace_all(test, "|", ",.");
+                  corelist += test + ",.";
+                }
+                cores.push_back(entry_);
+                MudUtil::freelib(handle);
               }
-              cores.push_back(entry_);
-              MudUtil::freelib(handle);
             }
           }
+          fex_next(fex);
         }
-        fex_next(fex);
+      if (corelist != "")
+      {
+        coreexts = "All supported {.";
+        coreexts += corelist;
+        coreexts.resize(coreexts.size() - 2);
+        coreexts += "}";
       }
-    if (corelist != "")
-    {
-      coreexts = "All supported {.";
-      coreexts += corelist;
-      coreexts.resize(coreexts.size() - 2);
-      coreexts += "}";
+      fex_close(fex);
+      fex = NULL;
+      return;
     }
-    fex_close(fex);
-    fex = NULL;
-    return;
   }
-
 #endif
 
   std::filesystem::path path = p / "cores";
