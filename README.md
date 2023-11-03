@@ -44,6 +44,7 @@
 * Support for GL-based libretro cores.
 * Support for contentless libretro cores (like game engine reimplementations)
 * Support for transparently loading Windows cores from ZIP/RAR/7z files.
+- Multiple cores can be packed into one cores.zip/cores.rar/cores.7z in WTFweg executable directory.
 * Savestates/SRAM saving/loading.
 * [dear-imgui based UI](https://github.com/ocornut/imgui).
 * Commandline support for debugging cores with GDB.
