@@ -15,6 +15,7 @@ struct fifo_buffer
 
 struct audio_ctx
 {
+    bool floating_point;
     fifo_buffer *_fifo;
     SDL_AudioDeviceID dev;
     unsigned client_rate;
@@ -151,10 +152,15 @@ void audio_mix(const void *samples, size_t size)
     int delta_mid = (int)fifo_write_avail(audio_ctx_s._fifo) - half_size;
     float drc_ratio = (float)(audio_ctx_s.client_rate / audio_ctx_s.system_rate) *
                       (1.0 + 0.005 * ((double)delta_mid / half_size));
-    s16tof(audio_ctx_s.input_float, (int16_t*)samples,in_len);
+    if(!audio_ctx_s.floating_point)
+    {
+        s16tof(audio_ctx_s.input_float, (int16_t*)samples,in_len);
+        src_data.data_in = audio_ctx_s.input_float;
+    }
+    else
+    src_data.data_in = (float*)samples;
     src_data.input_frames = size;
     src_data.ratio = drc_ratio;
-    src_data.data_in = audio_ctx_s.input_float;
     src_data.data_out = audio_ctx_s.output_float;
     resampler_sinc_process(audio_ctx_s.resample, &src_data);
     size_t out_bytes = src_data.output_frames * 2 * sizeof(float);
@@ -187,13 +193,14 @@ void audio_changeratefps(float refreshra, float input_srate, float fps)
 
 bool audio_init(float refreshra, float input_srate, float fps, bool fp)
 {
+    audio_ctx_s.floating_point=fp;
     SDL_AudioSpec shit = {0};
     audio_changeratefps(refreshra, input_srate, fps);
     SDL_AudioSpec shit2 = {0};
     SDL_GetDefaultAudioInfo(NULL, &shit2, 0);
 
     shit.freq = shit2.freq;
-    shit.format = AUDIO_F32;
+    shit.format = fp?AUDIO_S16SYS:AUDIO_F32;
     shit.samples = 2048;
     shit.callback = func_callback;
     shit.userdata = (audio_ctx *)&audio_ctx_s;
