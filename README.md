@@ -16,7 +16,8 @@
 
 [A list of tested cores is here](https://raw.githubusercontent.com/cruduxcru0/WTFweg/master/cores.txt)
 
-* "cores" is where all libretro cores go. Cores on Windows can be transparently depacked from ZIP/RAR/7-Zip files.
+* "cores" is where all libretro cores go. 
+    * Cores on Windows can be transparently depacked from ZIP/RAR/7-Zip files. These can be in the "cores" directory as singular compressed files, or multiple core files as one pack of "cores.zip, "cores.rar", or "cores.7z", placed in the WTFweg install directory.
 * "saves" is where all saves are
 * "system" is where all BIOSes/system files go
 
@@ -37,14 +38,18 @@
 * mesen_libretro.dll.zip (NES)
 * pokemini_libretro.dll.zip (Pokemon Mini)
 * gearcoleco_libretro.dll.zip (ColecoVision)
+* xrick_libretro.dll.zip (Rick Dangerous source port)
+* nxengine_libretro.dll.zip (Cave Story source port)
+* dinothawr_libretro.dll.zip (Dinothawr, homebrew Sokoban-like)
+* craft_libretro.dll.zip (homebrew Minecraft-like)
+
 
 ## With?
 
 * [Dynamic rate control](https://docs.libretro.com/development/cores/dynamic-rate-control/).
 * Support for GL-based libretro cores.
 * Support for contentless libretro cores (like game engine reimplementations)
-* Support for transparently loading Windows cores from ZIP/RAR/7z files.
-- Multiple cores can be packed into one cores.zip/cores.rar/cores.7z in WTFweg executable directory.
+* Support for transparently loading Windows libretro cores from ZIP/RAR/7z files.
 * Savestates/SRAM saving/loading.
 * [dear-imgui based UI](https://github.com/ocornut/imgui).
 * Commandline support for debugging cores with GDB.
