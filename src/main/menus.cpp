@@ -280,10 +280,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                                     open_log == true))
          open_log = !open_log;
 
-        if (instance->controller.size() > 1)
+        if(instance->controller.size())
+        if (instance->controller[0].core_inputdesc.size())
         {
           ImGui::Separator();
-
           for (int i = 0; i < instance->controller.size(); i++)
           {
             if(instance->controller[i].core_inputdesc.size())

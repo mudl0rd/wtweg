@@ -24,6 +24,7 @@ Broken/incomplete-supported cores:
 
 * mednafen_psx_hw_libretro.dll.zip (broken GL context when changing from GL4+ cores?)
 - Possibly a PSX GPU rendering bug?
+* picodrive_libretro.dll.zip
 
 Tested cores (known to load/play/save games, might not be problem-free)
 
@@ -75,6 +76,8 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * snes9x2010_libretro.dll.zip  (no known problems)
 * ecwolf_libretro.dll.zip (no known problems)
 * fbneo_libretro.dll.zip (no known problems)
+* sameduck_libretro.dll.zip (no known problems)
+* blastem_libretro.dll.zip (no known problems)
 * flycast_libretro.dll.zip (no Vulkan) 
 * parallel_n64_libretro.dll.zip (no Vulkan)
 * fceumm_libretro.dll.zip (incomplete controllers)
@@ -92,7 +95,6 @@ a5200_libretro.dll.zip
 arduous_libretro.dll.zip
 atari800_libretro.dll.zip
 bk_libretro.dll.zip
-blastem_libretro.dll.zip
 bluemsx_libretro.dll.zip
 boom3_libretro.dll.zip
 boom3_xp_libretro.dll.zip
@@ -141,7 +143,6 @@ np2kai_libretro.dll.zip
 o2em_libretro.dll.zip
 oberon_libretro.dll.zip
 opera_libretro.dll.zip
-picodrive_libretro.dll.zip
 play_libretro.dll.zip
 pocketcdg_libretro.dll.zip
 potator_libretro.dll.zip
@@ -156,7 +157,6 @@ quasi88_libretro.dll.zip
 race_libretro.dll.zip
 reminiscence_libretro.dll.zip
 retro8_libretro.dll.zip
-sameduck_libretro.dll.zip
 same_cdi_libretro.dll.zip
 scummvm_libretro.dll.zip
 squirreljme_libretro.dll.zip
