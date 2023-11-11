@@ -42,6 +42,8 @@
 * nxengine_libretro.dll.zip (Cave Story source port)
 * dinothawr_libretro.dll.zip (Dinothawr, homebrew Sokoban-like)
 * craft_libretro.dll.zip (homebrew Minecraft-like)
+* tic80_libretro.dll.zip (TIC-80 VM)
+* retro8_libretro.dll.zip (Pico-8 "console" emulator/VM)
 
 
 ## With?

@@ -169,11 +169,8 @@ namespace MudUtil
 	void *getfunc(void *handle, const char *funcname)
 	{
 #ifdef _WIN32
-		// #ifdef DEBUG
-		// return SDL_LoadFunction(handle, funcname);
-		// #else
 		return (void *)MemoryGetProcAddress((PMEMORYMODULE)handle, funcname);
-// #endif
+
 #else
 		return SDL_LoadFunction(handle, funcname);
 #endif
@@ -181,11 +178,8 @@ namespace MudUtil
 	void freelib(void *handle)
 	{
 #ifdef _WIN32
-		// #ifdef DEBUG
-		// SDL_UnloadObject(handle);
-		// #else
 		MemoryFreeLibrary((PMEMORYMODULE)handle);
-// #endif
+
 #else
 		SDL_UnloadObject(handle);
 #endif

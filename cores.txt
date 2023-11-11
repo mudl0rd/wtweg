@@ -19,6 +19,8 @@ Recommended cores (well tested and work for majority of systems):
 * gearcoleco_libretro.dll.zip (no known problems)
 * mame2003_plus_libretro.dll.zip (no known problems)
 * dosbox_pure_libretro.dll.zip (no known problems)
+* tic80_libretro.dll.zip (no known problems)
+* retro8_libretro.dll.zip (no known problems)
 
 Broken/incomplete-supported cores:
 
@@ -156,7 +158,6 @@ px68k_libretro.dll.zip
 quasi88_libretro.dll.zip
 race_libretro.dll.zip
 reminiscence_libretro.dll.zip
-retro8_libretro.dll.zip
 same_cdi_libretro.dll.zip
 scummvm_libretro.dll.zip
 squirreljme_libretro.dll.zip
@@ -166,7 +167,6 @@ superbroswar_libretro.dll.zip
 tgbdual_libretro.dll.zip
 theodore_libretro.dll.zip
 thepowdertoy_libretro.dll.zip
-tic80_libretro.dll.zip
 uzem_libretro.dll.zip
 vaporspec_libretro.dll.zip
 vecx_libretro.dll.zip
