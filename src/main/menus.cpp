@@ -327,10 +327,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     {
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+      ImGuiFileDialog::Instance()->Close();
       coreselect = loadfile(instance, (char *)filePathName.c_str(), NULL, false);
       filenamepath = filePathName;
     }
-
+    else
     ImGuiFileDialog::Instance()->Close();
   }
 

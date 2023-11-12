@@ -581,8 +581,10 @@ hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
 
   if (!contentless)
   {
-    info = {ROM, 0};
-    info.path = ROM;
+    char rom_path[512]={0};
+    strcpy(rom_path,ROM);
+    info = {rom_path, 0};
+    info.path = rom_path;
     info.data = NULL;
     info.size = 0;
     info.meta = "";

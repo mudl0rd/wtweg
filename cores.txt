@@ -26,7 +26,9 @@ Broken/incomplete-supported cores:
 
 * mednafen_psx_hw_libretro.dll.zip (broken GL context when changing from GL4+ cores?)
 - Possibly a PSX GPU rendering bug?
-* picodrive_libretro.dll.zip
+* picodrive_libretro.dll.zip (fread error with ROM paths)
+* hatari_libretro.dll.zip (Input scheme is completely...fucked. Just, noooo....)
+* vice_x64sc_libretro.dll.zip (Crash with memory allocation somewhere...)
 
 Tested cores (known to load/play/save games, might not be problem-free)
 
@@ -127,7 +129,6 @@ fuse_libretro.dll.zip
 gpsp_libretro.dll.zip
 gw_libretro.dll.zip
 handy_libretro.dll.zip
-hatari_libretro.dll.zip
 jaxe_libretro.dll.zip
 lowresnx_libretro.dll.zip
 lutro_libretro.dll.zip
