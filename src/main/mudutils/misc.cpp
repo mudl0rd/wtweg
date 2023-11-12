@@ -119,6 +119,7 @@ namespace MudUtil
 	void *openlib(const char *path)
 	{
 #ifdef _WIN32
+#ifndef DEBUG
 		PMEMORYMODULE handle;
 		if (strcmp(get_filename_ext(path), "zip")==0||strcmp(get_filename_ext(path), "7z")==0||
 		strcmp(get_filename_ext(path), "rar") == 0)
@@ -158,6 +159,12 @@ namespace MudUtil
 		if (!handle)
 			return NULL;
 		return handle;
+#else
+void *handle = SDL_LoadObject(path);
+		if (!handle)
+			return NULL;
+		return handle;
+#endif
 
 #else
 		void *handle = SDL_LoadObject(path);
@@ -169,8 +176,11 @@ namespace MudUtil
 	void *getfunc(void *handle, const char *funcname)
 	{
 #ifdef _WIN32
+#ifndef DEBUG
 		return (void *)MemoryGetProcAddress((PMEMORYMODULE)handle, funcname);
-
+#else
+return SDL_LoadFunction(handle, funcname);
+#endif
 #else
 		return SDL_LoadFunction(handle, funcname);
 #endif
@@ -178,8 +188,11 @@ namespace MudUtil
 	void freelib(void *handle)
 	{
 #ifdef _WIN32
+#ifndef DEBUG
 		MemoryFreeLibrary((PMEMORYMODULE)handle);
-
+#else
+		SDL_UnloadObject(handle);
+#endif
 #else
 		SDL_UnloadObject(handle);
 #endif

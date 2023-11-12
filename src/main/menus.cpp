@@ -359,6 +359,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       std::string ext = filenamepath;
       ext = ext.substr(ext.find_last_of(".") + 1);
       std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+      std::transform(core_ext.begin(), core_ext.end(), core_ext.begin(), ::tolower);
       if (core_ext.find(ext) != std::string::npos)
       {
         hits++;
