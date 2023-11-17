@@ -200,7 +200,7 @@ bool audio_init(float refreshra, float input_srate, float fps, bool fp)
     SDL_GetDefaultAudioInfo(NULL, &shit2, 0);
 
     shit.freq = shit2.freq;
-    shit.format = fp?AUDIO_S16SYS:AUDIO_F32;
+    shit.format = AUDIO_F32;
     shit.samples = 2048;
     shit.callback = func_callback;
     shit.userdata = (audio_ctx *)&audio_ctx_s;
