@@ -236,7 +236,7 @@ static size_t core_audio_sample_batch(const int16_t *data, size_t frames)
   auto lib = CLibretro::get_classinstance();
   if (lib->core_isrunning())
   {
-    audio_mix((const int16_t*)data, frames);
+    audio_mix((void*)data, frames);
   }
   return frames;
 }

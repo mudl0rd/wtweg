@@ -3,6 +3,7 @@
 #include <iostream>
 #include <filesystem>
 #include "inout.h"
+#include "out_aud.h"
 #include <algorithm>
 #define INI_IMPLEMENTATION
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))

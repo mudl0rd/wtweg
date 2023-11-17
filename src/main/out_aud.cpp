@@ -142,7 +142,7 @@ void func_callback(void *userdata, Uint8 *stream, int len)
     memset(stream + amount, 0, len - amount);
 }
 
-void audio_mix(const void *samples, size_t size)
+void audio_mix(void *samples, size_t size)
 {
 
     struct resampler_data src_data = {0};
