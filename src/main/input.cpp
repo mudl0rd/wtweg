@@ -33,6 +33,7 @@ struct mousiebind
     int wd;
 };
 mousiebind mousiez = {0};
+const Uint8* lr_keymap;
 
 const struct key_map key_map_[] = {
     {SDLK_BACKSPACE, RETROK_BACKSPACE},
@@ -597,21 +598,20 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
 
 static bool key_pressed(int key)
 {
-    const Uint8 *keymap = SDL_GetKeyboardState(NULL);
     struct key_map *map = (key_map *)key_map_;
     for (; map->rk != RETROK_UNKNOWN; map++)
         if (map->rk == (retro_key)key)
             break;
     unsigned sym = SDL_GetScancodeFromKey(map->sym);
-    return keymap[sym];
+    return lr_keymap[sym];
 }
 
 void keys()
 {
+    int num_keys_km;
+    lr_keymap = SDL_GetKeyboardState(&num_keys_km);
     if (inp_keys != NULL)
     {
-        int num_keys_km;
-        const Uint8 *keymap = SDL_GetKeyboardState(&num_keys_km);
         SDL_Keymod mod = SDL_GetModState();
         uint16_t libretro_mod = 0;
 
@@ -634,7 +634,7 @@ void keys()
             for (; map->rk != RETROK_UNKNOWN; map++)
             {
                 unsigned sym = SDL_GetScancodeFromKey(map->sym);
-                inp_keys(keymap[sym], map->rk, map->sym, libretro_mod);
+                inp_keys(lr_keymap[sym], map->rk, map->sym, libretro_mod);
             }
         }
     }
@@ -647,6 +647,7 @@ void poll_lr()
     SDL_GameControllerUpdate();
 
     keys();
+    SDL_PumpEvents();
 
     memset(&mousiez, 0, sizeof(mousiebind));
     Uint8 btn = SDL_GetRelativeMouseState(&mousiez.rel_x, &mousiez.rel_y);
@@ -665,7 +666,7 @@ void poll_lr()
             if (bind.SDL_port == -1)
             {
                 if (bind.config.bits.joytype == joytype_::keyboard)
-                    bind.val = SDL_GetKeyboardState(NULL)[bind.config.bits.sdl_id];
+                    bind.val = lr_keymap[bind.config.bits.sdl_id];
             }
             else if (checkjs(bind.SDL_port))
             {
