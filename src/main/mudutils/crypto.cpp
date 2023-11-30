@@ -294,7 +294,7 @@ static void sha256_tail_(struct sha256 *self)
   uint64_t bits = bswap64(self->bytes * 8);
   self->chunk[self->chunk_size] = 0x80;
   memset(&self->chunk[self->chunk_size + 1], 0, 63 - self->chunk_size);
-  if (self->chunk_size + 1 + sizeof(bits)> 64)
+  if (self->chunk_size + 1 + sizeof(bits) > 64)
   {
     sha256_update_(self);
     memset(self->chunk, 0, 64 - sizeof(bits));

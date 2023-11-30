@@ -574,8 +574,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 31
   {
-    retro->init_inputvars(reinterpret_cast<struct retro_input_descriptor *>(data));
-    return true;
+    return ::load_inpcfg((retro_input_descriptor*)data);
   }
 
   case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:

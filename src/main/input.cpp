@@ -33,7 +33,7 @@ struct mousiebind
     int wd;
 };
 mousiebind mousiez = {0};
-const Uint8* lr_keymap;
+const Uint8 *lr_keymap;
 
 const struct key_map key_map_[] = {
     {SDLK_BACKSPACE, RETROK_BACKSPACE},
@@ -175,13 +175,40 @@ const struct key_map key_map_[] = {
 };
 std::vector<SDL_GameController *> Joystick = {};
 
+int axistocheck(int id, int index)
+{
+    switch (index)
+    {
+    case RETRO_DEVICE_ANALOG_LEFT:
+        return (id == RETRO_DEVICE_ID_ANALOG_X) ? joypad_analogx_l : joypad_analogy_l;
+        break;
+    case RETRO_DEVICE_ANALOG_RIGHT:
+        return (id == RETRO_DEVICE_ID_ANALOG_X) ? joypad_analogx_r : joypad_analogy_r;
+        break;
+    case RETRO_DEVICE_ANALOG_BUTTON:
+        switch (id)
+        {
+        case RETRO_DEVICE_ID_ANALOG_L2:
+            return joypad_analog_lbutton2;
+            break;
+        case RETRO_DEVICE_ID_ANALOG_R2:
+            return joypad_analog_rbutton2;
+            break;
+        case RETRO_DEVICE_ID_ANALOG_L3:
+            return joypad_analog_lbutton3;
+            break;
+        case RETRO_DEVICE_ID_ANALOG_R3:
+            return joypad_analog_lbutton3;
+            break;
+        }
+        break;
+    }
+}
+
 bool checkjs(int port)
 {
     if (Joystick.size())
-    {
         return (Joystick[port]) ? SDL_GameControllerGetAttached(Joystick[port]) : false;
-    }
-
     else
         return false;
 }
@@ -190,8 +217,8 @@ bool loadinpconf(uint32_t checksum)
 {
     auto lib = CLibretro::get_classinstance();
     std::string core_config = lib->core_config;
-    unsigned sz_coreconfig =  MudUtil::get_filesize(core_config.c_str());
-    std::vector<uint8_t> data =  MudUtil::load_data((const char *)core_config.c_str());
+    unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
+    std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
     ini_t *ini = NULL;
     int portage = 0;
 
@@ -223,7 +250,7 @@ bool loadinpconf(uint32_t checksum)
             int size = ini_save(ini, NULL, 0); // Find the size needed
             auto ini_data = std::make_unique<char[]>(size);
             size = ini_save(ini, ini_data.get(), size); // Actually save the file
-             MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+            MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
             continue;
         }
         else
@@ -245,7 +272,7 @@ bool loadinpconf(uint32_t checksum)
                     int size = ini_save(ini, NULL, 0); // Find the size needed
                     auto ini_data = std::make_unique<char[]>(size);
                     size = ini_save(ini, ini_data.get(), size); // Actually save the file
-                     MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+                    MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
                     return value_str;
                 }
                 std::string str = ini_property_value(ini, section, idx);
@@ -279,10 +306,8 @@ bool load_inpcfg(retro_input_descriptor *var)
 
     retro_input_descriptor *var2 = var;
     int ports = 0;
-    while (1)
+    while (var2->description != NULL)
     {
-        if (var2->description == NULL)
-            break;
         if (ports < var2->port)
             ports = var2->port;
         var2++;
@@ -297,33 +322,19 @@ bool load_inpcfg(retro_input_descriptor *var)
     //   for (auto index = std::size_t{};auto& controller : lib->controller) {
     //  controller.core_inputdesc=lib->core_inputdesc[index++];
 
-    while (1)
+    while (var->description != NULL)
     {
-        if (var->description == NULL)
-            break;
-
         coreinput_bind bind;
         bind.description = var->description;
         bind.port = var->port;
         bind.device = var->device;
         auto &settings = bind.config;
 
-        if (var->device & (RETRO_DEVICE_ANALOG | RETRO_DEVICE_JOYPAD))
+        if ((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG ||
+            (var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
         {
-
-            int var_index = var->index;
-            int axistocheck = var->id;
-            if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-                axistocheck = joypad_analogx_l;
-            else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-                axistocheck = joypad_analogy_l;
-            else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_X))
-                axistocheck = joypad_analogx_r;
-            else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (var->id == RETRO_DEVICE_ID_ANALOG_Y))
-                axistocheck = joypad_analogy_r;
-
             bind.isanalog = (uint8_t)((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG);
-            bind.retro_id = ((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG) ? axistocheck : var->id;
+            bind.retro_id = ((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG) ? axistocheck(var->id, var->index) : var->id;
             bind.config.bits.axistrigger = 0;
             settings.bits.sdl_id = 0;
             bind.SDL_port = -1;
@@ -346,10 +357,10 @@ bool save_inpcfg(uint32_t checksum)
     auto lib = CLibretro::get_classinstance();
     std::string core_config = lib->core_config;
     int portage = 0;
-    unsigned sz_coreconfig =  MudUtil::get_filesize(core_config.c_str());
+    unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
     if (sz_coreconfig)
     {
-        std::vector<uint8_t> data =  MudUtil::load_data((const char *)core_config.c_str());
+        std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
         ini_t *ini = ini_load((char *)data.data(), NULL);
 
         for (auto &controller : lib->controller)
@@ -663,15 +674,18 @@ void poll_lr()
         for (auto &bind : control.core_inputbinds)
         {
 
-            if (bind.SDL_port == -1)
+            if (bind.config.bits.joytype == joytype_::keyboard)
             {
-                if (bind.config.bits.joytype == joytype_::keyboard)
-                    bind.val = lr_keymap[bind.config.bits.sdl_id];
+                if (bind.SDL_port == -1)
+                    bind.val = (lr_keymap[bind.config.bits.sdl_id] == 1) ? 1 : 0;
+                else
+                    bind.val = 0;
             }
-            else if (checkjs(bind.SDL_port))
+            else if (bind.config.bits.joytype == joytype_::joystick_)
             {
-                if (bind.config.bits.joytype == joytype_::joystick_)
+                if (checkjs(bind.SDL_port))
                 {
+
                     Sint16 axis = SDL_GameControllerGetAxis(Joystick[bind.SDL_port], (SDL_GameControllerAxis)bind.config.bits.sdl_id);
 
                     if (bind.isanalog)
@@ -691,8 +705,15 @@ void poll_lr()
                         continue;
                     }
                 }
-                else if (bind.config.bits.joytype == joytype_::button)
+                else
+                    bind.val = 0;
+            }
+            else if (bind.config.bits.joytype == joytype_::button)
+            {
+                if (checkjs(bind.SDL_port))
                     bind.val = SDL_GameControllerGetButton(Joystick[bind.SDL_port], (SDL_GameControllerButton)bind.config.bits.sdl_id);
+                else
+                    bind.val = 0;
             }
         }
     }
@@ -760,30 +781,27 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD)
         return (id < RETROK_LAST) && key_pressed(id);
 
-    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG)
+    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || (device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
     {
-        int axistocheck = id;
-        int var_index = index;
-        if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (id == RETRO_DEVICE_ID_ANALOG_X))
-            axistocheck = joypad_analogx_l;
-        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_LEFT) && (id == RETRO_DEVICE_ID_ANALOG_Y))
-            axistocheck = joypad_analogy_l;
-        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (id == RETRO_DEVICE_ID_ANALOG_X))
-            axistocheck = joypad_analogx_r;
-        else if ((var_index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) && (id == RETRO_DEVICE_ID_ANALOG_Y))
-            axistocheck = joypad_analogy_r;
-        for (auto &bind : lib->controller[port].core_inputbinds)
+        if ((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG)
         {
-            if (bind.retro_id == axistocheck && bind.isanalog)
-                return bind.val;
+            for (auto &bind : lib->controller[port].core_inputbinds)
+            {
+                if (!bind.isanalog)
+                    continue;
+                if (bind.retro_id == axistocheck(id, index))
+                    return bind.val;
+            }
         }
-    }
-    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
-    {
-        for (auto &bind : lib->controller[port].core_inputbinds)
+        else
         {
-            if (bind.retro_id == id && !bind.isanalog)
-                return bind.val;
+            for (auto &bind : lib->controller[port].core_inputbinds)
+            {
+                if (bind.isanalog)
+                    continue;
+                if (bind.retro_id == id)
+                    return bind.val;
+            }
         }
     }
     return 0;
