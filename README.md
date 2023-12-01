@@ -1,11 +1,13 @@
 # WTFweg
 
-**Personal** [libretro](https://www.libretro.com) code playset for anything with:
+**Personal** [libretro](https://www.libretro.com) playset for anything with:
 
-* **x86 CPUs w/SSE4.1 and above**.
-* **OGL 4.6 and above**
-* **Win8.1 and above/Linux**
-* **GCC/G++ with C++17 support**
+* x86 CPUs w/SSE4.1 and above.
+* OGL 4.6 and above
+* Win8.1 and above/Linux
+* GCC/G++ with C++17 support
+
+This was developed due to very numerous longstanding issues I found with RetroArch as an application and as a project. I decided to take matters into my own hands and make a libretro core loading application to **my own exact needs**. As such, its not intended for use by anyone else.
  
 ![6a0120a85dcdae970b0128776ff992970c-pi](https://github.com/cruduxcru0/WTFweg/assets/130935534/1fd7a5f8-2254-4ac6-8bf2-f8b5753cb0d7)
 
