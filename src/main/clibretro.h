@@ -127,7 +127,11 @@ enum libretro_stickbinds
 	joypad_analogx_l = 16,
 	joypad_analogy_l,
 	joypad_analogx_r,
-	joypad_analogy_r
+	joypad_analogy_r,
+	joypad_analog_lbutton2,
+	joypad_analog_rbutton2,
+	joypad_analog_lbutton3,
+	joypad_analog_rbutton3,
 };
 
 enum libretro_stickdirs

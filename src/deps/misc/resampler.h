@@ -33,17 +33,16 @@
 #define M_PI 3.14159265358979323846264338327
 #endif
 
-
 struct resampler_data
-   {
-	  const float *data_in;
-	  float *data_out;
+{
+	const float *data_in;
+	float *data_out;
 
-	  size_t input_frames;
-	  size_t output_frames;
+	size_t input_frames;
+	size_t output_frames;
 
-	  double ratio;
-   };
+	double ratio;
+};
 
 void *resampler_sinc_init();
 void resampler_sinc_process(void *re_, struct resampler_data *data);
@@ -69,20 +68,19 @@ void resampler_sinc_free(void *re_);
 #define TAPS_MULT 1
 #endif
 
-#define window_function(idx)  (kaiser_window_function(idx, SINC_WINDOW_KAISER_BETA))
+#define window_function(idx) (kaiser_window_function(idx, SINC_WINDOW_KAISER_BETA))
 
 /* For the little amount of taps we're using,
-* SSE1 is faster than AVX for some reason.
-* AVX code is kept here though as by increasing number
-* of sinc taps, the AVX code is clearly faster than SSE1.
-*/
+ * SSE1 is faster than AVX for some reason.
+ * AVX code is kept here though as by increasing number
+ * of sinc taps, the AVX code is clearly faster than SSE1.
+ */
 
 #define PHASES (1 << (PHASE_BITS + SUBPHASE_BITS))
 
 #define TAPS (SIDELOBES * 2)
 #define SUBPHASE_MASK ((1 << SUBPHASE_BITS) - 1)
 #define SUBPHASE_MOD (1.0f / (1 << SUBPHASE_BITS))
-
 
 typedef struct rarch_sinc_resampler
 {
@@ -93,14 +91,13 @@ typedef struct rarch_sinc_resampler
 	unsigned ptr;
 	uint32_t time;
 	/* A buffer for phase_table, buffer_l and buffer_r
-	* are created in a single calloc().
-	* Ensure that we get as good cache locality as we can hope for. */
+	 * are created in a single calloc().
+	 * Ensure that we get as good cache locality as we can hope for. */
 	float *main_buffer;
 } rarch_sinc_resampler_t;
 
-
 /* Modified Bessel function of first order.
-* Check Wiki for mathematical definition ... */
+ * Check Wiki for mathematical definition ... */
 static inline double besseli0(double x)
 {
 	unsigned i;
@@ -111,7 +108,7 @@ static inline double besseli0(double x)
 	double two_div_pow = 1.0;
 	double x_sqr = x * x;
 	/* Approximate. This is an infinite sum.
-	* Luckily, it converges rather fast. */
+	 * Luckily, it converges rather fast. */
 	for (i = 0; i < 18; i++)
 	{
 		sum += x_pow * two_div_pow / (factorial * factorial);
@@ -140,14 +137,13 @@ void *memalign_alloc(size_t boundary, size_t size)
 {
 	void **place = NULL;
 	uintptr_t addr = 0;
-	void *ptr = (void*)malloc(boundary + size + sizeof(uintptr_t));
+	void *ptr = (void *)malloc(boundary + size + sizeof(uintptr_t));
 	if (!ptr)
 		return NULL;
-	addr = ((uintptr_t)ptr + sizeof(uintptr_t) + boundary)
-		& ~(boundary - 1);
-	place = (void**)addr;
+	addr = ((uintptr_t)ptr + sizeof(uintptr_t) + boundary) & ~(boundary - 1);
+	place = (void **)addr;
 	place[-1] = ptr;
-	return (void*)addr;
+	return (void *)addr;
 }
 
 void memalign_free(void *ptr)
@@ -155,18 +151,18 @@ void memalign_free(void *ptr)
 	void **p = NULL;
 	if (!ptr)
 		return;
-	p = (void**)ptr;
+	p = (void **)ptr;
 	free(p[-1]);
 }
 
 void resampler_sinc_process(void *re_, struct resampler_data *data)
 {
 	size_t out_frames = 0;
-	rarch_sinc_resampler_t *resamp = (rarch_sinc_resampler_t*)re_;
+	rarch_sinc_resampler_t *resamp = (rarch_sinc_resampler_t *)re_;
 
 	if (data->ratio == 1.0)
 	{
-		memcpy(data->data_out,data->data_in,data->input_frames*2*sizeof(float));
+		memcpy(data->data_out, data->data_in, data->input_frames * 2 * sizeof(float));
 		data->output_frames = data->input_frames;
 		return;
 	}
@@ -174,95 +170,63 @@ void resampler_sinc_process(void *re_, struct resampler_data *data)
 	const float *input = data->data_in;
 	float *output = data->data_out;
 	size_t frames = data->input_frames;
+	unsigned taps = resamp->taps;
 
-	while (frames)
 	{
-		while (frames && resamp->time >= PHASES)
+		while (frames)
 		{
-			/* Push in reverse to make filter more obvious. */
-			if (!resamp->ptr)
-				resamp->ptr = resamp->taps;
-			resamp->ptr--;
+			while (frames && resamp->time >= PHASES)
+			{
+				/* Push in reverse to make filter more obvious. */
+				if (!resamp->ptr)
+					resamp->ptr = taps;
+				resamp->ptr--;
 
-			resamp->buffer_l[resamp->ptr + resamp->taps] =
-				resamp->buffer_l[resamp->ptr] = *input++;
+				resamp->buffer_l[resamp->ptr + taps] =
+					resamp->buffer_l[resamp->ptr] = *input++;
 
-			resamp->buffer_r[resamp->ptr + resamp->taps] =
-				resamp->buffer_r[resamp->ptr] = *input++;
+				resamp->buffer_r[resamp->ptr + taps] =
+					resamp->buffer_r[resamp->ptr] = *input++;
 
-			resamp->time -= PHASES;
-			frames--;
-		}
-
-		while (resamp->time < PHASES)
-		{
-			unsigned i;
-			__m128 sum;
+				resamp->time -= PHASES;
+				frames--;
+			}
 			const float *buffer_l = resamp->buffer_l + resamp->ptr;
 			const float *buffer_r = resamp->buffer_r + resamp->ptr;
-			unsigned taps = resamp->taps;
-			unsigned phase = resamp->time >> SUBPHASE_BITS;
-			const float *phase_table = resamp->phase_table + phase * taps * TAPS_MULT;
-			const float *delta_table = phase_table + taps;
-			__m128 delta = _mm_set1_ps((float)
-				(resamp->time & SUBPHASE_MASK) * SUBPHASE_MOD);
-
-			__m128 sum_l = _mm_setzero_ps();
-			__m128 sum_r = _mm_setzero_ps();
-
-			for (i = 0; i < taps; i += 4)
+			while (resamp->time < PHASES)
 			{
-				__m128 buf_l = _mm_loadu_ps(buffer_l + i);
-				__m128 buf_r = _mm_loadu_ps(buffer_r + i);
-				__m128 deltas = _mm_load_ps(delta_table + i);
-				__m128 _sinc = _mm_add_ps(_mm_load_ps(phase_table + i),
-					_mm_mul_ps(deltas, delta));
-				sum_l = _mm_add_ps(sum_l, _mm_mul_ps(buf_l, _sinc));
-				sum_r = _mm_add_ps(sum_r, _mm_mul_ps(buf_r, _sinc));
+				int i;
+				float sum_l = 0.0f;
+				float sum_r = 0.0f;
+				unsigned phase = resamp->time >> SUBPHASE_BITS;
+				float *phase_table = resamp->phase_table + phase * taps * TAPS_MULT;
+				const float *delta_table = phase_table + taps;
+				float delta = (float)(resamp->time & SUBPHASE_MASK) * SUBPHASE_MOD;
+				for (i = 0; i < (int)taps; i++)
+				{
+					float sinc_val = phase_table[i] + delta_table[i] * delta;
+
+					sum_l += buffer_l[i] * sinc_val;
+					sum_r += buffer_r[i] * sinc_val;
+				}
+				output[0] = sum_l;
+				output[1] = sum_r;
+				output += 2;
+				out_frames++;
+				resamp->time += ratio;
 			}
-
-			/* Them annoying shuffles.
-			* sum_l = { l3, l2, l1, l0 }
-			* sum_r = { r3, r2, r1, r0 }
-			*/
-
-			sum = _mm_add_ps(_mm_shuffle_ps(sum_l, sum_r,
-				_MM_SHUFFLE(1, 0, 1, 0)),
-				_mm_shuffle_ps(sum_l, sum_r, _MM_SHUFFLE(3, 2, 3, 2)));
-
-			/* sum   = { r1, r0, l1, l0 } + { r3, r2, l3, l2 }
-			* sum   = { R1, R0, L1, L0 }
-			*/
-
-			sum = _mm_add_ps(_mm_shuffle_ps(sum, sum, _MM_SHUFFLE(3, 3, 1, 1)), sum);
-
-			/* sum   = {R1, R1, L1, L1 } + { R1, R0, L1, L0 }
-			* sum   = { X,  R,  X,  L }
-			*/
-
-			/* Store L */
-			_mm_store_ss(output + 0, sum);
-
-			/* movehl { X, R, X, L } == { X, R, X, R } */
-			_mm_store_ss(output + 1, _mm_movehl_ps(sum, sum));
-
-			output += 2;
-			out_frames++;
-			resamp->time += ratio;
 		}
+		data->output_frames = out_frames;
 	}
-
-	data->output_frames = out_frames;
 }
 
-
 static void sinc_init_table(rarch_sinc_resampler_t *resamp, double cutoff,
-	float *phase_table, int phases, int taps, bool calculate_delta)
+							float *phase_table, int phases, int taps, bool calculate_delta)
 {
 	int i, j;
-	double    window_mod = window_function(0.0); /* Need to normalize w(0) to 1.0. */
-	int           stride = calculate_delta ? 2 : 1;
-	double     sidelobes = taps / 2.0;
+	double window_mod = window_function(0.0); /* Need to normalize w(0) to 1.0. */
+	int stride = calculate_delta ? 2 : 1;
+	double sidelobes = taps / 2.0;
 
 	for (i = 0; i < phases; i++)
 	{
@@ -270,12 +234,12 @@ static void sinc_init_table(rarch_sinc_resampler_t *resamp, double cutoff,
 		{
 			double sinc_phase;
 			float val;
-			int               n = j * phases + i;
+			int n = j * phases + i;
 			double window_phase = (double)n / (phases * taps); /* [0, 1). */
-			window_phase = 2.0 * window_phase - 1.0; /* [-1, 1) */
+			window_phase = 2.0 * window_phase - 1.0;		   /* [-1, 1) */
 			sinc_phase = sidelobes * window_phase;
 			val = cutoff * sinc(M_PI * sinc_phase * cutoff) *
-				window_function(window_phase) / window_mod;
+				  window_function(window_phase) / window_mod;
 			phase_table[i * stride * taps + j] = val;
 		}
 	}
@@ -290,7 +254,7 @@ static void sinc_init_table(rarch_sinc_resampler_t *resamp, double cutoff,
 			for (j = 0; j < taps; j++)
 			{
 				float delta = phase_table[(p + 1) * stride * taps + j] -
-					phase_table[p * stride * taps + j];
+							  phase_table[p * stride * taps + j];
 				phase_table[(p * stride + 1) * taps + j] = delta;
 			}
 		}
@@ -302,11 +266,11 @@ static void sinc_init_table(rarch_sinc_resampler_t *resamp, double cutoff,
 			double sinc_phase;
 			int n = j * phases + (phase + 1);
 			double window_phase = (double)n / (phases * taps); /* (0, 1]. */
-			window_phase = 2.0 * window_phase - 1.0; /* (-1, 1] */
+			window_phase = 2.0 * window_phase - 1.0;		   /* (-1, 1] */
 			sinc_phase = sidelobes * window_phase;
 
 			val = cutoff * sinc(M_PI * sinc_phase * cutoff) *
-				window_function(window_phase) / window_mod;
+				  window_function(window_phase) / window_mod;
 			delta = (val - phase_table[phase * stride * taps + j]);
 			phase_table[(phase * stride + 1) * taps + j] = delta;
 		}
@@ -315,7 +279,7 @@ static void sinc_init_table(rarch_sinc_resampler_t *resamp, double cutoff,
 
 void resampler_sinc_free(void *data)
 {
-	rarch_sinc_resampler_t *resamp = (rarch_sinc_resampler_t*)data;
+	rarch_sinc_resampler_t *resamp = (rarch_sinc_resampler_t *)data;
 	if (resamp)
 		memalign_free(resamp->main_buffer);
 	free(resamp);
@@ -325,7 +289,7 @@ void *resampler_sinc_init()
 {
 	double cutoff;
 	size_t phase_elems, elems;
-	rarch_sinc_resampler_t *re = (rarch_sinc_resampler_t*)
+	rarch_sinc_resampler_t *re = (rarch_sinc_resampler_t *)
 		calloc(1, sizeof(*re));
 
 	if (!re)
@@ -335,7 +299,7 @@ void *resampler_sinc_init()
 	cutoff = CUTOFF;
 	double bandwidth_mod = 1.0;
 	/* Downsampling, must lower cutoff, and extend number of
-	* taps accordingly to keep same stopband attenuation. */
+	 * taps accordingly to keep same stopband attenuation. */
 	if (bandwidth_mod < 1.0)
 	{
 		cutoff *= bandwidth_mod;
@@ -347,7 +311,7 @@ void *resampler_sinc_init()
 	phase_elems = ((1 << PHASE_BITS) * re->taps) * TAPS_MULT;
 	elems = phase_elems + 4 * re->taps;
 
-	re->main_buffer = (float*)memalign_alloc(128, sizeof(float) * elems);
+	re->main_buffer = (float *)memalign_alloc(128, sizeof(float) * elems);
 	if (!re->main_buffer)
 		goto error;
 
@@ -356,7 +320,7 @@ void *resampler_sinc_init()
 	re->buffer_r = re->buffer_l + 2 * re->taps;
 
 	sinc_init_table(re, cutoff, re->phase_table,
-		1 << PHASE_BITS, re->taps, SINC_COEFF_LERP);
+					1 << PHASE_BITS, re->taps, SINC_COEFF_LERP);
 	return re;
 
 error:
@@ -365,5 +329,3 @@ error:
 }
 
 #endif /* INI_IMPLEMENTATION */
-
-

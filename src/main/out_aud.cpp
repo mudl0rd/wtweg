@@ -113,24 +113,8 @@ int fifo_readspin(fifo_buffer_t *f, void *buf, unsigned len)
 
 inline void s16tof(float *dst, const int16_t *src, unsigned int count)
 {
-    unsigned int i = 0;
-    float fgain = 1.0 / UINT32_C(0x80000000);
-    __m128 factor = _mm_set1_ps(fgain);
-    for (i = 0; i + 8 <= count; i += 8, src += 8, dst += 8)
-    {
-        __m128i input = _mm_loadu_si128((const __m128i *)src);
-        __m128i regs_l = _mm_unpacklo_epi16(_mm_setzero_si128(), input);
-        __m128i regs_r = _mm_unpackhi_epi16(_mm_setzero_si128(), input);
-        __m128 output_l = _mm_mul_ps(_mm_cvtepi32_ps(regs_l), factor);
-        __m128 output_r = _mm_mul_ps(_mm_cvtepi32_ps(regs_r), factor);
-        _mm_storeu_ps(dst + 0, output_l);
-        _mm_storeu_ps(dst + 4, output_r);
-    }
-    fgain = 1.0 / 0x8000;
-    count = count - i;
-    i = 0;
-    for (; i < count; i++)
-        dst[i] = (float)src[i] * fgain;
+    for (int i=0; i < count; i++)
+        dst[i] = (float)src[i] * 0.000030517578125f;
 }
 
 void func_callback(void *userdata, Uint8 *stream, int len)

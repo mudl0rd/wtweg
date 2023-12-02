@@ -179,25 +179,25 @@ int axistocheck(int id, int index)
 {
     switch (index)
     {
-    case RETRO_DEVICE_ANALOG_LEFT:
+    case RETRO_DEVICE_INDEX_ANALOG_LEFT:
         return (id == RETRO_DEVICE_ID_ANALOG_X) ? joypad_analogx_l : joypad_analogy_l;
         break;
-    case RETRO_DEVICE_ANALOG_RIGHT:
+    case RETRO_DEVICE_INDEX_ANALOG_RIGHT:
         return (id == RETRO_DEVICE_ID_ANALOG_X) ? joypad_analogx_r : joypad_analogy_r;
         break;
-    case RETRO_DEVICE_ANALOG_BUTTON:
+    case RETRO_DEVICE_INDEX_ANALOG_BUTTON:
         switch (id)
         {
-        case RETRO_DEVICE_ID_ANALOG_L2:
+        case RETRO_DEVICE_ID_JOYPAD_L2:
             return joypad_analog_lbutton2;
             break;
-        case RETRO_DEVICE_ID_ANALOG_R2:
+        case RETRO_DEVICE_ID_JOYPAD_R2:
             return joypad_analog_rbutton2;
             break;
-        case RETRO_DEVICE_ID_ANALOG_L3:
+        case RETRO_DEVICE_ID_JOYPAD_L3:
             return joypad_analog_lbutton3;
             break;
-        case RETRO_DEVICE_ID_ANALOG_R3:
+        case RETRO_DEVICE_ID_JOYPAD_R3:
             return joypad_analog_lbutton3;
             break;
         }
@@ -334,7 +334,7 @@ bool load_inpcfg(retro_input_descriptor *var)
             (var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
         {
             bind.isanalog = (uint8_t)((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG);
-            bind.retro_id = ((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG) ? axistocheck(var->id, var->index) : var->id;
+            bind.retro_id = bind.isanalog ? axistocheck(var->id, var->index):var->id;
             bind.config.bits.axistrigger = 0;
             settings.bits.sdl_id = 0;
             bind.SDL_port = -1;
@@ -783,13 +783,17 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
 
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || (device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
     {
-        if ((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG)
+        if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG)
         {
             for (auto &bind : lib->controller[port].core_inputbinds)
             {
-                if (!bind.isanalog)
-                    continue;
-                if (bind.retro_id == axistocheck(id, index))
+                if (bind.isanalog)
+                {
+                    if (bind.retro_id == axistocheck(id, index))
+                    return bind.val;
+                }
+                else
+                if (bind.retro_id == id)
                     return bind.val;
             }
         }
