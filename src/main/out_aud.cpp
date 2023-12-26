@@ -179,7 +179,7 @@ bool audio_init(float refreshra, float input_srate, float fps, bool fp)
 {
     audio_ctx_s.floating_point=fp;
     SDL_AudioSpec shit = {0};
-    audio_changeratefps(refreshra, input_srate, fps);
+    if(fps)audio_changeratefps(refreshra, input_srate, fps);
     SDL_AudioSpec shit2 = {0};
     SDL_GetDefaultAudioInfo(NULL, &shit2, 0);
 
