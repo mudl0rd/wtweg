@@ -20,8 +20,6 @@ I also wanted to have a project where I can neatly work on things without interf
 * Optimization
 
 Thus it neatly binds all my interests in one single mass of code.
- 
-![6a0120a85dcdae970b0128776ff992970c-pi](https://github.com/cruduxcru0/WTFweg/assets/130935534/1fd7a5f8-2254-4ac6-8bf2-f8b5753cb0d7)
 
 
 ## Where?
