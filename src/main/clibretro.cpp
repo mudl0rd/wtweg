@@ -451,7 +451,7 @@ static bool no_roms(unsigned cmd, void *data)
   return false;
 }
 
-bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless,bool inzip)
+bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless, bool inzip)
 {
   if (lr_isrunning)
     core_unload();
@@ -460,7 +460,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   lr_isrunning = false;
 
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
-  std::filesystem::path core_path_ =  std::filesystem::path(corepath).native();
+  std::filesystem::path core_path_ = std::filesystem::path(corepath).native();
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path;
@@ -492,62 +492,56 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   core_config = std::filesystem::absolute(save_path).string();
 
-
   void *hDLL = NULL;
 #ifdef _WIN32
-if(inzip)
-{
-  std::filesystem::path p(exe_path);
-  const char *ext[] = {"cores.zip", "cores.rar", "cores.7z"};
-  bool corefound = false;
-  std::filesystem::path corezippath;
-  for (int i = 0; i < ARRAYSIZE(ext); i++)
+#ifndef DEBUG
+  if (inzip)
   {
-    std::filesystem::path corepath2(p / ext[i]);
-    if (std::filesystem::exists(corepath2))
+    std::filesystem::path p(exe_path);
+    const char *ext[] = {"cores.zip", "cores.rar", "cores.7z"};
+    bool corefound = false;
+    std::filesystem::path corezippath;
+    for (int i = 0; i < ARRAYSIZE(ext); i++)
     {
-      fex_t *fex = NULL;
-      fex_err_t err = fex_open(&fex, corepath2.string().c_str());
-      if (err == NULL)
-        while (!fex_done(fex))
-        {
-          if (strcmp(fex_name(fex),corepath)==0)
+      std::filesystem::path corepath2(p / ext[i]);
+      if (std::filesystem::exists(corepath2))
+      {
+        fex_t *fex = NULL;
+        fex_err_t err = fex_open(&fex, corepath2.string().c_str());
+        if (err == NULL)
+          while (!fex_done(fex))
           {
-            fex_stat(fex);
-            int sz = fex_size(fex);
-            char *buf = (char *)malloc(sz);
-            fex_read(fex, buf, sz);
-            hDLL = MemoryLoadLibrary(buf, sz);
-            free(buf);
-            if (!hDLL)
+            if (strcmp(fex_name(fex), corepath) == 0)
             {
-              fex_close(fex);
-              fex = NULL;
-              return false;
+              fex_stat(fex);
+              int sz = fex_size(fex);
+              char *buf = (char *)malloc(sz);
+              fex_read(fex, buf, sz);
+              hDLL = MemoryLoadLibrary(buf, sz);
+              free(buf);
+              if (!hDLL)
+              {
+                fex_close(fex);
+                fex = NULL;
+                return false;
+              }
+              break;
             }
-            break;
+            fex_next(fex);
           }
-          fex_next(fex);
-        }
         fex_close(fex);
-     }
+      }
+    }
   }
-}
-else
-{
-  hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
+  else
+#endif
+#endif
+    hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
   if (!hDLL)
   {
     const char *err = SDL_GetError();
     return false;
   }
-}
-#else
-hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
-#endif
-
-  
-  
 
 #define libload(name) MudUtil::getfunc(hDLL, name)
 #define load_sym(V, name)                         \
@@ -582,8 +576,8 @@ hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
 
   if (!contentless)
   {
-    char rom_path[512]={0};
-    strcpy(rom_path,ROM);
+    char rom_path[512] = {0};
+    strcpy(rom_path, ROM);
     info = {rom_path, 0};
     info.path = rom_path;
     info.data = NULL;
@@ -671,6 +665,7 @@ void CLibretro::get_cores()
   coreexts = "";
   std::string corelist = "";
 #ifdef _WIN32
+#ifndef DEBUG
   const char *ext[] = {"cores.zip", "cores.rar", "cores.7z"};
   bool corefound = false;
   std::filesystem::path corezippath;
@@ -744,6 +739,7 @@ void CLibretro::get_cores()
       return;
     }
   }
+#endif
 #endif
 
   std::filesystem::path path = p / "cores";
