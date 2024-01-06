@@ -334,7 +334,7 @@ bool load_inpcfg(retro_input_descriptor *var)
             (var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
         {
             bind.isanalog = (uint8_t)((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG);
-            bind.retro_id = bind.isanalog ? axistocheck(var->id, var->index):var->id;
+            bind.retro_id = bind.isanalog ? axistocheck(var->id, var->index) : var->id;
             bind.config.bits.axistrigger = 0;
             settings.bits.sdl_id = 0;
             bind.SDL_port = -1;
@@ -781,25 +781,19 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD)
         return (id < RETROK_LAST) && key_pressed(id);
 
-    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || (device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
+   if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || RETRO_DEVICE_JOYPAD)
     {
-        if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG)
+        bool analog = ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG);
+        for (auto &bind : lib->controller[port].core_inputbinds)
         {
-            for (auto &bind : lib->controller[port].core_inputbinds)
+            if (analog)
             {
-                if (bind.isanalog)
-                {
-                    if (bind.retro_id == axistocheck(id, index))
+                if ((bind.retro_id == axistocheck(id, index)) && bind.isanalog)
                     return bind.val;
-                }
                 else
-                if (bind.retro_id == id)
-                    return bind.val;
+                    continue;
             }
-        }
-        else
-        {
-            for (auto &bind : lib->controller[port].core_inputbinds)
+            else
             {
                 if (bind.isanalog)
                     continue;
@@ -807,6 +801,6 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
                     return bind.val;
             }
         }
+        return 0;
     }
-    return 0;
 }
