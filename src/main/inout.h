@@ -41,6 +41,7 @@ static const char *retro_descripts[] = {
 
 void video_render();
 void video_bindfb();
+void video_unbindfb();
 void video_restoresz();
 vp resize_cb();
 bool video_init(struct retro_game_geometry *geom, SDL_Window *window);

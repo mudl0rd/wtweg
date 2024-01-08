@@ -2,7 +2,7 @@ Recommended cores (well tested and work for majority of systems):
 
 * mame2003_plus_libretro.dll.zip (Arcade)
 * dosbox_pure_libretro.dll.zip (MSDOS)
-* mednafen_psx_libretro.dll.zip (PSX)
+* mednafen_psx_hw_libretro.dll.zip (PSX)
 * mednafen_pce_libretro.dll.zip (PCE)
 * mednafen_wswan_libretro.dll.zip (Wonderswan)
 * mednafen_lynx_libretro.dll.zip (Lynx)
@@ -38,8 +38,6 @@ Recommended cores (well tested and work for majority of systems):
 
 Broken/incomplete-supported cores:
 
-* mednafen_psx_hw_libretro.dll.zip (broken GL context when changing from GL4+ cores?)
-- Possibly a PSX GPU rendering bug?
 * picodrive_libretro.dll.zip (fread error with ROM paths)
 * hatari_libretro.dll.zip (Input scheme is completely...fucked. Just, noooo....)
 * vice_x64sc_libretro.dll.zip (Crash with memory allocation somewhere...)
