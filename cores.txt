@@ -21,6 +21,7 @@ Recommended cores (well tested and work for majority of systems):
 * mednafen_supergrafx_libretro.dll.zip (SuperGrafx)
 * mednafen_vb_libretro.dll.zip (Virtual Boy)
 * virtualjaguar_libretro.dll.zip (Jaguar)
+* vecx_libretro.dll.zip (Vectrex)
 * gme_libretro.dll.zip (Video game music player)
 * xrick_libretro.dll.zip (Rick Dangerous source port)
 * nxengine_libretro.dll.zip (Cave Story source port)
@@ -43,7 +44,7 @@ Broken/incomplete-supported cores:
 * vice_x64sc_libretro.dll.zip (Crash with memory allocation somewhere...)
 * gpsp_libretro.dll.zip (Broken visuals/sound)
 * cannonball_libretro.dll.zip (Broken controls, upstream problem)
-* vecx_libretro.dll.zip (Broken rendering)
+
 
 
 Tested cores (known to load/play/save games, might not be problem-free)
