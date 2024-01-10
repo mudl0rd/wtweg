@@ -45,7 +45,7 @@ void video_unbindfb();
 void video_restoresz();
 vp resize_cb();
 bool video_init(struct retro_game_geometry *geom, SDL_Window *window);
-void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch);
+void video_refresh(const void *data, unsigned width,unsigned height, size_t pitch);
 void video_setsize(unsigned width, unsigned height);
 bool video_sethw(struct retro_hw_render_callback *hw);
 void video_deinit();

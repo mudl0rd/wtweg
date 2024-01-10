@@ -156,7 +156,8 @@ struct retro_disk
 
 std::vector<core_info> get_cores();
 
-struct controller_input{
+struct controller_input
+{
 	std::vector<coreinput_bind> core_inputbinds;
 	std::vector<coreinput_desc> core_inputdesc;
 	int controller_type;
@@ -168,25 +169,26 @@ private:
 	retro_core retro;
 	void load_envsymb(void *handle, bool first);
 	SDL_Window *sdl_window;
+	CLibretro(SDL_Window *window, char *exepath);
 
 public:
-	
-	bool lr_isrunning;
-	CLibretro(SDL_Window *window, char *exepath);
-	~CLibretro();
-	CLibretro(CLibretro const &) = delete;
-	CLibretro &operator=(CLibretro const &) = delete;
-	static std::shared_ptr<CLibretro> get_classinstance(SDL_Window *window = NULL, char *exepath = NULL)
-	{
-		static std::shared_ptr<CLibretro> s{new CLibretro(window, exepath)};
-		return s;
-	}
 
+	bool lr_isrunning;
+	~CLibretro();
+	CLibretro(CLibretro const &) = delete;			  // Copy construct
+	CLibretro(CLibretro &&) = delete;				  // Move construct
+	CLibretro &operator=(CLibretro const &) = delete; // Copy assign
+	CLibretro &operator=(CLibretro &&) = delete;	  // Move assign
+	static CLibretro *get_classinstance(SDL_Window *window = NULL, char *exepath = NULL)
+	{
+		static CLibretro s(window, exepath);
+		return &s;
+	}
 	void poll();
 	void reset();
 	void core_changinpt(int dev, int port);
 	bool core_isrunning();
-	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless,bool inzip);
+	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless, bool inzip);
 	void core_unload();
 	bool core_saveram(const char *filename, bool save);
 	bool core_savestateslot(bool save);
@@ -203,7 +205,7 @@ public:
 
 	const char *load_corevars(retro_variable *var);
 
-    std::vector<controller_input>controller;
+	std::vector<controller_input> controller;
 	std::vector<loadedcore_configvars> core_variables;
 	std::vector<loadedcore_configcat> core_categories;
 	std::vector<retro_disk> disk_intf;

@@ -220,24 +220,16 @@ static bool core_replace_image_index(unsigned int index, const retro_game_info *
   return false;
 }
 
-static void core_audio_sample(int16_t left, int16_t right)
+void core_audio_sample(int16_t left, int16_t right)
 {
-  auto lib = CLibretro::get_classinstance();
-  if (lib->core_isrunning())
-  {
     int16_t buf[2] = {left, right};
     audio_mix(buf, 1);
-  }
 }
 static size_t core_audio_sample_batch(const int16_t *data, size_t frames)
 {
   if (!frames && data == NULL)
     return 0;
-  auto lib = CLibretro::get_classinstance();
-  if (lib->core_isrunning())
-  {
-    audio_mix((void*)data, frames);
-  }
+  audio_mix((void*)data, frames);
   return frames;
 }
 
@@ -650,26 +642,6 @@ static bool core_environment(unsigned cmd, void *data)
   return false;
 }
 
-static void core_video_refresh(const void *data, unsigned width,
-                               unsigned height, size_t pitch)
-{
-  auto retro = CLibretro::get_classinstance();
-  if (retro->core_isrunning())
-    video_refresh(data, width, height, pitch);
-}
-
-static void core_input_poll(void)
-{
-  poll_lr();
-}
-
-static int16_t core_input_state(unsigned port, unsigned device, unsigned index,
-                                unsigned id)
-{
-  return input_state(port, device, index,
-                     id);
-}
-
 void CLibretro::load_envsymb(void *handle, bool first)
 {
 #define libload(name) MudUtil::getfunc(handle, name)
@@ -693,9 +665,9 @@ void CLibretro::load_envsymb(void *handle, bool first)
     load_sym(set_input_state, retro_set_input_state);
     load_sym(set_audio_sample, retro_set_audio_sample);
     load_sym(set_audio_sample_batch, retro_set_audio_sample_batch);
-    set_video_refresh(core_video_refresh);
-    set_input_poll(core_input_poll);
-    set_input_state(core_input_state);
+    set_video_refresh(video_refresh);
+    set_input_poll(poll_lr);
+    set_input_state(input_state);
     set_audio_sample(core_audio_sample);
     set_audio_sample_batch(core_audio_sample_batch);
   }

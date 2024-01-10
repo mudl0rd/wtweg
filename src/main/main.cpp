@@ -40,6 +40,8 @@ int main2(const char *rom, const char *core, bool pergame)
     return 1;
   }
 
+  int w;int h;
+
   SDL_GL_LoadLibrary(NULL);
   const char *glsl_version = "#version 330";
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -63,6 +65,8 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_Rect display_bounds;
   SDL_GetDisplayUsableBounds(window_indx, &display_bounds);
   int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
+  w=win_w;
+  h=win_h;
   SDL_SetWindowSize(window, win_w, win_h);
   video_setsize(win_w, win_h);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -115,7 +119,7 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_Rect window_rect = {0};
 
   if (rom && core)
-    loadfile(instance.get(), rom, core, pergame);
+    loadfile(instance, rom, core, pergame);
 
   while (!done)
   {
@@ -152,16 +156,17 @@ int main2(const char *rom, const char *core, bool pergame)
             SDL_SetWindowSize(window, j.w, j.h);
             SDL_SetWindowPosition(window, 0, 0);
             video_setsize(j.w, j.h);
-            glViewport(0, 0, j.w, j.h);
-            glScissor(0, 0, j.w, j.h);
+            w=j.w;
+            h=j.h;
+            
           }
           else
           {
             SDL_SetWindowSize(window, window_rect.w, window_rect.h);
             SDL_SetWindowPosition(window, window_rect.x, window_rect.y);
             video_setsize(window_rect.w, window_rect.h);
-            glViewport(0, 0, window_rect.w, window_rect.h);
-            glScissor(0, 0, window_rect.w, window_rect.h);
+            w=window_rect.w;
+            h=window_rect.h;
           }
           SDL_SetWindowAlwaysOnTop(window, (SDL_bool)window_fs);
           SDL_SetWindowResizable(window, (SDL_bool)!window_fs);
@@ -196,21 +201,22 @@ int main2(const char *rom, const char *core, bool pergame)
 
       if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
       {
-        int w = event.window.data1;
-        int h = event.window.data2;
+        w = event.window.data1;
+        h = event.window.data2;
         video_setsize(w, h);
-
-        glViewport(0, 0, w, h);
-        glScissor(0, 0, w, h);
       }
       if (event.type == SDL_DROPFILE)
       {
         char *filez = (char *)event.drop.file;
-        loadfile(instance.get(), event.drop.file, NULL,false);
+        loadfile(instance, event.drop.file, NULL,false);
         SDL_free(filez);
       }
     }
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glViewport(0, 0, w, h);
+    glScissor(0, 0, w, h);
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (instance->core_isrunning())
@@ -219,7 +225,7 @@ int main2(const char *rom, const char *core, bool pergame)
       instance->core_run();
       video_render();
     }
-    rendermenu(instance.get(), window, show_menu);
+    rendermenu(instance, window, show_menu);
 
     video_unbindfb();
   }

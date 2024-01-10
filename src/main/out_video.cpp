@@ -78,45 +78,48 @@ uintptr_t video_get_fb()
 
 void video_integerscale(bool yes)
 {
-	g_video.integer_scale=yes;
+	g_video.integer_scale = yes;
 }
 
 GLint m_scissor[4] = {};
 GLint m_viewport[4] = {};
 GLenum last_active_texture;
 GLint drawFboId = 0, readFboId = 0;
-GLuint last_texture; 
+GLuint last_texture;
 GLint framebufbinding;
 GLint renderbufbinding;
-	
+
 void video_bindfb()
 {
+	/*	glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*)&last_texture);
+		glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
+		glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFboId);
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebufbinding);
+		glGetIntegerv(GL_RENDERBUFFER_BINDING, &renderbufbinding);
+		glGetIntegerv(GL_ACTIVE_TEXTURE, (GLint*)&last_active_texture);
+		glGetIntegerv(GL_SCISSOR_BOX, m_scissor);
+		glGetIntegerv(GL_VIEWPORT, m_viewport);
+		glBindFramebuffer(GL_FRAMEBUFFER,0);*/
 
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*)&last_texture);
-	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
-	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFboId);
-	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebufbinding);
-	glGetIntegerv(GL_RENDERBUFFER_BINDING, &renderbufbinding);
-	glGetIntegerv(GL_ACTIVE_TEXTURE, (GLint*)&last_active_texture);
-    glGetIntegerv(GL_SCISSOR_BOX, m_scissor);
-	glGetIntegerv(GL_VIEWPORT, m_viewport);
 	int w = (!g_video.software_rast) ? g_video.current_w : g_video.rend_width;
 	int h = (!g_video.software_rast) ? g_video.current_h : g_video.rend_height;
 	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
 	glViewport(0, 0, w, h);
 	glScissor(0, 0, w, h);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void video_unbindfb()
 {
-	glViewport(m_viewport[0], m_viewport[1],m_viewport[2], m_viewport[3]);
-	glViewport(m_scissor[0], m_scissor[1],m_scissor[2], m_scissor[3]);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufbinding);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderbufbinding);
-    glBindTexture(GL_TEXTURE_2D, last_texture);
-    glActiveTexture(last_active_texture);
+	/*	glViewport(m_viewport[0], m_viewport[1],m_viewport[2], m_viewport[3]);
+		glViewport(m_scissor[0], m_scissor[1],m_scissor[2], m_scissor[3]);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebufbinding);
+		glBindRenderbuffer(GL_RENDERBUFFER, renderbufbinding);
+		glBindTexture(GL_TEXTURE_2D, last_texture);
+		glActiveTexture(last_active_texture);*/
 }
 
 bool video_sethw(struct retro_hw_render_callback *hw)
@@ -170,7 +173,8 @@ vp resize_cb()
 	unsigned y = 0;
 	unsigned height = g_video.current_h;
 	unsigned width = height * g_video.aspect;
-	if (width > g_video.current_w){
+	if (width > g_video.current_w)
+	{
 		height = g_video.current_w / g_video.aspect;
 		width = g_video.current_w;
 	}
@@ -223,7 +227,7 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 		glDeleteTextures(1, &g_video.tex_id);
 
 	g_video.tex_id = 0;
-	g_video.integer_scale=true;
+	g_video.integer_scale = true;
 
 	if (g_video.software_rast)
 	{
@@ -254,14 +258,7 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 	if (g_video.hw.context_reset)
 		g_video.hw.context_reset();
 
-	if (!g_video.rend_width)
-		SDL_GetWindowSize((SDL_Window *)g_video.sdl_context, (int *)&g_video.rend_width, (int *)&g_video.rend_height);
-	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-
-	vp vpx = resize_cb();
-
-	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, vpx.width,
-					  vpx.height);
+	video_restoresz();
 
 	return true;
 }
@@ -271,8 +268,7 @@ void video_restoresz()
 	SDL_Rect display_bounds;
 	SDL_GetDisplayUsableBounds(0, &display_bounds);
 	g_video.rend_width = display_bounds.w * 7 / 8, g_video.rend_height = display_bounds.h * 7 / 8;
-	vp vpx = resize_cb();
-	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, vpx.width, vpx.height);
+	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, g_video.rend_width, g_video.rend_height);
 	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 }
 
@@ -290,11 +286,14 @@ static inline unsigned get_alignment(unsigned pitch)
 void video_render()
 {
 	vp vpx = resize_cb();
-
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glViewport(0, 0, g_video.rend_width, g_video.rend_height);
+	glScissor(0, 0, g_video.rend_width, g_video.rend_height);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	GLint dst_x0 = vpx.x;
 	GLint dst_x1 = dst_x0 + vpx.width;
 	GLint dst_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
@@ -303,7 +302,7 @@ void video_render()
 					  dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
-void video_refresh(const void *data, unsigned width, unsigned height, unsigned pitch)
+void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch)
 {
 	if (data == NULL)
 		return;
