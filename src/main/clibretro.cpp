@@ -408,7 +408,12 @@ void CLibretro::reset()
   memset(&retro, 0, sizeof(retro));
 }
 
-CLibretro::CLibretro(SDL_Window *window, char *exepath)
+CLibretro* CLibretro::instance= nullptr;
+std::once_flag CLibretro::init_f;
+CLibretro::CLibretro()= default;
+CLibretro::~CLibretro()= default;
+
+void CLibretro::init_lr(SDL_Window *window, char *exepath)
 {
   reset();
   std::filesystem::path exe(MudUtil::get_wtfwegname());
@@ -423,11 +428,6 @@ CLibretro::CLibretro(SDL_Window *window, char *exepath)
   }
   get_cores();
   sdl_window = window;
-}
-
-CLibretro::~CLibretro()
-{
-  core_unload();
 }
 
 void CLibretro::core_changinpt(int dev, int port)

@@ -169,20 +169,26 @@ private:
 	retro_core retro;
 	void load_envsymb(void *handle, bool first);
 	SDL_Window *sdl_window;
-	CLibretro(SDL_Window *window, char *exepath);
+	void init_lr(SDL_Window *window, char *exepath);
+	static std::once_flag init_f;
+	static CLibretro *instance;
 
 public:
+	CLibretro();
+	~CLibretro();
+	static void initliblr(SDL_Window *window, char *exepath)
+	{
+		instance = new CLibretro();
+		instance->init_lr(window, exepath);
+	}
 
 	bool lr_isrunning;
-	~CLibretro();
-	CLibretro(CLibretro const &) = delete;			  // Copy construct
-	CLibretro(CLibretro &&) = delete;				  // Move construct
-	CLibretro &operator=(CLibretro const &) = delete; // Copy assign
-	CLibretro &operator=(CLibretro &&) = delete;	  // Move assign
+	CLibretro(const CLibretro &) = delete;
+	CLibretro &operator=(const CLibretro &) = delete;
 	static CLibretro *get_classinstance(SDL_Window *window = NULL, char *exepath = NULL)
 	{
-		static CLibretro s(window, exepath);
-		return &s;
+		std::call_once(init_f, initliblr, window, exepath);
+		return instance;
 	}
 	void poll();
 	void reset();
