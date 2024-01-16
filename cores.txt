@@ -39,13 +39,11 @@ Recommended cores (well tested and work for majority of systems):
 
 Broken/incomplete-supported cores:
 
-* picodrive_libretro.dll.zip (fread error with ROM paths)
+
 * hatari_libretro.dll.zip (Input scheme is completely...fucked. Just, noooo....)
 * vice_x64sc_libretro.dll.zip (Crash with memory allocation somewhere...)
 * gpsp_libretro.dll.zip (Broken visuals/sound)
 * cannonball_libretro.dll.zip (Broken controls, upstream problem)
-
-
 
 Tested cores (known to load/play/save games, might not be problem-free)
 
@@ -88,6 +86,7 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * sameduck_libretro.dll.zip (no known problems)
 * blastem_libretro.dll.zip (no known problems)
 * pcsx_rearmed_libretro.dll.zip (no known problems)
+* picodrive_libretro.dll.zip (no known problems)
 * parallel_n64_libretro.dll.zip (no Vulkan)
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
