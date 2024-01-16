@@ -108,14 +108,11 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
 
-  auto instance = CLibretro::get_classinstance(window);
-
+  auto instance = CLibretro::get_classinstance();
+  instance->init_lr(window);
   // Main loop
-
   bool done = false;
   bool show_menu = true;
-//  init_inpt();
-
   SDL_Rect window_rect = {0};
 
   if (rom && core)
@@ -274,8 +271,9 @@ int main(int argc, char *argv[])
     std::string rom = a.get<std::string>("rom_name");
     std::string core = a.get<std::string>("core_name");
     bool pergame = a.exist("pergame");
+  
     if (!rom.empty() && !core.empty())
-      return main2(rom.c_str(), core.c_str(), pergame);
+    return main2(rom.c_str(), core.c_str(), pergame);
     else
       printf("\nPress any key to continue....\n");
     return 0;

@@ -7,7 +7,7 @@ sdl2dep = dependency('sdl2',
 else
 sdl2dep = dependency('sdl2',
   required: true,
-  static: true,
+  static: false,
   method: 'pkg-config')
 endif
 
@@ -79,9 +79,6 @@ if host_machine.system() == 'linux'
     dl_dep = meson.get_compiler('cpp').find_library('dl', required: true)
 else
     dl_dep = dependency('', required: false)
-  common_ldflags += [
-    '-static'
-    ]
 
 if get_option('buildtype') == 'debug'
   add_global_arguments('-DDEBUG', language: [ 'c', 'cpp' ])
@@ -92,10 +89,8 @@ common_ldflags,
 language: [ 'c', 'cpp' ],)
 endif
 
-
 dir_base = meson.current_source_dir()
 dir_install = join_paths(dir_base, 'compile_dir')
-
 executable('wtfweg',gui_app : true,install: true,install_dir: dir_install,include_directories : [inc],sources : [src],dependencies : [sdl2dep,dl_dep]
 )
 

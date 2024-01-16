@@ -47,7 +47,9 @@ namespace MudUtil
 		{
 			// get length of file:
 			is.seekg(0, is.end);
-			return is.tellg();
+			unsigned t=is.tellg();
+			is.close();
+			return t;
 		}
 		return 0;
 	}
@@ -96,6 +98,7 @@ namespace MudUtil
 		input.seekg(0, input.beg);
 		std::vector<uint8_t> Memory(Size, 0);
 		input.read((char *)&Memory[0], Size);
+		input.close();
 		return Memory;
 	}
 
@@ -105,6 +108,7 @@ namespace MudUtil
 		if (!input.good())
 			return false;
 		input.write((char *)data, size);
+		input.close();
 		return true;
 	}
 

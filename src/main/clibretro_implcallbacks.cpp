@@ -37,16 +37,16 @@ retro_vfs_file_handle *vfs_open(const char *path, unsigned mode, unsigned hints)
   switch (mode)
   {
   case RETRO_VFS_FILE_ACCESS_READ:
-    p->file_ptr.open(path, std::fstream::in);
+    p->file_ptr.open(path, std::fstream::in | std::fstream::binary);
     break;
   case RETRO_VFS_FILE_ACCESS_READ_WRITE:
-    p->file_ptr.open(path, std::fstream::in | std::fstream::out);
+    p->file_ptr.open(path, std::fstream::in | std::fstream::out| std::fstream::binary);
     break;
   case RETRO_VFS_FILE_ACCESS_WRITE:
-    p->file_ptr.open(path, std::fstream::out);
+    p->file_ptr.open(path, std::fstream::out| std::fstream::binary);
     break;
   case RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING:
-    p->file_ptr.open(path, std::fstream::in | std::fstream::out | std::fstream::app);
+    p->file_ptr.open(path, std::fstream::in | std::fstream::out | std::fstream::app| std::fstream::binary);
   }
   if (!p->file_ptr.is_open())
   {
@@ -584,7 +584,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
   {
     auto *lang = reinterpret_cast<struct retro_core_options_intl *>(data);
-    return retro->init_configvars_coreoptions(lang->us, 1);
+   return retro->init_configvars_coreoptions(lang->us, 1);
   }
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
@@ -605,8 +605,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_VARIABLE:
   {
     auto *var = reinterpret_cast<struct retro_variable *>(data);
-    var->value = retro->load_corevars(var);
-    return true;
+   return var->value = retro->load_corevars(var);
   }
   case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
   {

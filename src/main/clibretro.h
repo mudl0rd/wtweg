@@ -169,26 +169,18 @@ private:
 	retro_core retro;
 	void load_envsymb(void *handle, bool first);
 	SDL_Window *sdl_window;
-	void init_lr(SDL_Window *window, char *exepath);
-	static std::once_flag init_f;
-	static CLibretro *instance;
+	bool lr_isrunning;
 
 public:
-	CLibretro();
-	~CLibretro();
-	static void initliblr(SDL_Window *window, char *exepath)
-	{
-		instance = new CLibretro();
-		instance->init_lr(window, exepath);
-	}
-
-	bool lr_isrunning;
+	CLibretro() = default;
+	~CLibretro() = default;
 	CLibretro(const CLibretro &) = delete;
 	CLibretro &operator=(const CLibretro &) = delete;
-	static CLibretro *get_classinstance(SDL_Window *window = NULL, char *exepath = NULL)
+	void init_lr(SDL_Window *window);
+	static CLibretro *get_classinstance()
 	{
-		std::call_once(init_f, initliblr, window, exepath);
-		return instance;
+		static CLibretro instance;
+		return &instance;
 	}
 	void poll();
 	void reset();
@@ -218,6 +210,7 @@ public:
 
 	bool v2_vars;
 	bool variables_changed;
+	const char* rom_name;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
 	std::string core_config;

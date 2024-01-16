@@ -8,7 +8,6 @@
 #define INI_IMPLEMENTATION
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
-
 #ifdef _WIN32
 #include "fex/fex.h"
 #include "MemoryModulePP.h"
@@ -408,12 +407,8 @@ void CLibretro::reset()
   memset(&retro, 0, sizeof(retro));
 }
 
-CLibretro* CLibretro::instance= nullptr;
-std::once_flag CLibretro::init_f;
-CLibretro::CLibretro()= default;
-CLibretro::~CLibretro()= default;
 
-void CLibretro::init_lr(SDL_Window *window, char *exepath)
+void CLibretro::init_lr(SDL_Window *window)
 {
   reset();
   std::filesystem::path exe(MudUtil::get_wtfwegname());
@@ -569,30 +564,26 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   retro.retro_init();
   load_envsymb(retro.handle, false);
 
-  struct retro_game_info info = {0};
+  struct retro_game_info info = { ROM, 0 };
   struct retro_system_info system = {0};
   retro.retro_get_system_info(&system);
   retro_system_av_info av = {0};
 
   if (!contentless)
   {
-    char rom_path[512] = {0};
-    strcpy(rom_path, ROM);
-    info = {rom_path, 0};
-    info.path = rom_path;
+    info.path = ROM;
     info.data = NULL;
     info.size = 0;
     info.meta = "";
     if (!system.need_fullpath)
     {
       info.size = MudUtil::get_filesize(ROM);
-
-      std::ifstream ifs;
-      ifs.open(ROM, ios::binary);
+      std::ifstream ifs(ROM, ios::binary);
       if (!ifs.good())
       {
       fail:
         printf("FAILED TO LOAD ROMz!!!!!!!!!!!!!!!!!!");
+        ifs.close();
         core_unload();
         return false;
       }
@@ -601,6 +592,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
         goto fail;
 
       ifs.read((char *)info.data, info.size);
+      ifs.close();
     }
   }
 
