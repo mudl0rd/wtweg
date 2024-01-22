@@ -300,6 +300,7 @@ bool loadinpconf(uint32_t checksum)
 bool load_inpcfg(retro_input_descriptor *var)
 {
     auto lib = CLibretro::get_classinstance();
+    lib->use_retropad=false;
 
     for (auto &controller : lib->controller)
         controller.core_inputbinds.clear();

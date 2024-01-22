@@ -95,7 +95,7 @@ struct coreinput_bind
 		uint16_t val;
 		struct config
 		{
-			uint8_t sdl_id;
+			uint16_t sdl_id;
 			uint8_t joytype;
 			int16_t axistrigger;
 		} bits;
@@ -209,6 +209,7 @@ public:
 	std::vector<retro_disk> disk_intf;
 
 	bool v2_vars;
+	bool use_retropad;
 	bool variables_changed;
 	const char* rom_name;
 	std::vector<core_info> cores;

@@ -39,112 +39,111 @@ static auto vector_getter = [](void *data, int n, const char **out_text)
   return true;
 };
 
-struct offsets{
+struct offsets
+{
   ImU32 col;
 };
-offsets colors[4] = { IM_COL32(0,255,0,255),IM_COL32(0,255,0,255),IM_COL32(255,255,0,255),
-IM_COL32(255,0,0,255) };
+offsets colors[4] = {IM_COL32(0, 255, 0, 255), IM_COL32(0, 255, 0, 255), IM_COL32(255, 255, 0, 255),
+                     IM_COL32(255, 0, 0, 255)};
 
 struct ExampleAppLog
 {
-    ImGuiTextBuffer     Buf;
-    ImVector<int>       LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
-    ImVector<ImU32>     LineCol;
-    bool                AutoScroll;  // Keep scrolling if already at the bottom.
+  ImGuiTextBuffer Buf;
+  ImVector<int> LineOffsets; // Index to lines offset. We maintain this with AddLog() calls.
+  ImVector<ImU32> LineCol;
+  bool AutoScroll; // Keep scrolling if already at the bottom.
 
-    ExampleAppLog()
-    {
-        AutoScroll = true;
-        Clear();
-    }
+  ExampleAppLog()
+  {
+    AutoScroll = true;
+    Clear();
+  }
 
-    void    Clear()
-    {
-        Buf.clear();
-        LineOffsets.clear();
-        LineOffsets.push_back(0);
-        LineCol.clear();
-        LineCol.push_back(0);
-    }
+  void Clear()
+  {
+    Buf.clear();
+    LineOffsets.clear();
+    LineOffsets.push_back(0);
+    LineCol.clear();
+    LineCol.push_back(0);
+  }
 
-   
+  void AddLog(enum retro_log_level level, const char *fmt, ...) IM_FMTARGS(3)
+  {
+    int old_size = Buf.size();
+    va_list args;
+    va_start(args, fmt);
+    Buf.appendfv(fmt, args);
+    va_end(args);
+    LineCol.push_back(colors[level].col);
+    LineOffsets.push_back(old_size);
+  }
 
-    void    AddLog(enum retro_log_level level,const char* fmt, ...) IM_FMTARGS(3)
-    {
-        int old_size = Buf.size();
-        va_list args;
-        va_start(args, fmt);
-        Buf.appendfv(fmt, args);
-        va_end(args);
-         LineCol.push_back(colors[level].col);
-         LineOffsets.push_back(old_size);
-    }
-
-    void    Draw(const char* title, bool* p_open =NULL)
-    {
+  void Draw(const char *title, bool *p_open = NULL)
+  {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
                                         ImVec2(io.DisplaySize.x * 0.6f, io.DisplaySize.y * 0.6f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.2f, io.DisplaySize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
-        if (!ImGui::Begin(title, p_open,ImGuiWindowFlags_NoCollapse))
-        {
-            ImGui::End();
-            return;
-        }
-
-        // Main window
-        ImGui::SameLine();
-        bool clear = ImGui::Button("Clear");
-        ImGui::SameLine();
-        bool copy = ImGui::Button("Copy");
-        ImGui::Separator();
-        ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-        if (clear)
-            Clear();
-        if (copy)
-            ImGui::LogToClipboard();
-
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-        const char* buf = Buf.begin();
-        const char* buf_end = Buf.end();
-        {
-            // The simplest and easy way to display the entire buffer:
-            //   ImGui::TextUnformatted(buf_begin, buf_end);
-            // And it'll just work. TextUnformatted() has specialization for large blob of text and will fast-forward
-            // to skip non-visible lines. Here we instead demonstrate using the clipper to only process lines that are
-            // within the visible area.
-            // If you have tens of thousands of items and their processing cost is non-negligible, coarse clipping them
-            // on your side is recommended. Using ImGuiListClipper requires
-            // - A) random access into your data
-            // - B) items all being the  same height,
-            // both of which we can handle since we an array pointing to the beginning of each line of text.
-            // When using the filter (in the block of code above) we don't have random access into the data to display
-            // anymore, which is why we don't use the clipper. Storing or skimming through the search result would make
-            // it possible (and would be recommended if you want to search through tens of thousands of entries).
-            ImGuiListClipper clipper;
-            clipper.Begin(LineOffsets.Size);
-            while (clipper.Step())
-            {
-                for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
-                {
-                    const char* line_start = buf + LineOffsets[line_no];
-                    const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
-                    ImGui::PushStyleColor(ImGuiCol_Text, LineCol[line_no]);
-                    ImGui::TextUnformatted(line_start, line_end);
-                    ImGui::PopStyleColor();
-                }
-            }
-            clipper.End();
-        }
-        ImGui::PopStyleVar();
-
-        if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-            ImGui::SetScrollHereY(1.0f);
-
-        ImGui::EndChild();
-        ImGui::End();
+    if (!ImGui::Begin(title, p_open, ImGuiWindowFlags_NoCollapse))
+    {
+      ImGui::End();
+      return;
     }
+
+    // Main window
+    ImGui::SameLine();
+    bool clear = ImGui::Button("Clear");
+    ImGui::SameLine();
+    bool copy = ImGui::Button("Copy");
+    ImGui::Separator();
+    ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+    if (clear)
+      Clear();
+    if (copy)
+      ImGui::LogToClipboard();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    const char *buf = Buf.begin();
+    const char *buf_end = Buf.end();
+    {
+      // The simplest and easy way to display the entire buffer:
+      //   ImGui::TextUnformatted(buf_begin, buf_end);
+      // And it'll just work. TextUnformatted() has specialization for large blob of text and will fast-forward
+      // to skip non-visible lines. Here we instead demonstrate using the clipper to only process lines that are
+      // within the visible area.
+      // If you have tens of thousands of items and their processing cost is non-negligible, coarse clipping them
+      // on your side is recommended. Using ImGuiListClipper requires
+      // - A) random access into your data
+      // - B) items all being the  same height,
+      // both of which we can handle since we an array pointing to the beginning of each line of text.
+      // When using the filter (in the block of code above) we don't have random access into the data to display
+      // anymore, which is why we don't use the clipper. Storing or skimming through the search result would make
+      // it possible (and would be recommended if you want to search through tens of thousands of entries).
+      ImGuiListClipper clipper;
+      clipper.Begin(LineOffsets.Size);
+      while (clipper.Step())
+      {
+        for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
+        {
+          const char *line_start = buf + LineOffsets[line_no];
+          const char *line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+          ImGui::PushStyleColor(ImGuiCol_Text, LineCol[line_no]);
+          ImGui::TextUnformatted(line_start, line_end);
+          ImGui::PopStyleColor();
+        }
+      }
+      clipper.End();
+    }
+    ImGui::PopStyleVar();
+
+    if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+      ImGui::SetScrollHereY(1.0f);
+
+    ImGui::EndChild();
+    ImGui::End();
+  }
 };
 static ExampleAppLog my_log;
 // Usage:
@@ -154,10 +153,8 @@ static ExampleAppLog my_log;
 
 void add_log(enum retro_log_level level, const char *fmt)
 {
-  my_log.AddLog(level,fmt);
-
+  my_log.AddLog(level, fmt);
 }
-
 
 static void HelpMarker(const char *desc)
 {
@@ -176,7 +173,7 @@ bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool
 {
   if (core_file != NULL)
   {
-    instance->core_load((char *)file, pergame, (char *)core_file, false,false);
+    instance->core_load((char *)file, pergame, (char *)core_file, false, false);
     return false;
   }
   else
@@ -268,45 +265,65 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
       ImGui::EndMenu();
     }
-    if (instance->core_isrunning())
+
+    if (!instance->core_isrunning())
+    {
+      if (ImGui::BeginMenu("Options"))
+      {
+        if (instance->use_retropad)
+          if (ImGui::MenuItem("Input Settings (Default)"))
+            inputsettings = true;
+
+        ImGui::EndMenu();
+      }
+    }
+    else if (instance->core_isrunning())
     {
       if (ImGui::BeginMenu("Options"))
       {
         if (ImGui::MenuItem("Core Settings..."))
           coresettings = true;
-        if (ImGui::MenuItem("Input Settings..."))
-          inputsettings = true;
-         if (ImGui::MenuItem("Core log", nullptr,
-                                    open_log == true))
-         open_log = !open_log;
-
-        if(instance->controller.size())
-        if (instance->controller[0].core_inputdesc.size())
+        if (!instance->use_retropad)
         {
-          ImGui::Separator();
-          for (int i = 0; i < instance->controller.size(); i++)
+          if (ImGui::MenuItem("Input Settings (Core-specific)..."))
+            inputsettings = true;
+        }
+        else
+        {
+          if (ImGui::MenuItem("Input Settings (Default)..."))
+            inputsettings = true;
+        }
+
+        if (ImGui::MenuItem("Core log", nullptr,
+                            open_log == true))
+          open_log = !open_log;
+
+        if (instance->controller.size())
+          if (instance->controller[0].core_inputdesc.size())
           {
-            if(instance->controller[i].core_inputdesc.size())
+            ImGui::Separator();
+            for (int i = 0; i < instance->controller.size(); i++)
             {
-            std::string player = "Player " + std::to_string(i + 1);
-            if (ImGui::BeginMenu(player.c_str()))
-            {
-              for (int j = 0; j < instance->controller[i].core_inputdesc.size(); j++)
+              if (instance->controller[i].core_inputdesc.size())
               {
-                const char *label = instance->controller[i].core_inputdesc[j].desc.c_str();
-                if (ImGui::MenuItem(label, nullptr,
-                                    instance->controller[i].controller_type == instance->controller[i].core_inputdesc[j].id))
+                std::string player = "Player " + std::to_string(i + 1);
+                if (ImGui::BeginMenu(player.c_str()))
                 {
-                  instance->controller[i].controller_type = instance->controller[i].core_inputdesc[j].id;
-                  instance->core_changinpt(instance->controller[i].controller_type, i);
+                  for (int j = 0; j < instance->controller[i].core_inputdesc.size(); j++)
+                  {
+                    const char *label = instance->controller[i].core_inputdesc[j].desc.c_str();
+                    if (ImGui::MenuItem(label, nullptr,
+                                        instance->controller[i].controller_type == instance->controller[i].core_inputdesc[j].id))
+                    {
+                      instance->controller[i].controller_type = instance->controller[i].core_inputdesc[j].id;
+                      instance->core_changinpt(instance->controller[i].controller_type, i);
+                    }
+                  }
+                  ImGui::EndMenu();
                 }
               }
-              ImGui::EndMenu();
             }
-            }
-            
           }
-        }
 
         ImGui::EndMenu();
       }
@@ -314,9 +331,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
     ImGui::EndMainMenuBar();
   }
-  
-  if(open_log)
-  my_log.Draw("Core Log");
+
+  if (open_log)
+    my_log.Draw("Core Log");
 
   ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
   ImVec2 minSizedlg = ImVec2((float)io.DisplaySize.x * 0.4f, (float)io.DisplaySize.y * 0.4f);
@@ -332,7 +349,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       filenamepath = filePathName;
     }
     else
-    ImGuiFileDialog::Instance()->Close();
+      ImGuiFileDialog::Instance()->Close();
   }
 
   if (no_cores)
@@ -372,7 +389,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     }
     if (hits == 1 && found)
     {
-      instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(0).core_path.c_str(), false,cores_info.at(0).in_corezip);
+      instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(0).core_path.c_str(), false, cores_info.at(0).in_corezip);
       coreselect = false;
       return;
     }
@@ -395,7 +412,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(listbox_item_current).core_path.c_str(),false,cores_info.at(listbox_item_current).in_corezip);
+        instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(listbox_item_current).core_path.c_str(), false, cores_info.at(listbox_item_current).in_corezip);
         coreselect = false;
       }
       ImGui::Bullet();
@@ -462,7 +479,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str(), true,cores_info.at(listbox_item_current).in_corezip);
+        instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str(), true, cores_info.at(listbox_item_current).in_corezip);
         load_core = false;
       }
       ImGui::Bullet();
@@ -519,46 +536,46 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       {
         int descnum = 1;
         for (auto &control : instance->controller)
-        if(control.core_inputbinds.size())
-        {
-          std::string descstring = "Player " + std::to_string(descnum);
-          if (ImGui::BeginTabItem(descstring.c_str()))
+          if (control.core_inputbinds.size())
           {
-            for (size_t i = 0; i < control.core_inputbinds.size(); i++)
+            std::string descstring = "Player " + std::to_string(descnum);
+            if (ImGui::BeginTabItem(descstring.c_str()))
             {
-              auto &bind = control.core_inputbinds[i];
-              if (bind.description == "")
-                continue;
-
-              ImGui::TextWrapped("%s", bind.description.c_str());
-              std::string script = "##" + bind.description;
-              char *button_str = (char *)bind.joykey_desc.c_str();
-              ImVec2 sz = ImGui::GetWindowSize();
-              ImGui::SameLine(sz.x * 0.80);
-              ImGui::SetNextItemWidth(sz.x * 0.2);
-              ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
-              if (ImGui::IsItemClicked())
+              for (size_t i = 0; i < control.core_inputbinds.size(); i++)
               {
-                selected_inp = i;
-                isselected_inp = true;
-                selected_port = descnum - 1;
-              }
-            }
+                auto &bind = control.core_inputbinds[i];
+                if (bind.description == "")
+                  continue;
 
-            ImGui::EndTabItem();
+                ImGui::TextWrapped("%s", bind.description.c_str());
+                std::string script = "##" + bind.description;
+                char *button_str = (char *)bind.joykey_desc.c_str();
+                ImVec2 sz = ImGui::GetWindowSize();
+                ImGui::SameLine(sz.x * 0.80);
+                ImGui::SetNextItemWidth(sz.x * 0.2);
+                ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
+                if (ImGui::IsItemClicked())
+                {
+                  selected_inp = i;
+                  isselected_inp = true;
+                  selected_port = descnum - 1;
+                }
+              }
+
+              ImGui::EndTabItem();
+            }
+            descnum++;
           }
-          descnum++;
-        }
         ImGui::EndTabBar();
       }
       if (ImGui::Button("OK"))
       {
         inputsettings = false;
         isselected_inp = false;
-        uint32_t crc=0;
+        uint32_t crc = 0;
         for (auto &controller : instance->controller)
-    for (auto &bind : controller.core_inputbinds)
-    crc= MudUtil::crc32(crc,bind.description.c_str(),bind.description.length());
+          for (auto &bind : controller.core_inputbinds)
+            crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
         save_inpcfg(crc);
       }
       ImGui::EndPopup();
@@ -585,9 +602,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
       for (auto &bind2 : instance->core_categories)
       {
-        bool visible=false;
+        bool visible = false;
         for (auto &bind1 : instance->core_variables)
-        if(bind1.category_name == bind2.key && bind1.config_visible)visible=true;
+          if (bind1.category_name == bind2.key && bind1.config_visible)
+            visible = true;
         if (visible)
           if (ImGui::TreeNode(bind2.desc.c_str()))
           {

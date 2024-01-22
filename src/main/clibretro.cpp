@@ -107,7 +107,7 @@ bool CLibretro::load_coresettings()
   uint32_t crc = 0;
   for (auto &vars : core_variables)
     crc = MudUtil::crc32(crc, (const void *)vars.name.c_str(), vars.name.length());
-  std::string crc_string = "Core";
+  std::string crc_string = "Core_"+std::to_string(crc);
 
   ini = ini_load((char *)data.data(), NULL);
   int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
@@ -155,7 +155,7 @@ void CLibretro::save_coresettings()
   uint32_t crc = 0;
   for (auto &vars : core_variables)
     crc = MudUtil::crc32(crc, vars.name.c_str(), vars.name.length());
-  std::string crc_string = "Core";
+  std::string crc_string = "Core_"+std::to_string(crc);
   unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
 
   ini_t *ini = NULL;
@@ -363,8 +363,49 @@ bool CLibretro::init_configvars(retro_variable *var)
   return true;
 }
 
+/*
+libretro "retropad" arrangement:
+
+    L3                     R3
+    L2                     R2
+    L                      R
+
+    up                     X
+ left right select start  Y A
+    down                   B
+
+      leftstick  rightstick
+
+l2-3/r2-3 can be analog buttons as well as digital
+rest are purely digital except for sticks
+*/
+
+struct default_retro
+{
+  int k;
+  int keeb;
+} libretro_dmap[] = {
+    {RETRO_DEVICE_ID_JOYPAD_B, SDL_SCANCODE_C},
+    {RETRO_DEVICE_ID_JOYPAD_Y, SDL_SCANCODE_X},
+    {RETRO_DEVICE_ID_JOYPAD_SELECT, SDL_SCANCODE_SPACE},
+    {RETRO_DEVICE_ID_JOYPAD_START, SDL_SCANCODE_RETURN},
+    {RETRO_DEVICE_ID_JOYPAD_UP, SDL_SCANCODE_UP},
+    {RETRO_DEVICE_ID_JOYPAD_DOWN, SDL_SCANCODE_DOWN},
+    {RETRO_DEVICE_ID_JOYPAD_LEFT, SDL_SCANCODE_LEFT},
+    {RETRO_DEVICE_ID_JOYPAD_RIGHT, SDL_SCANCODE_RIGHT},
+    {RETRO_DEVICE_ID_JOYPAD_A, SDL_SCANCODE_D},
+    {RETRO_DEVICE_ID_JOYPAD_X, SDL_SCANCODE_S},
+    {RETRO_DEVICE_ID_JOYPAD_L, SDL_SCANCODE_A},
+    {RETRO_DEVICE_ID_JOYPAD_R, SDL_SCANCODE_Z},
+    {RETRO_DEVICE_ID_JOYPAD_L2, SDL_SCANCODE_Q},
+    {RETRO_DEVICE_ID_JOYPAD_R2, SDL_SCANCODE_E},
+    {RETRO_DEVICE_ID_JOYPAD_L3, -1},
+    {RETRO_DEVICE_ID_JOYPAD_R3, -1}};
+
 void CLibretro::reset()
 {
+  core_config = (std::filesystem::path(exe_path) /"wtfweg.cfg").string();
+
   lr_isrunning = false;
   save_slot = 0;
   variables_changed = false;
@@ -372,6 +413,7 @@ void CLibretro::reset()
   refreshrate = 0;
   frametime_cb = NULL;
   frametime_ref = 0;
+  use_retropad = true;
 
   controller.clear();
 
@@ -384,17 +426,17 @@ void CLibretro::reset()
     for (int j = 0; j < 20; j++)
     {
       coreinput_bind bind;
-      bind.device = RETRO_DEVICE_JOYPAD;
+      bind.device = (j > 15) ? RETRO_DEVICE_JOYPAD : RETRO_DEVICE_ANALOG;
       bind.isanalog = (j > 15);
       bind.retro_id = j;
       bind.config.bits.axistrigger = 0;
-      bind.config.bits.sdl_id = 0;
+      bind.config.bits.sdl_id = (i == 0 && j < 16) ? libretro_dmap[j].keeb : -1;
       bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
       bind.val = 0;
       bind.SDL_port = -1;
       bind.port = i;
       bind.description = retro_descripts[j];
-      bind.joykey_desc = "None";
+      bind.joykey_desc = (i == 0 && j < 13) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";
       inp.core_inputbinds.push_back(bind);
     }
     inp.core_inputdesc.clear();
@@ -405,15 +447,18 @@ void CLibretro::reset()
   core_variables.clear();
   v2_vars = false;
   memset(&retro, 0, sizeof(retro));
-}
 
+  uint32_t crc = 0;
+  for (auto &controller : controller)
+    for (auto &bind : controller.core_inputbinds)
+      crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
+  loadinpconf(crc);
+}
 
 void CLibretro::init_lr(SDL_Window *window)
 {
-  reset();
   std::filesystem::path exe(MudUtil::get_wtfwegname());
-  cores.clear();
-
+  exe_path = exe.parent_path().string();
   const char *dirs[3] = {"cores", "system", "saves"};
   for (int i = 0; i < ARRAYSIZE(dirs); i++)
   {
@@ -421,6 +466,12 @@ void CLibretro::init_lr(SDL_Window *window)
     std::filesystem::path path = p / dirs[i];
     std::filesystem::create_directory(path);
   }
+
+  reset();
+  
+  cores.clear();
+
+  
   get_cores();
   sdl_window = window;
 }
@@ -460,15 +511,12 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path;
 
+  rom_path = std::filesystem::absolute(romzpath).string();
+  save_path = save_path_ / (romzpath.stem().string() + ".sram");
   if (contentless)
   {
     save_path = save_path_ / (core_path_.stem().string() + ".sram");
     rom_path = "";
-  }
-  else
-  {
-    rom_path = std::filesystem::absolute(romzpath).string();
-    save_path = save_path_ / (romzpath.stem().string() + ".sram");
   }
   saves_path = std::filesystem::absolute(save_path_).string();
   system_path = std::filesystem::absolute(system_path_).string();
@@ -478,14 +526,10 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   {
     save_path = std::filesystem::absolute(save_path_).string();
     save_path.replace_filename(romzpath.stem().string() + ".corecfg");
-  }
-  else
-  {
-    save_path = std::filesystem::absolute(system_path_) /
-                (core_path_.stem().string() + ".corecfg");
+    core_config = std::filesystem::absolute(save_path).string();
   }
 
-  core_config = std::filesystem::absolute(save_path).string();
+  
 
   void *hDLL = NULL;
 #ifdef _WIN32
@@ -564,7 +608,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   retro.retro_init();
   load_envsymb(retro.handle, false);
 
-  struct retro_game_info info = { ROM, 0 };
+  struct retro_game_info info = {ROM, 0};
   struct retro_system_info system = {0};
   retro.retro_get_system_info(&system);
   retro_system_av_info av = {0};

@@ -256,6 +256,7 @@ static bool core_controller_info(struct retro_controller_info *info)
   if (!info)
     return false;
   auto retro = CLibretro::get_classinstance();
+  retro->use_retropad=false;
   for(auto &vec : retro->controller)
   vec.core_inputdesc.clear();
 
