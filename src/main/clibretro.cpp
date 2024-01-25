@@ -400,8 +400,16 @@ struct default_retro
     {RETRO_DEVICE_ID_JOYPAD_L2, SDL_SCANCODE_Q},
     {RETRO_DEVICE_ID_JOYPAD_R2, SDL_SCANCODE_E},
     {RETRO_DEVICE_ID_JOYPAD_L3, -1},
-    {RETRO_DEVICE_ID_JOYPAD_R3, -1}};
-
+    {RETRO_DEVICE_ID_JOYPAD_R3, -1},
+    {joypad_analogx_l,-1},
+	{joypad_analogy_l,-1},
+	{joypad_analogx_r,-1},
+	{joypad_analogy_r,-1},
+	{joypad_analog_l2,-1},
+	{joypad_analog_r2,-1},
+	{joypad_analog_l3,-1},
+	{joypad_analog_r3,-1},
+};
 void CLibretro::reset()
 {
   core_config = (std::filesystem::path(exe_path) /"wtfweg.cfg").string();
@@ -423,7 +431,7 @@ void CLibretro::reset()
     // Assume "RetroPad"....fuck me
     inp.core_inputbinds.clear();
 
-    for (int j = 0; j < 20; j++)
+    for (int j = 0; j < sizeof_array(retro_descripts); j++)
     {
       coreinput_bind bind;
       bind.device = (j > 15) ? RETRO_DEVICE_JOYPAD : RETRO_DEVICE_ANALOG;

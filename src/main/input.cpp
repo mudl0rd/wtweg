@@ -189,16 +189,16 @@ int axistocheck(int id, int index)
         switch (id)
         {
         case RETRO_DEVICE_ID_JOYPAD_L2:
-            return joypad_analog_lbutton2;
+            return joypad_analog_l2;
             break;
         case RETRO_DEVICE_ID_JOYPAD_R2:
-            return joypad_analog_rbutton2;
+            return joypad_analog_r2;
             break;
         case RETRO_DEVICE_ID_JOYPAD_L3:
-            return joypad_analog_lbutton3;
+            return joypad_analog_l3;
             break;
         case RETRO_DEVICE_ID_JOYPAD_R3:
-            return joypad_analog_lbutton3;
+            return joypad_analog_r3;
             break;
         }
         break;

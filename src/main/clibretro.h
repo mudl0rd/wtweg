@@ -102,8 +102,7 @@ struct coreinput_bind
 	} config;
 };
 
-enum libretro_padbinds
-{
+enum libretro_binds{
 	joypad_b,
 	joypad_y,
 	joypad_select,
@@ -119,19 +118,15 @@ enum libretro_padbinds
 	joypad_l2,
 	joypad_r2,
 	joypad_l3,
-	joypad_r3
-};
-
-enum libretro_stickbinds
-{
-	joypad_analogx_l = 16,
+	joypad_r3,
+	joypad_analogx_l,
 	joypad_analogy_l,
 	joypad_analogx_r,
 	joypad_analogy_r,
-	joypad_analog_lbutton2,
-	joypad_analog_rbutton2,
-	joypad_analog_lbutton3,
-	joypad_analog_rbutton3,
+	joypad_analog_l2,
+	joypad_analog_r2,
+	joypad_analog_l3,
+	joypad_analog_r3,
 };
 
 enum libretro_stickdirs

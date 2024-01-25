@@ -37,7 +37,11 @@ static const char *retro_descripts[] = {
     "\"RetroPad\" Left Stick X Axis",
     "\"RetroPad\" Left Stick Y Axis",
     "\"RetroPad\" Right Stick X Axis",
-    "\"RetroPad\" Right Stick Y Axis"};
+    "\"RetroPad\" Right Stick Y Axis",
+    "\"RetroPad\" Analog L2",
+    "\"RetroPad\" Analog R2",
+    "\"RetroPad\" Analog L3",
+    "\"RetroPad\" Analog R3"};
 
 void video_render();
 void video_bindfb();
