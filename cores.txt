@@ -1,4 +1,4 @@
-Recommended cores (well tested and work for majority of systems):
+Recommended cores:
 
 * mame2003_plus_libretro.dll.zip (Arcade)
 * dosbox_pure_libretro.dll.zip (MSDOS)
@@ -22,6 +22,7 @@ Recommended cores (well tested and work for majority of systems):
 * mednafen_vb_libretro.dll.zip (Virtual Boy)
 * virtualjaguar_libretro.dll.zip (Jaguar)
 * vecx_libretro.dll.zip (Vectrex)
+* vice_x64sc_libretro.dll.zip (C64)
 * gme_libretro.dll.zip (Video game music player)
 * xrick_libretro.dll.zip (Rick Dangerous source port)
 * nxengine_libretro.dll.zip (Cave Story source port)
@@ -41,7 +42,6 @@ Broken/incomplete-supported cores:
 
 
 * hatari_libretro.dll.zip (Input scheme is completely...fucked. Just, noooo....)
-* vice_x64sc_libretro.dll.zip (Crash with memory allocation somewhere...)
 * gpsp_libretro.dll.zip (Broken visuals/sound)
 * cannonball_libretro.dll.zip (Broken controls, upstream problem)
 
@@ -172,7 +172,6 @@ uzem_libretro.dll.zip
 vaporspec_libretro.dll.zip
 vemulator_libretro.dll.zip
 vice_x128_libretro.dll.zip
-vice_x64sc_libretro.dll.zip
 vice_x64_libretro.dll.zip
 vice_xcbm2_libretro.dll.zip
 vice_xcbm5x0_libretro.dll.zip
