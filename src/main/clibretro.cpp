@@ -700,6 +700,7 @@ void CLibretro::core_unload()
     lr_isrunning = false;
     controller.clear();
     core_variables.clear();
+    reset();
   }
 }
 
