@@ -298,33 +298,28 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                             open_log == true))
           open_log = !open_log;
 
-        if (instance->controller.size())
-          if (instance->controller[0].core_inputdesc.size())
+        if (instance->core_inputttypes.size())
           {
             ImGui::Separator();
-            for (int i = 0; i < instance->controller.size(); i++)
+            for (int i = 0; i < instance->core_inpbinds.size(); i++)
             {
-              if (instance->controller[i].core_inputdesc.size())
-              {
                 std::string player = "Player " + std::to_string(i + 1);
                 if (ImGui::BeginMenu(player.c_str()))
                 {
-                  for (int j = 0; j < instance->controller[i].core_inputdesc.size(); j++)
+                  for (int j = 0; j < instance->core_inputttypes.at(i).size(); j++)
                   {
-                    const char *label = instance->controller[i].core_inputdesc[j].desc.c_str();
+                    const char *label = instance->core_inputttypes.at(i).at(j).desc.c_str();
                     if (ImGui::MenuItem(label, nullptr,
-                                        instance->controller[i].controller_type == instance->controller[i].core_inputdesc[j].id))
+                                        instance->core_inpbinds.at(i).controller_type == instance->core_inputttypes.at(i).at(j).id))
                     {
-                      instance->controller[i].controller_type = instance->controller[i].core_inputdesc[j].id;
-                      instance->core_changinpt(instance->controller[i].controller_type, i);
+                      if (instance->core_inpbinds.size() <= instance->core_inputttypes.size())
+                        instance->core_changinpt(instance->core_inputttypes.at(i).at(j).id, i);
                     }
                   }
                   ImGui::EndMenu();
                 }
               }
             }
-          }
-
         ImGui::EndMenu();
       }
     }
@@ -495,7 +490,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   if (inputsettings)
   {
     checkbuttons_forui(selected_inp, &isselected_inp, selected_port);
-    if (!instance->controller[0].core_inputbinds.size())
+    if (!instance->core_inpbinds.at(0).inputbinds.size())
     {
       popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
       return;
@@ -508,12 +503,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
     if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
-      if (instance->controller.size() < 2)
+      if (instance->core_inpbinds.size() < 2)
       {
         int descnum = 1;
-        for (size_t i = 0; i < instance->controller[0].core_inputbinds.size(); i++)
+        for (size_t i = 0; i < instance->core_inpbinds[0].inputbinds.size(); i++)
         {
-          auto &bind = instance->controller[0].core_inputbinds[i];
+          auto &bind = instance->core_inpbinds[0].inputbinds[i];
           if (bind.description == "")
             continue;
 
@@ -535,15 +530,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       else if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
       {
         int descnum = 1;
-        for (auto &control : instance->controller)
-          if (control.core_inputbinds.size())
+        for (auto &control : instance->core_inpbinds)
           {
             std::string descstring = "Player " + std::to_string(descnum);
             if (ImGui::BeginTabItem(descstring.c_str()))
             {
-              for (size_t i = 0; i < control.core_inputbinds.size(); i++)
+              for (size_t i = 0; i < control.inputbinds.size(); i++)
               {
-                auto &bind = control.core_inputbinds[i];
+                auto &bind = control.inputbinds[i];
                 if (bind.description == "")
                   continue;
 
@@ -573,8 +567,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         inputsettings = false;
         isselected_inp = false;
         uint32_t crc = 0;
-        for (auto &controller : instance->controller)
-          for (auto &bind : controller.core_inputbinds)
+        for (auto &controller : instance->core_inpbinds)
+          for (auto &bind : controller.inputbinds)
             crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
         save_inpcfg(crc);
       }

@@ -3,7 +3,7 @@
 #include "inout.h"
 #include "glad.h"
 #include <vector>
-
+#include <numeric>
 struct
 {
 	GLuint tex_id;
@@ -34,10 +34,29 @@ void video_setsize(unsigned width, unsigned height)
 	g_video.rend_height = height;
 }
 
+void reinit_fbo(int width, int height)
+{
+	if (g_video.tex_id)
+		glDeleteTextures(1, &g_video.tex_id);
+
+	glGenTextures(1, &g_video.tex_id);
+	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
+				 g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
+	void init_framebuffer(int width, int height);
+	init_framebuffer(width, height);
+}
+
 void video_changegeom(struct retro_game_geometry *geom)
 {
-	g_video.tex_w = geom->max_width;
-	g_video.tex_h = geom->max_height;
+	if (geom->max_width > g_video.tex_w || geom->max_height > g_video.tex_h)
+	{
+		reinit_fbo(geom->max_width, geom->max_height);
+		g_video.tex_w = geom->max_width;
+		g_video.tex_h = geom->max_height;
+	}
 	g_video.base_w = geom->base_width;
 	g_video.base_h = geom->base_height;
 	if (geom->aspect_ratio <= 0.0)
@@ -91,35 +110,32 @@ GLint renderbufbinding;
 
 void video_bindfb()
 {
-	/*	glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*)&last_texture);
+	/*glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*)&last_texture);
 		glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
 		glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFboId);
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebufbinding);
 		glGetIntegerv(GL_RENDERBUFFER_BINDING, &renderbufbinding);
 		glGetIntegerv(GL_ACTIVE_TEXTURE, (GLint*)&last_active_texture);
 		glGetIntegerv(GL_SCISSOR_BOX, m_scissor);
-		glGetIntegerv(GL_VIEWPORT, m_viewport);
-		glBindFramebuffer(GL_FRAMEBUFFER,0);*/
-
-	int w = (!g_video.software_rast) ? g_video.current_w : g_video.rend_width;
-	int h = (!g_video.software_rast) ? g_video.current_h : g_video.rend_height;
+		glGetIntegerv(GL_VIEWPORT, m_viewport);*/
 	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
-	glViewport(0, 0, w, h);
-	glScissor(0, 0, w, h);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (g_video.software_rast)
+	{
+		glViewport(0, 0, g_video.current_w, g_video.current_h);
+		glScissor(0, 0, g_video.current_w, g_video.current_h);
+	}
 }
 
 void video_unbindfb()
 {
-	/*	glViewport(m_viewport[0], m_viewport[1],m_viewport[2], m_viewport[3]);
-		glViewport(m_scissor[0], m_scissor[1],m_scissor[2], m_scissor[3]);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebufbinding);
-		glBindRenderbuffer(GL_RENDERBUFFER, renderbufbinding);
-		glBindTexture(GL_TEXTURE_2D, last_texture);
-		glActiveTexture(last_active_texture);*/
+	/*		glViewport(m_viewport[0], m_viewport[1],m_viewport[2], m_viewport[3]);
+			glViewport(m_scissor[0], m_scissor[1],m_scissor[2], m_scissor[3]);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufbinding);
+			glBindRenderbuffer(GL_RENDERBUFFER, renderbufbinding);
+			glBindTexture(GL_TEXTURE_2D, last_texture);
+			glActiveTexture(last_active_texture);*/
 }
 
 bool video_sethw(struct retro_hw_render_callback *hw)
@@ -178,40 +194,21 @@ vp resize_cb()
 		height = g_video.current_w / g_video.aspect;
 		width = g_video.current_w;
 	}
-	if (g_video.integer_scale)
+	if (!height || !width)
+		return vp_;
+	unsigned max_scale = (unsigned)std::min(g_video.rend_width / width,
+											g_video.rend_height / height);
+	if (!max_scale)
 	{
-		if (!height || !width)
-			return vp_;
-		unsigned max_scale = 1;
-		max_scale = std::min(g_video.rend_width / width,
-							 g_video.rend_height / height);
-		width *= max_scale;
-		height *= max_scale;
+		int multiple =std::gcd(g_video.base_w, width);
+		height = g_video.base_h;
+		width = height * g_video.aspect;
+		max_scale = (unsigned)std::min(g_video.rend_width / width,
+									   g_video.rend_height / height);
 	}
-	else
-	{
-		int32_t hw = g_video.current_h * g_video.rend_height;
-		int32_t wh = g_video.current_w * g_video.rend_width;
-		if (hw > wh)
-		{
-			int32_t w_max = wh / g_video.current_h;
-			x += (g_video.rend_width - w_max) / 2;
-			width = w_max;
-			height = g_video.rend_height;
-		}
-		else if (hw < wh)
-		{
-			int32_t h_max = hw / g_video.current_w;
-			y += (g_video.rend_height - h_max) / 2;
-			width = g_video.rend_width;
-			height = h_max;
-		}
-		else
-		{
-			width = g_video.rend_width;
-			height = g_video.rend_height;
-		}
-	}
+	width *= max_scale;
+	height *= max_scale;
+
 	x = SDL_floor(g_video.rend_width - width) / 2;
 	y = SDL_floor(g_video.rend_height - height) / 2;
 	vp_ = {x, y, width, height};
@@ -253,7 +250,15 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 				 g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
 
 	init_framebuffer(geom->max_width, geom->max_height);
-	video_changegeom(geom);
+
+	g_video.tex_w = geom->max_width;
+	g_video.tex_h = geom->max_height;
+	g_video.base_w = geom->base_width;
+	g_video.base_h = geom->base_height;
+	if (geom->aspect_ratio <= 0.0)
+		g_video.aspect = (float)geom->base_width / (float)geom->base_height;
+	else
+		g_video.aspect = geom->aspect_ratio;
 
 	if (g_video.hw.context_reset)
 		g_video.hw.context_reset();
@@ -286,7 +291,6 @@ static inline unsigned get_alignment(unsigned pitch)
 void video_render()
 {
 	vp vpx = resize_cb();
-	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

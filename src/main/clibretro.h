@@ -73,7 +73,7 @@ enum joytype_
 	hat
 };
 
-struct coreinput_desc
+struct coreinput_controlinfo
 {
 	std::string desc;
 	unsigned id;
@@ -151,10 +151,9 @@ struct retro_disk
 
 std::vector<core_info> get_cores();
 
-struct controller_input
+struct controller_port
 {
-	std::vector<coreinput_bind> core_inputbinds;
-	std::vector<coreinput_desc> core_inputdesc;
+	std::vector<coreinput_bind> inputbinds;
 	int controller_type;
 };
 
@@ -198,7 +197,8 @@ public:
 
 	const char *load_corevars(retro_variable *var);
 
-	std::vector<controller_input> controller;
+	std::vector<std::vector<coreinput_controlinfo>> core_inputttypes;
+	std::vector<controller_port> core_inpbinds;
 	std::vector<loadedcore_configvars> core_variables;
 	std::vector<loadedcore_configcat> core_categories;
 	std::vector<retro_disk> disk_intf;

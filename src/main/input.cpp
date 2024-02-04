@@ -224,7 +224,7 @@ bool loadinpconf(uint32_t checksum)
 
     ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
 
-    for (auto &controller : lib->controller)
+    for (auto &controller : lib->core_inpbinds)
     {
         std::string section_desc = "P" + std::to_string(portage++) + "_" + std::to_string(checksum);
         int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
@@ -238,7 +238,7 @@ bool loadinpconf(uint32_t checksum)
                                  value_str.c_str(), value_str.length());
             };
             save_conf("controller_type", std::to_string(controller.controller_type));
-            for (auto &bind : controller.core_inputbinds)
+            for (auto &bind : controller.inputbinds)
             {
                 if (bind.description == "")
                     continue;
@@ -280,7 +280,7 @@ bool loadinpconf(uint32_t checksum)
             };
             controller.controller_type = static_cast<int32_t>(std::stoi(load_conf("controller_type",
                                                                                   std::to_string(controller.controller_type), true)));
-            for (auto &bind : controller.core_inputbinds)
+            for (auto &bind : controller.inputbinds)
             {
                 bind.config.val = static_cast<int32_t>(std::stoi(load_conf(bind.description,
                                                                            std::to_string(bind.config.val), true)));
@@ -300,10 +300,9 @@ bool loadinpconf(uint32_t checksum)
 bool load_inpcfg(retro_input_descriptor *var)
 {
     auto lib = CLibretro::get_classinstance();
-    lib->use_retropad=false;
+    lib->use_retropad = false;
 
-    for (auto &controller : lib->controller)
-        controller.core_inputbinds.clear();
+    lib->core_inpbinds.clear();
 
     retro_input_descriptor *var2 = var;
     int ports = 0;
@@ -314,14 +313,9 @@ bool load_inpcfg(retro_input_descriptor *var)
         var2++;
     }
     ports++;
-
-    lib->controller.resize(ports);
-    for (auto &controller : lib->controller)
-        controller.core_inputbinds.clear();
-
-    // if(lib->core_inputdesc.size())
-    //   for (auto index = std::size_t{};auto& controller : lib->controller) {
-    //  controller.core_inputdesc=lib->core_inputdesc[index++];
+    lib->core_inpbinds.resize(ports);
+    for (auto &controller : lib->core_inpbinds)
+        controller.inputbinds.clear();
 
     while (var->description != NULL)
     {
@@ -342,15 +336,30 @@ bool load_inpcfg(retro_input_descriptor *var)
             settings.bits.joytype = (uint8_t)joytype_::keyboard;
             bind.val = 0;
             bind.joykey_desc = "None";
-            lib->controller[var->port].core_inputbinds.push_back(bind);
+            lib->core_inpbinds[var->port].inputbinds.push_back(bind);
         }
         var++;
     }
 
     uint32_t crc = 0;
-    for (auto &controller : lib->controller)
-        for (auto &bind : controller.core_inputbinds)
+    for (auto &controller : lib->core_inpbinds)
+        for (auto &bind : controller.inputbinds)
             crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
+
+
+    if(lib->core_inputttypes.size())
+    {
+        for (int i = 0; i < lib->core_inputttypes.size(); i++)
+        {
+            for (int j = 0; j < lib->core_inputttypes[i].size(); j++)
+            {
+                if (i <= lib->core_inpbinds.size())
+                if (lib->core_inputttypes[i][j].id == RETRO_DEVICE_JOYPAD)
+                        lib->core_inpbinds[i].controller_type = lib->core_inputttypes[i][j].id;
+            }
+        }   
+    }
+
     return loadinpconf(crc);
 }
 bool save_inpcfg(uint32_t checksum)
@@ -364,7 +373,7 @@ bool save_inpcfg(uint32_t checksum)
         std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
         ini_t *ini = ini_load((char *)data.data(), NULL);
 
-        for (auto &controller : lib->controller)
+        for (auto &controller : lib->core_inpbinds)
         {
             std::string section_desc = "P" + std::to_string(portage++) + "_" + std::to_string(checksum);
             int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
@@ -382,7 +391,7 @@ bool save_inpcfg(uint32_t checksum)
                     ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
             };
 
-            for (auto &bind : controller.core_inputbinds)
+            for (auto &bind : controller.inputbinds)
             {
                 save_conf(bind.description, std::to_string(bind.config.val));
                 save_conf(bind.description + "_anatrig", std::to_string(bind.config.bits.axistrigger));
@@ -493,7 +502,7 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
         return;
     auto lib = CLibretro::get_classinstance();
     std::string name;
-    auto &bind = lib->controller[port].core_inputbinds[selected_inp];
+    auto &bind = lib->core_inpbinds[port].inputbinds[selected_inp];
     const int JOYSTICK_DEAD_ZONE = 0x4000;
     int numkeys = 0;
     const Uint8 *keyboard = SDL_GetKeyboardState(&numkeys);
@@ -670,9 +679,9 @@ void poll_lr()
     mousiez.b4 = (SDL_BUTTON(SDL_BUTTON_X1) & btn) ? 1 : 0;
     mousiez.b5 = (SDL_BUTTON(SDL_BUTTON_X2) & btn) ? 1 : 0;
 
-    for (auto &control : lib->controller)
+    for (auto &control : lib->core_inpbinds)
     {
-        for (auto &bind : control.core_inputbinds)
+        for (auto &bind : control.inputbinds)
         {
 
             if (bind.config.bits.joytype == joytype_::keyboard)
@@ -782,10 +791,10 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD)
         return (id < RETROK_LAST) && key_pressed(id);
 
-   if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || RETRO_DEVICE_JOYPAD)
+    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || RETRO_DEVICE_JOYPAD)
     {
         bool analog = ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG);
-        for (auto &bind : lib->controller[port].core_inputbinds)
+        for (auto &bind : lib->core_inpbinds[port].inputbinds)
         {
             if (analog)
             {

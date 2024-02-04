@@ -223,8 +223,6 @@ int main2(const char *rom, const char *core, bool pergame)
       video_render();
     }
     rendermenu(instance, window, show_menu);
-
-    video_unbindfb();
   }
 
   instance->core_unload();

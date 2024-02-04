@@ -100,15 +100,11 @@ static bool core_controller_info(struct retro_controller_info *info)
     return false;
   auto retro = CLibretro::get_classinstance();
   retro->use_retropad=false;
-  for(auto &vec : retro->controller)
-  vec.core_inputdesc.clear();
-
-  int cnt = 0;
+  retro->core_inputttypes.clear();
   struct retro_controller_info *info2 = info;
-  bool cont_found = false;
   while (info2->types != NULL)
   {
-    std::vector<coreinput_desc> vec;
+    std::vector<coreinput_controlinfo> vec;
     vec.clear();
 
     const struct retro_controller_description *types = info2->types;
@@ -117,12 +113,7 @@ static bool core_controller_info(struct retro_controller_info *info)
 
       if (types->desc != 0)
       {
-        if ((types->id & RETRO_DEVICE_JOYPAD) && !cont_found)
-        {
-          cont_found = true;
-          retro->controller[cnt].controller_type = types->id;
-        }
-        coreinput_desc desc;
+        coreinput_controlinfo desc;
         desc.desc = types->desc;
         desc.id = types->id;
         vec.push_back(desc);
@@ -130,8 +121,7 @@ static bool core_controller_info(struct retro_controller_info *info)
       types++;
     }
     info2++;
-    retro->controller[cnt].core_inputdesc=vec;
-    cnt++;
+    retro->core_inputttypes.push_back(vec);
   }
   return true;
 }

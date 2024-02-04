@@ -423,13 +423,16 @@ void CLibretro::reset()
   frametime_ref = 0;
   use_retropad = true;
 
-  controller.clear();
+  core_inpbinds.clear();
+  core_inpbinds.resize(8);
+  core_inputttypes.clear();
 
   for (int i = 0; i < 8; i++)
   {
-    controller_input inp;
     // Assume "RetroPad"....fuck me
-    inp.core_inputbinds.clear();
+
+    std::vector<coreinput_bind> bind2;
+    bind2.clear();
 
     for (int j = 0; j < sizeof_array(retro_descripts); j++)
     {
@@ -445,11 +448,10 @@ void CLibretro::reset()
       bind.port = i;
       bind.description = retro_descripts[j];
       bind.joykey_desc = (i == 0 && j < 13) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";
-      inp.core_inputbinds.push_back(bind);
+      bind2.push_back(bind);
     }
-    inp.core_inputdesc.clear();
-    inp.controller_type = RETRO_DEVICE_JOYPAD;
-    controller.push_back(inp);
+    core_inpbinds[i].inputbinds=bind2;
+    core_inpbinds[i].controller_type = RETRO_DEVICE_JOYPAD;
   }
   disk_intf.clear();
   core_variables.clear();
@@ -457,8 +459,8 @@ void CLibretro::reset()
   memset(&retro, 0, sizeof(retro));
 
   uint32_t crc = 0;
-  for (auto &controller : controller)
-    for (auto &bind : controller.core_inputbinds)
+  for (auto &controller : core_inpbinds)
+    for (auto &bind : controller.inputbinds)
       crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
   loadinpconf(crc);
 }
@@ -488,7 +490,7 @@ void CLibretro::core_changinpt(int dev, int port)
 {
   if (lr_isrunning)
   {
-    controller[port].controller_type = dev;
+    core_inpbinds[port].controller_type = dev;
     retro.retro_set_controller_port_device(port, dev);
   }
 }
@@ -519,12 +521,12 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path;
 
-  rom_path = std::filesystem::absolute(romzpath).string();
-  save_path = save_path_ / (romzpath.stem().string() + ".sram");
-  if (contentless)
+  rom_path = "";
+  save_path = save_path_ / (core_path_.stem().string() + ".sram");
+  if (!contentless)
   {
-    save_path = save_path_ / (core_path_.stem().string() + ".sram");
-    rom_path = "";
+      rom_path = std::filesystem::absolute(romzpath).string();
+      save_path = save_path_ / (romzpath.stem().string() + ".sram");
   }
   saves_path = std::filesystem::absolute(save_path_).string();
   system_path = std::filesystem::absolute(system_path_).string();
@@ -664,8 +666,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   core_saveram(romsavesstatespath.c_str(), false);
 
-  for (int i = 0; i < controller.size(); i++)
-    core_changinpt(controller[i].controller_type, i);
+  for (int i = 0; i < core_inpbinds.size(); i++)
+    core_changinpt(core_inpbinds[i].controller_type, i);
   lr_isrunning = true;
   return true;
 }
@@ -698,7 +700,8 @@ void CLibretro::core_unload()
       memset((retro_core *)&retro, 0, sizeof(retro_core));
     }
     lr_isrunning = false;
-    controller.clear();
+    core_inpbinds.clear();
+    core_inputttypes.clear();
     core_variables.clear();
     reset();
   }
@@ -820,7 +823,7 @@ void CLibretro::get_cores()
         entry_.core_name = system.library_name;
         entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
         entry_.core_path = str;
-        entry_.no_roms = (system.valid_extensions == NULL) && no_roms2;
+        entry_.no_roms = no_roms2;
         if (!entry_.no_roms)
         {
           std::string test = entry_.core_extensions;
