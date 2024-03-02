@@ -213,7 +213,11 @@ bool checkjs(int port)
         return false;
 }
 
-bool loadinpconf(uint32_t checksum)
+bool savecontconfig()
+{
+}
+
+bool loadcontconfig(bool save_f)
 {
     auto lib = CLibretro::get_classinstance();
     std::string core_config = lib->core_config;
@@ -224,10 +228,19 @@ bool loadinpconf(uint32_t checksum)
 
     ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
 
+    std::string section_desc = "controller_ports";
+    int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
+
+    auto save = [=]()
+    {
+        int size = ini_save(ini, NULL, 0); // Find the size needed
+        auto ini_data = std::make_unique<char[]>(size);
+        size = ini_save(ini, ini_data.get(), size); // Actually save the file
+        MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+    };
+
     for (auto &controller : lib->core_inpbinds)
     {
-        std::string section_desc = "P" + std::to_string(portage++) + "_" + std::to_string(checksum);
-        int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
         if (section == INI_NOT_FOUND)
         {
             // not found, add section
@@ -237,59 +250,125 @@ bool loadinpconf(uint32_t checksum)
                 ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
                                  value_str.c_str(), value_str.length());
             };
-            save_conf("controller_type", std::to_string(controller.controller_type));
-            for (auto &bind : controller.inputbinds)
-            {
-                if (bind.description == "")
-                    continue;
-                save_conf(bind.description, std::to_string(bind.config.val));
-                save_conf(bind.description + "_keydesc", bind.joykey_desc);
-                save_conf(bind.description + "_anatrig", std::to_string(bind.config.bits.axistrigger));
-                save_conf(bind.description + "_sdl_contr", std::to_string(bind.SDL_port));
-            }
-            int size = ini_save(ini, NULL, 0); // Find the size needed
-            auto ini_data = std::make_unique<char[]>(size);
-            size = ini_save(ini, ini_data.get(), size); // Actually save the file
-            MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+            std::string key = "controller_type" + std::to_string(portage++);
+            save_conf(key, std::to_string(controller.controller_type));
+            save();
             continue;
         }
-        else
+        else if (!save_f)
         {
-            auto load_conf = [=](std::string keydesc, std::string value_str, bool isint)
+            auto load_conf = [=](std::string keydesc, std::string value_str)
             {
                 int idx = ini_find_property(ini, section, keydesc.c_str(),
                                             keydesc.length());
                 if (idx == INI_NOT_FOUND)
                 {
-                    if (isint)
-                    {
-                        ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                         value_str.c_str(), value_str.length());
-                    }
-                    else
-                        ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                         value_str.c_str(), value_str.length());
-                    int size = ini_save(ini, NULL, 0); // Find the size needed
-                    auto ini_data = std::make_unique<char[]>(size);
-                    size = ini_save(ini, ini_data.get(), size); // Actually save the file
-                    MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+                    ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
+                                     value_str.c_str(), value_str.length());
+                    save();
                     return value_str;
                 }
                 std::string str = ini_property_value(ini, section, idx);
                 return str;
             };
-            controller.controller_type = static_cast<int32_t>(std::stoi(load_conf("controller_type",
-                                                                                  std::to_string(controller.controller_type), true)));
+            std::string key = "controller_type" + std::to_string(portage++);
+            controller.controller_type = static_cast<int32_t>(std::stoi(load_conf(key,
+                                                                                  std::to_string(controller.controller_type))));
+        }
+        else
+        {
+            std::string key = "controller_type" + std::to_string(portage++);
+            auto save_conf = [=](std::string keydesc, std::string value_str)
+            {
+                int idx = ini_find_property(ini, section, keydesc.c_str(), keydesc.length());
+                if (idx == INI_NOT_FOUND)
+                {
+                    ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
+                                     value_str.c_str(), value_str.length());
+                }
+                else
+                    ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
+            };
+            save_conf(key, std::to_string(controller.controller_type));
+        }
+    }
+    ini_destroy(ini);
+    return true;
+}
+
+bool loadinpconf(uint32_t checksum, bool save_f)
+{
+    auto lib = CLibretro::get_classinstance();
+    std::string core_config = lib->core_config;
+    unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
+    std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
+    ini_t *ini = NULL;
+    int portage = 0;
+
+    ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
+
+    auto save = [=]()
+    {
+        int size = ini_save(ini, NULL, 0); // Find the size needed
+        auto ini_data = std::make_unique<char[]>(size);
+        size = ini_save(ini, ini_data.get(), size); // Actually save the file
+        MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+    };
+
+    for (auto &controller : lib->core_inpbinds)
+    {
+        std::string section_desc = "P" + std::to_string(portage++) + "_" + std::to_string(checksum);
+        int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
+        if (section == INI_NOT_FOUND)
+            section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
+        auto load_conf = [=](std::string keydesc, std::string value_str)
+        {
+            int idx = ini_find_property(ini, section, keydesc.c_str(),
+                                        keydesc.length());
+            if (idx == INI_NOT_FOUND)
+            {
+                ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
+                                 value_str.c_str(), value_str.length());
+                save();
+                return value_str;
+            }
+            std::string str = ini_property_value(ini, section, idx);
+            return str;
+        };
+        auto save_conf = [=](std::string keydesc, std::string value_str)
+        {
+            int idx = ini_find_property(ini, section, keydesc.c_str(), keydesc.length());
+            if (idx == INI_NOT_FOUND)
+            {
+                ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
+                                 value_str.c_str(), value_str.length());
+            }
+            else
+                ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
+        };
+
+        if (!save_f)
+        {
             for (auto &bind : controller.inputbinds)
             {
                 bind.config.val = static_cast<int32_t>(std::stoi(load_conf(bind.description,
-                                                                           std::to_string(bind.config.val), true)));
+                                                                           std::to_string(bind.config.val))));
                 bind.joykey_desc = load_conf(bind.description + "_keydesc",
-                                             bind.joykey_desc, false);
+                                             bind.joykey_desc);
                 bind.SDL_port = static_cast<int16_t>(std::stoi(load_conf(bind.description + "_sdl_contr",
-                                                                         std::to_string(bind.SDL_port), true)));
+                                                                         std::to_string(bind.SDL_port))));
                 bind.config.bits.axistrigger = static_cast<int32_t>(std::stoi(load_conf(bind.description + "_anatrig",
-                                                                                        std::to_string(bind.config.bits.axistrigger), true)));
+                                                                                        std::to_string(bind.config.bits.axistrigger))));
+            }
+        }
+        else
+        {
+            for (auto &bind : controller.inputbinds)
+            {
+                save_conf(bind.description, std::to_string(bind.config.val));
+                save_conf(bind.description + "_anatrig", std::to_string(bind.config.bits.axistrigger));
+                save_conf(bind.description + "_sdl_contr", std::to_string(bind.SDL_port));
+                save_conf(bind.description + "_keydesc", bind.joykey_desc);
             }
         }
     }
@@ -346,67 +425,20 @@ bool load_inpcfg(retro_input_descriptor *var)
         for (auto &bind : controller.inputbinds)
             crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
 
-
-    if(lib->core_inputttypes.size())
+    if (lib->core_inputttypes.size())
     {
         for (int i = 0; i < lib->core_inputttypes.size(); i++)
         {
             for (int j = 0; j < lib->core_inputttypes[i].size(); j++)
             {
                 if (i <= lib->core_inpbinds.size())
-                if (lib->core_inputttypes[i][j].id == RETRO_DEVICE_JOYPAD)
+                    if (lib->core_inputttypes[i][j].id == RETRO_DEVICE_JOYPAD)
                         lib->core_inpbinds[i].controller_type = lib->core_inputttypes[i][j].id;
             }
-        }   
+        }
     }
 
     return loadinpconf(crc);
-}
-bool save_inpcfg(uint32_t checksum)
-{
-    auto lib = CLibretro::get_classinstance();
-    std::string core_config = lib->core_config;
-    int portage = 0;
-    unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
-    if (sz_coreconfig)
-    {
-        std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
-        ini_t *ini = ini_load((char *)data.data(), NULL);
-
-        for (auto &controller : lib->core_inpbinds)
-        {
-            std::string section_desc = "P" + std::to_string(portage++) + "_" + std::to_string(checksum);
-            int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
-            if (section == INI_NOT_FOUND)
-                section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
-            auto save_conf = [=](std::string keydesc, std::string value_str)
-            {
-                int idx = ini_find_property(ini, section, keydesc.c_str(), keydesc.length());
-                if (idx == INI_NOT_FOUND)
-                {
-                    ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                     value_str.c_str(), value_str.length());
-                }
-                else
-                    ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
-            };
-
-            for (auto &bind : controller.inputbinds)
-            {
-                save_conf(bind.description, std::to_string(bind.config.val));
-                save_conf(bind.description + "_anatrig", std::to_string(bind.config.bits.axistrigger));
-                save_conf(bind.description + "_sdl_contr", std::to_string(bind.SDL_port));
-                save_conf(bind.description + "_keydesc", bind.joykey_desc);
-            }
-            save_conf("controller_type", std::to_string(controller.controller_type));
-        }
-        int size = ini_save(ini, NULL, 0); // Find the size needed
-        auto ini_data = std::make_unique<char[]>(size);
-        size = ini_save(ini, ini_data.get(), size); // Actually save the file
-        MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-        ini_destroy(ini);
-    }
-    return true;
 }
 
 void close_inpt()

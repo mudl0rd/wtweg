@@ -21,17 +21,17 @@ Recommended cores:
 * mednafen_supergrafx_libretro.dll.zip (SuperGrafx)
 * mednafen_vb_libretro.dll.zip (Virtual Boy) 
 * virtualjaguar_libretro.dll.zip (Jaguar) 
-* vecx_libretro.dll.zip (Vectrex) **
-* vice_x64sc_libretro.dll.zip (C64) **
-* vice_xpet_libretro.dll.zip (Commodore PET) **
-* vice_xvic_libretro.dll.zip (Commodore VIC-20) **
-* stella2014_libretro.dll.zip (Atari 2600) **
-* fuse_libretro.dll.zip (ZX Spectrum) **
+* vecx_libretro.dll.zip (Vectrex) 
+* vice_x64sc_libretro.dll.zip (C64) 
+* vice_xpet_libretro.dll.zip (Commodore PET) 
+* vice_xvic_libretro.dll.zip (Commodore VIC-20) 
+* stella2014_libretro.dll.zip (Atari 2600) 
+* fuse_libretro.dll.zip (ZX Spectrum) 
 * gme_libretro.dll.zip (Video game music player)
-* xrick_libretro.dll.zip (Rick Dangerous source port)
-* nxengine_libretro.dll.zip (Cave Story source port)
-* dinothawr_libretro.dll.zip (Dinothawr, homebrew Sokoban-like)
-* craft_libretro.dll.zip (homebrew Minecraft-like)
+* xrick_libretro.dll.zip (Rick Dangerous source port) 
+* nxengine_libretro.dll.zip (Cave Story source port) 
+* dinothawr_libretro.dll.zip (Dinothawr, homebrew Sokoban-like) 
+* craft_libretro.dll.zip (homebrew Minecraft-like) 
 * tic80_libretro.dll.zip (TIC-80 VM)
 * retro8_libretro.dll.zip (Pico-8 "console" emulator/VM)
 * vitaquake2_libretro.dll.zip (Quake 2 source port)
@@ -39,10 +39,10 @@ Recommended cores:
 * vitaquake2-xatrix_libretro.dll.zip (Quake 2 expansion pack source port)
 * vitaquake2-zaero_libretro.dll.zip (Quake 2 expansion pack source port)
 * vitaquake3_libretro.dll.zip (Quake 3 source port)
-* prboom_libretro.dll.zip (Doom source port
-* mrboom_libretro.dll.zip (Bomberman clone)
+* prboom_libretro.dll.zip (Doom source port)
+* mrboom_libretro.dll.zip (Bomberman clone) 
 * ecwolf_libretro.dll.zip (Wolfenstein source port)
-* 2048_libretro.dll.zip ("2048" puzzle game clone)
+* 2048_libretro.dll.zip ("2048" puzzle game clone) 
 * gong_libretro.dll.zip (Pong clone)
 
 Broken/incomplete-supported cores:

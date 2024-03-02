@@ -200,7 +200,6 @@ vp resize_cb()
 											g_video.rend_height / height);
 	if (!max_scale)
 	{
-		int multiple =std::gcd(g_video.base_w, width);
 		height = g_video.base_h;
 		width = height * g_video.aspect;
 		max_scale = (unsigned)std::min(g_video.rend_width / width,
@@ -208,7 +207,6 @@ vp resize_cb()
 	}
 	width *= max_scale;
 	height *= max_scale;
-
 	x = SDL_floor(g_video.rend_width - width) / 2;
 	y = SDL_floor(g_video.rend_height - height) / 2;
 	vp_ = {x, y, width, height};

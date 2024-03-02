@@ -301,7 +301,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         if (instance->core_inputttypes.size())
           {
             ImGui::Separator();
-            for (int i = 0; i < instance->core_inpbinds.size(); i++)
+            for (int i = 0; i < instance->core_inputttypes.size(); i++)
             {
                 std::string player = "Player " + std::to_string(i + 1);
                 if (ImGui::BeginMenu(player.c_str()))
@@ -312,8 +312,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                     if (ImGui::MenuItem(label, nullptr,
                                         instance->core_inpbinds.at(i).controller_type == instance->core_inputttypes.at(i).at(j).id))
                     {
-                      if (instance->core_inpbinds.size() <= instance->core_inputttypes.size())
+                     // if (instance->core_inpbinds.size() <= instance->core_inputttypes.at(i).size())
                         instance->core_changinpt(instance->core_inputttypes.at(i).at(j).id, i);
+                        savecontconfig();
                     }
                   }
                   ImGui::EndMenu();
@@ -365,7 +366,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     for (auto &core : instance->cores)
     {
 
-      if (core.no_roms)
+      if (core.no_roms && core.core_extensions == "")
         continue;
 
       std::string core_ext = core.core_extensions;

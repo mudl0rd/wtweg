@@ -74,5 +74,7 @@ void poll_lr();
 bool load_inpcfg(retro_input_descriptor *var);
 bool loadinpconf(uint32_t checksum);
 bool save_inpcfg(uint32_t checksum);
+bool loadcontconfig();
+bool savecontconfig();
 
 #endif

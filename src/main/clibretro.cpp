@@ -424,10 +424,10 @@ void CLibretro::reset()
   use_retropad = true;
 
   core_inpbinds.clear();
-  core_inpbinds.resize(8);
+  core_inpbinds.resize(2);
   core_inputttypes.clear();
 
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 2; i++)
   {
     // Assume "RetroPad"....fuck me
 
@@ -656,6 +656,9 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     core_unload();
     return false;
   }
+   loadcontconfig();
+   for (int i = 0; i < core_inpbinds.size(); i++)
+    core_changinpt(core_inpbinds[i].controller_type, i);
 
   retro.retro_get_system_av_info(&av);
   SDL_DisplayMode dm;
@@ -666,8 +669,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   core_saveram(romsavesstatespath.c_str(), false);
 
-  for (int i = 0; i < core_inpbinds.size(); i++)
-    core_changinpt(core_inpbinds[i].controller_type, i);
+ 
   lr_isrunning = true;
   return true;
 }
@@ -824,7 +826,7 @@ void CLibretro::get_cores()
         entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
         entry_.core_path = str;
         entry_.no_roms = no_roms2;
-        if (!entry_.no_roms)
+        if (entry_.core_extensions != "")
         {
           std::string test = entry_.core_extensions;
           test = MudUtil::replace_all(test, "|", ",.");
