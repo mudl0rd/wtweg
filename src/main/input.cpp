@@ -213,10 +213,6 @@ bool checkjs(int port)
         return false;
 }
 
-bool savecontconfig()
-{
-}
-
 bool loadcontconfig(bool save_f)
 {
     auto lib = CLibretro::get_classinstance();
@@ -347,9 +343,9 @@ bool loadinpconf(uint32_t checksum, bool save_f)
                 ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
         };
 
-        if (!save_f)
+        for (auto &bind : controller.inputbinds)
         {
-            for (auto &bind : controller.inputbinds)
+            if (!save_f)
             {
                 bind.config.val = static_cast<int32_t>(std::stoi(load_conf(bind.description,
                                                                            std::to_string(bind.config.val))));
@@ -360,10 +356,7 @@ bool loadinpconf(uint32_t checksum, bool save_f)
                 bind.config.bits.axistrigger = static_cast<int32_t>(std::stoi(load_conf(bind.description + "_anatrig",
                                                                                         std::to_string(bind.config.bits.axistrigger))));
             }
-        }
-        else
-        {
-            for (auto &bind : controller.inputbinds)
+            else
             {
                 save_conf(bind.description, std::to_string(bind.config.val));
                 save_conf(bind.description + "_anatrig", std::to_string(bind.config.bits.axistrigger));
