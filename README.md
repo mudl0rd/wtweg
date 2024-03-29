@@ -1,6 +1,6 @@
 # WTFweg
-
-> **Contributions, issue/feature requests+reports will be ignored.**
+> [!IMPORTANT]
+> Contributions, issue/feature reports/requests will be ignored.
 
 [libretro](https://www.libretro.com) code playset for anything with:
 
