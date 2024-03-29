@@ -1,13 +1,13 @@
 # WTFweg
 
-**Personal** [libretro](https://www.libretro.com) code playset for anything with:
+> **Contributions, issue/feature requests+reports will not be accepted.**
+
+[libretro](https://www.libretro.com) code playset for anything with:
 
 * x64 CPUs w/SSE4.1 and above.
-* OGL 4.6 and above
+* OGL 4.6
 * Win10 and above/Linux
 * GCC/G++ with C++17 support
-
-> Contributions, issues, and feature requests will **not** be accepted.
 
 ## Where?
 
