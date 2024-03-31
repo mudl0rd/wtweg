@@ -65,14 +65,14 @@ static bool core_replace_image_index(unsigned int index, const retro_game_info *
 
 void core_audio_sample(int16_t left, int16_t right)
 {
-    int16_t buf[2] = {left, right};
-    audio_mix(buf, 1);
+  int16_t buf[2] = {left, right};
+  audio_mix(buf, 1);
 }
 static size_t core_audio_sample_batch(const int16_t *data, size_t frames)
 {
   if (!frames && data == NULL)
     return 0;
-  audio_mix((void*)data, frames);
+  audio_mix((void *)data, frames);
   return frames;
 }
 
@@ -99,7 +99,7 @@ static bool core_controller_info(struct retro_controller_info *info)
   if (!info)
     return false;
   auto retro = CLibretro::get_classinstance();
-  retro->use_retropad=false;
+  retro->use_retropad = false;
   retro->core_inputttypes.clear();
   struct retro_controller_info *info2 = info;
   while (info2->types != NULL)
@@ -108,7 +108,7 @@ static bool core_controller_info(struct retro_controller_info *info)
     vec.clear();
 
     const struct retro_controller_description *types = info2->types;
-    for(int i=0;i<info2->num_types;i++)
+    for (int i = 0; i < info2->num_types; i++)
     {
 
       if (types->desc != 0)
@@ -185,6 +185,10 @@ static bool core_environment(unsigned cmd, void *data)
 {
   bool *bval;
   auto retro = CLibretro::get_classinstance();
+  std::filesystem::path p(MudUtil::get_wtfwegname());
+  p = p.parent_path() / "system";
+  std::filesystem::path p_save(MudUtil::get_wtfwegname());
+  p_save = p_save.parent_path() / "saves";
   switch (cmd)
   {
 
@@ -246,7 +250,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_GET_VFS_INTERFACE:
   {
-      return false;
+    return false;
   }
 
   case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
@@ -298,7 +302,6 @@ static bool core_environment(unsigned cmd, void *data)
     return false;
   }
 
-
   case RETRO_ENVIRONMENT_SET_GEOMETRY:
   {
     auto *geom = reinterpret_cast<struct retro_game_geometry *>(data);
@@ -313,19 +316,19 @@ static bool core_environment(unsigned cmd, void *data)
     {
       if (strcmp(var.name.c_str(), cb->key) == 0)
       {
-          if(var.category_name != "")
-          {
-             for (auto &var2 : retro->core_categories)
-             if(var2.key == var.category_name)
-             {
+        if (var.category_name != "")
+        {
+          for (auto &var2 : retro->core_categories)
+            if (var2.key == var.category_name)
+            {
               var.config_visible = cb->visible;
               return true;
-             }
-          }
-          else
+            }
+        }
+        else
           var.config_visible = cb->visible;
-          return true;
-      } 
+        return true;
+      }
     }
     return false;
   }
@@ -357,15 +360,15 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_LIBRETRO_PATH:
   {
     const char **dir = reinterpret_cast<const char **>(data);
-    std::filesystem::path p(MudUtil::get_wtfwegname());
-    static auto *lr_path = strdup(p.parent_path().string().c_str());
+    static auto *lr_path = strdup(p.string().c_str());
     *dir = lr_path;
     return true;
   }
   case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
   {
-    static auto *sys_path = strdup(retro->system_path.c_str());
+
+    static auto *sys_path = strdup(p.string().c_str());
     *(const char **)data = sys_path;
     return true;
   }
@@ -380,8 +383,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
   {
-    std::string str = retro->saves_path;
-    static auto *sys_path = strdup(str.c_str());
+    static auto *sys_path = strdup(p_save.string().c_str());
     *(const char **)data = sys_path;
     return true;
   }
@@ -395,7 +397,7 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 31
   {
-    return ::load_inpcfg((retro_input_descriptor*)data);
+    return ::load_inpcfg((retro_input_descriptor *)data);
   }
 
   case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
@@ -413,7 +415,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
   {
     auto *lang = reinterpret_cast<struct retro_core_options_intl *>(data);
-   return retro->init_configvars_coreoptions(lang->us, 1);
+    return retro->init_configvars_coreoptions(lang->us, 1);
   }
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
@@ -434,7 +436,7 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_VARIABLE:
   {
     auto *var = reinterpret_cast<struct retro_variable *>(data);
-   return var->value = retro->load_corevars(var);
+    return var->value = retro->load_corevars(var);
   }
   case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
   {

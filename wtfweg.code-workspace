@@ -89,7 +89,8 @@
 			"source_location": "cpp",
 			"stdfloat": "cpp",
 			"typeindex": "cpp",
-			"io.h": "c"
+			"io.h": "c",
+			"expected": "cpp"
 		}
 	}
 }

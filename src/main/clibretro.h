@@ -102,7 +102,8 @@ struct coreinput_bind
 	} config;
 };
 
-enum libretro_binds{
+enum libretro_binds
+{
 	joypad_b,
 	joypad_y,
 	joypad_select,
@@ -206,14 +207,15 @@ public:
 	bool v2_vars;
 	bool use_retropad;
 	bool variables_changed;
-	const char* rom_name;
+	const char *rom_name;
+	uint32_t config_crc;
+	uint32_t input_confcrc;
+	uint32_t inputcont_crc;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
 	std::string core_config;
 	std::string core_path;
-	std::string saves_path;
-	std::string system_path;
-	std::string rom_path;
+	std::filesystem::path rom_path;
 	std::string coreexts;
 	std::string exe_path;
 	int save_slot;

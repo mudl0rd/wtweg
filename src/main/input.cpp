@@ -219,17 +219,10 @@ bool loadcontconfig(bool save_f)
     std::string core_config = lib->core_config;
     unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
     std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
-    ini_t *ini = NULL;
+    ini_t *ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
     int portage = 0;
-
-    ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
-
-    uint32_t crc = 0;
-    for (auto &vars : lib->core_variables)
-        crc = MudUtil::crc32(crc, vars.name.c_str(), vars.name.length());
-    std::string section_desc = "contpt_" + std::to_string(crc);
+    std::string section_desc = "contpt_" + std::to_string(lib->config_crc);
     int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
-
     auto save = [=]()
     {
         int size = ini_save(ini, NULL, 0); // Find the size needed
@@ -423,10 +416,10 @@ bool load_inpcfg(retro_input_descriptor *var)
         var++;
     }
 
-    uint32_t crc = 0;
+    lib->input_confcrc = 0;
     for (auto &controller : lib->core_inpbinds)
         for (auto &bind : controller.inputbinds)
-            crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
+            lib->input_confcrc = MudUtil::crc32(lib->input_confcrc, bind.description.c_str(), bind.description.length());
 
     if (lib->core_inputttypes.size())
     {
@@ -441,7 +434,7 @@ bool load_inpcfg(retro_input_descriptor *var)
         }
     }
 
-    return loadinpconf(crc, false);
+    return loadinpconf(lib->input_confcrc, false);
 }
 
 void close_inpt()

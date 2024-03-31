@@ -26,9 +26,8 @@ bool CLibretro::core_savestateslot(bool save)
 {
   if (rom_path != "")
   {
-    std::filesystem::path romzpath = std::filesystem::path(rom_path);
-    std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
-    std::filesystem::path save_path = save_path_ / (romzpath.stem().string() + "_" + std::to_string(save_slot) + ".sram");
+    std::filesystem::path save_path = std::filesystem::path(exe_path) / "saves" / 
+    (rom_path.stem().string() + "_" + std::to_string(save_slot) + ".sram");
     std::string saves = std::filesystem::absolute(save_path).string();
     core_savestate(saves.c_str(), save);
     return true;
@@ -101,10 +100,8 @@ bool CLibretro::load_coresettings()
   {
     data = MudUtil::load_data(core_config.c_str());
   }
-  uint32_t crc = 0;
-  for (auto &vars : core_variables)
-    crc = MudUtil::crc32(crc, (const void *)vars.name.c_str(), vars.name.length());
-  std::string crc_string = "Core_" + std::to_string(crc);
+
+  std::string crc_string = "Core_" + std::to_string(config_crc);
 
   ini = ini_load((char *)data.data(), NULL);
   int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
@@ -156,9 +153,7 @@ bool CLibretro::load_coresettings()
 void CLibretro::save_coresettings()
 {
   uint32_t crc = 0;
-  for (auto &vars : core_variables)
-    crc = MudUtil::crc32(crc, vars.name.c_str(), vars.name.length());
-  std::string crc_string = "Core_" + std::to_string(crc);
+  std::string crc_string = "Core_" + std::to_string(config_crc);
   unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
 
   ini_t *ini = NULL;
@@ -321,6 +316,11 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
     }
     v2_vars = false;
   }
+
+  config_crc = 0;
+  for (auto &vars : core_variables)
+    config_crc = MudUtil::crc32(config_crc, (const void *)vars.name.c_str(), vars.name.length());
+
   load_coresettings();
   return false;
 }
@@ -461,11 +461,11 @@ void CLibretro::reset()
   v2_vars = false;
   memset(&retro, 0, sizeof(retro));
 
-  uint32_t crc = 0;
+  input_confcrc = 0;
   for (auto &controller : core_inpbinds)
     for (auto &bind : controller.inputbinds)
-      crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
-  loadinpconf(crc, false);
+      input_confcrc = MudUtil::crc32(input_confcrc, bind.description.c_str(), bind.description.length());
+  loadinpconf(input_confcrc, false);
 }
 
 void CLibretro::init_lr(SDL_Window *window)
@@ -517,27 +517,21 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   reset();
   lr_isrunning = false;
 
-  std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
-  std::filesystem::path core_path_ = std::filesystem::path(corepath);
-  std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
+  rom_path = (ROM == NULL) ? "" : ROM;
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path;
 
   rom_path = "";
-  save_path = save_path_ / (core_path_.stem().string() + ".sram");
+  save_path = save_path_ / (std::filesystem::path(corepath).stem().string() + ".sram");
   if (!contentless)
-  {
-    rom_path = std::filesystem::absolute(romzpath).string();
-    save_path = save_path_ / (romzpath.stem().string() + ".sram");
-  }
-  saves_path = std::filesystem::absolute(save_path_).string();
-  system_path = std::filesystem::absolute(system_path_).string();
+    save_path = save_path_ / (rom_path.stem().string() + ".sram");
+
   romsavesstatespath = std::filesystem::absolute(save_path).string();
 
   if (game_specific_settings)
   {
     save_path = std::filesystem::absolute(save_path_).string();
-    save_path.replace_filename(romzpath.stem().string() + ".corecfg");
+    save_path.replace_filename(rom_path.stem().string() + ".corecfg");
     core_config = std::filesystem::absolute(save_path).string();
   }
 
@@ -585,7 +579,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   else
 #endif
 #endif
-    hDLL = MudUtil::openlib((const char *)core_path_.string().c_str());
+    hDLL = MudUtil::openlib((const char *)corepath);
   if (!hDLL)
   {
     const char *err = SDL_GetError();
@@ -669,7 +663,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   loadcontconfig(false);
   for (int i = 0; i < core_inpbinds.size(); i++)
     core_changinpt(core_inpbinds[i].controller_type, i);
-
 
   lr_isrunning = true;
   return true;
