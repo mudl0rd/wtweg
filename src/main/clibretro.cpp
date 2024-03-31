@@ -520,8 +520,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   rom_path = (ROM == NULL) ? "" : ROM;
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path;
-
-  rom_path = "";
   save_path = save_path_ / (std::filesystem::path(corepath).stem().string() + ".sram");
   if (!contentless)
     save_path = save_path_ / (rom_path.stem().string() + ".sram");
