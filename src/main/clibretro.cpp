@@ -42,25 +42,24 @@ bool CLibretro::core_savestate(const char *filename, bool save)
   if (lr_isrunning)
   {
     size_t size = retro.retro_serialize_size();
-    if (size)
+    auto Memory = std::make_unique<uint8_t[]>(size);
+    if (!size || !Memory)
+      return false;
+    if (save)
     {
-      auto Memory = std::make_unique<uint8_t[]>(size);
-      if (save)
-      {
-        // Get the filesize
-        retro.retro_serialize(Memory.get(), size);
-        MudUtil::save_data(Memory.get(), size, filename);
-      }
-      else
-      {
-        std::vector<uint8_t> save_ptr = MudUtil::load_data(filename);
-        if (save_ptr.empty())
-          return false;
-        memcpy(Memory.get(), save_ptr.data(), save_ptr.size());
-        retro.retro_unserialize(Memory.get(), save_ptr.size());
-      }
-      return true;
+      // Get the filesize
+      retro.retro_serialize(Memory.get(), size);
+      MudUtil::save_data(Memory.get(), size, filename);
     }
+    else
+    {
+      std::vector<uint8_t> save_ptr = MudUtil::load_data(filename);
+      if (save_ptr.empty())
+        return false;
+      memcpy(Memory.get(), save_ptr.data(), save_ptr.size());
+      retro.retro_unserialize(Memory.get(), save_ptr.size());
+    }
+    return true;
   }
   return false;
 }
@@ -78,9 +77,7 @@ bool CLibretro::core_saveram(const char *filename, bool save)
     else
     {
       std::vector<uint8_t> save_ptr = MudUtil::load_data(filename);
-      if (save_ptr.empty())
-        return false;
-      if (save_ptr.size() != size)
+      if (save_ptr.empty() || save_ptr.size() != size)
         return false;
       memcpy(Memory, save_ptr.data(), save_ptr.size());
       return true;
@@ -107,10 +104,19 @@ bool CLibretro::load_coresettings()
   uint32_t crc = 0;
   for (auto &vars : core_variables)
     crc = MudUtil::crc32(crc, (const void *)vars.name.c_str(), vars.name.length());
-  std::string crc_string = "Core_"+std::to_string(crc);
+  std::string crc_string = "Core_" + std::to_string(crc);
 
   ini = ini_load((char *)data.data(), NULL);
   int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
+
+  auto save = [=]()
+  {
+    int size = ini_save(ini, NULL, 0); // Find the size needed
+    auto ini_data = std::make_unique<char[]>(size);
+    size = ini_save(ini, ini_data.get(), size); // Actually save the file
+    MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+  };
+
   if (section == INI_NOT_FOUND)
   {
     ini_destroy(ini);
@@ -129,10 +135,7 @@ bool CLibretro::load_coresettings()
                        vars.name.length(),
                        (char *)vars.var.c_str(),
                        vars.var.length());
-      int size = ini_save(ini, NULL, 0); // Find the size needed
-      auto ini_data = std::make_unique<char[]>(size);
-      size = ini_save(ini, ini_data.get(), size); // Actually save the file
-      MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
+      save();
     }
     else
       vars.var = ini_property_value(ini, section, i);
@@ -155,7 +158,7 @@ void CLibretro::save_coresettings()
   uint32_t crc = 0;
   for (auto &vars : core_variables)
     crc = MudUtil::crc32(crc, vars.name.c_str(), vars.name.length());
-  std::string crc_string = "Core_"+std::to_string(crc);
+  std::string crc_string = "Core_" + std::to_string(crc);
   unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
 
   ini_t *ini = NULL;
@@ -401,18 +404,18 @@ struct default_retro
     {RETRO_DEVICE_ID_JOYPAD_R2, SDL_SCANCODE_E},
     {RETRO_DEVICE_ID_JOYPAD_L3, -1},
     {RETRO_DEVICE_ID_JOYPAD_R3, -1},
-    {joypad_analogx_l,-1},
-	{joypad_analogy_l,-1},
-	{joypad_analogx_r,-1},
-	{joypad_analogy_r,-1},
-	{joypad_analog_l2,-1},
-	{joypad_analog_r2,-1},
-	{joypad_analog_l3,-1},
-	{joypad_analog_r3,-1},
+    {joypad_analogx_l, -1},
+    {joypad_analogy_l, -1},
+    {joypad_analogx_r, -1},
+    {joypad_analogy_r, -1},
+    {joypad_analog_l2, -1},
+    {joypad_analog_r2, -1},
+    {joypad_analog_l3, -1},
+    {joypad_analog_r3, -1},
 };
 void CLibretro::reset()
 {
-  core_config = (std::filesystem::path(exe_path) /"wtfweg.cfg").string();
+  core_config = (std::filesystem::path(exe_path) / "wtfweg.cfg").string();
 
   lr_isrunning = false;
   save_slot = 0;
@@ -450,7 +453,7 @@ void CLibretro::reset()
       bind.joykey_desc = (i == 0 && j < 13) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";
       bind2.push_back(bind);
     }
-    core_inpbinds[i].inputbinds=bind2;
+    core_inpbinds[i].inputbinds = bind2;
     core_inpbinds[i].controller_type = RETRO_DEVICE_JOYPAD;
   }
   disk_intf.clear();
@@ -462,7 +465,7 @@ void CLibretro::reset()
   for (auto &controller : core_inpbinds)
     for (auto &bind : controller.inputbinds)
       crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
-  loadinpconf(crc);
+  loadinpconf(crc, false);
 }
 
 void CLibretro::init_lr(SDL_Window *window)
@@ -478,10 +481,9 @@ void CLibretro::init_lr(SDL_Window *window)
   }
 
   reset();
-  
+
   cores.clear();
 
-  
   get_cores();
   sdl_window = window;
 }
@@ -495,7 +497,7 @@ void CLibretro::core_changinpt(int dev, int port)
   }
 }
 
-bool no_roms2;
+bool no_roms2 = false;
 static bool no_roms(unsigned cmd, void *data)
 {
   if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
@@ -516,7 +518,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   lr_isrunning = false;
 
   std::filesystem::path romzpath = (ROM == NULL) ? "" : ROM;
-  std::filesystem::path core_path_ = std::filesystem::path(corepath).native();
+  std::filesystem::path core_path_ = std::filesystem::path(corepath);
   std::filesystem::path system_path_ = std::filesystem::path(exe_path) / "system";
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path;
@@ -525,8 +527,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   save_path = save_path_ / (core_path_.stem().string() + ".sram");
   if (!contentless)
   {
-      rom_path = std::filesystem::absolute(romzpath).string();
-      save_path = save_path_ / (romzpath.stem().string() + ".sram");
+    rom_path = std::filesystem::absolute(romzpath).string();
+    save_path = save_path_ / (romzpath.stem().string() + ".sram");
   }
   saves_path = std::filesystem::absolute(save_path_).string();
   system_path = std::filesystem::absolute(system_path_).string();
@@ -538,8 +540,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     save_path.replace_filename(romzpath.stem().string() + ".corecfg");
     core_config = std::filesystem::absolute(save_path).string();
   }
-
-  
 
   void *hDLL = NULL;
 #ifdef _WIN32
@@ -656,9 +656,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     core_unload();
     return false;
   }
-   loadcontconfig(false);
-   for (int i = 0; i < core_inpbinds.size(); i++)
-    core_changinpt(core_inpbinds[i].controller_type, i);
 
   retro.retro_get_system_av_info(&av);
   SDL_DisplayMode dm;
@@ -669,7 +666,11 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   core_saveram(romsavesstatespath.c_str(), false);
 
- 
+  loadcontconfig(false);
+  for (int i = 0; i < core_inpbinds.size(); i++)
+    core_changinpt(core_inpbinds[i].controller_type, i);
+
+
   lr_isrunning = true;
   return true;
 }

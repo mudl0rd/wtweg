@@ -224,7 +224,10 @@ bool loadcontconfig(bool save_f)
 
     ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
 
-    std::string section_desc = "controller_ports";
+    uint32_t crc = 0;
+    for (auto &vars : lib->core_variables)
+        crc = MudUtil::crc32(crc, vars.name.c_str(), vars.name.length());
+    std::string section_desc = "contpt_" + std::to_string(crc);
     int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
 
     auto save = [=]()
@@ -235,23 +238,32 @@ bool loadcontconfig(bool save_f)
         MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
     };
 
-    for (auto &controller : lib->core_inpbinds)
+    if (section == INI_NOT_FOUND)
     {
-        if (section == INI_NOT_FOUND)
+        // not found, add section
+        section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
+        auto save_conf = [=](std::string keydesc, std::string value_str)
         {
-            // not found, add section
-            section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
-            auto save_conf = [=](std::string keydesc, std::string value_str)
-            {
+            int idx = ini_find_property(ini, section, keydesc.c_str(),
+                                        keydesc.length());
+            if (idx == INI_NOT_FOUND)
                 ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
                                  value_str.c_str(), value_str.length());
-            };
+        };
+        for (auto &controller : lib->core_inpbinds)
+        {
             std::string key = "controller_type" + std::to_string(portage++);
             save_conf(key, std::to_string(controller.controller_type));
-            save();
-            continue;
         }
-        else if (!save_f)
+        save();
+        ini_destroy(ini);
+        return true;
+    }
+    portage = 0;
+
+    for (auto &controller : lib->core_inpbinds)
+    {
+        if (!save_f)
         {
             auto load_conf = [=](std::string keydesc, std::string value_str)
             {
@@ -277,17 +289,14 @@ bool loadcontconfig(bool save_f)
             auto save_conf = [=](std::string keydesc, std::string value_str)
             {
                 int idx = ini_find_property(ini, section, keydesc.c_str(), keydesc.length());
-                if (idx == INI_NOT_FOUND)
-                {
-                    ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                     value_str.c_str(), value_str.length());
-                }
-                else
-                    ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
+                (idx == INI_NOT_FOUND) ? ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
+                                                          value_str.c_str(), value_str.length())
+                                       : ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
             };
             save_conf(key, std::to_string(controller.controller_type));
         }
     }
+    if(save_f)save();
     ini_destroy(ini);
     return true;
 }
@@ -365,6 +374,7 @@ bool loadinpconf(uint32_t checksum, bool save_f)
             }
         }
     }
+    if(save_f) save();
     ini_destroy(ini);
     return true;
 }
@@ -431,7 +441,7 @@ bool load_inpcfg(retro_input_descriptor *var)
         }
     }
 
-    return loadinpconf(crc);
+    return loadinpconf(crc, false);
 }
 
 void close_inpt()

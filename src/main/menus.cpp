@@ -314,7 +314,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                     {
                      // if (instance->core_inpbinds.size() <= instance->core_inputttypes.at(i).size())
                         instance->core_changinpt(instance->core_inputttypes.at(i).at(j).id, i);
-                        savecontconfig();
+                        loadcontconfig(true);
                     }
                   }
                   ImGui::EndMenu();
@@ -571,7 +571,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         for (auto &controller : instance->core_inpbinds)
           for (auto &bind : controller.inputbinds)
             crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
-        save_inpcfg(crc);
+        loadinpconf(crc,true);
       }
       ImGui::EndPopup();
     }
