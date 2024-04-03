@@ -241,7 +241,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         ImGui::Separator();
         if (ImGui::BeginMenu("Quick save slot"))
         {
-          for (int i = 0; i < 9; i++)
+          for (izrange(i, 9))
           {
             std::string player = "Quick save slot " + std::to_string(i + 1);
             if (ImGui::MenuItem(player.c_str(), nullptr, instance->save_slot == i))
@@ -299,28 +299,28 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           open_log = !open_log;
 
         if (instance->core_inputttypes.size())
+        {
+          ImGui::Separator();
+          for (auto &inptype : instance->core_inputttypes)
           {
-            ImGui::Separator();
-            for (int i = 0; i < instance->core_inputttypes.size(); i++)
+            size_t i = &inptype - &instance->core_inputttypes.front();
+            std::string player = "Player " + std::to_string(i + 1);
+            if (ImGui::BeginMenu(player.c_str()))
             {
-                std::string player = "Player " + std::to_string(i + 1);
-                if (ImGui::BeginMenu(player.c_str()))
+              for (auto &inp2 : inptype)
+              {
+                const char *label = inp2.desc.c_str();
+                if (ImGui::MenuItem(label, nullptr,
+                                    instance->core_inpbinds.at(i).controller_type == inp2.id))
                 {
-                  for (int j = 0; j < instance->core_inputttypes.at(i).size(); j++)
-                  {
-                    const char *label = instance->core_inputttypes.at(i).at(j).desc.c_str();
-                    if (ImGui::MenuItem(label, nullptr,
-                                        instance->core_inpbinds.at(i).controller_type == instance->core_inputttypes.at(i).at(j).id))
-                    {
-                     // if (instance->core_inpbinds.size() <= instance->core_inputttypes.at(i).size())
-                        instance->core_changinpt(instance->core_inputttypes.at(i).at(j).id, i);
-                        loadcontconfig(true);
-                    }
-                  }
-                  ImGui::EndMenu();
+                  instance->core_changinpt(inp2.id, i);
+                  loadcontconfig(true);
                 }
               }
+              ImGui::EndMenu();
             }
+          }
+        }
         ImGui::EndMenu();
       }
     }
@@ -357,8 +357,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   if (coreselect)
   {
     int hits = 0;
-    int selected_core = 0;
-    int iter = 0;
     std::vector<core_info> cores_info;
     cores_info.clear();
     bool found = false;
@@ -377,11 +375,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       if (core_ext.find(ext) != std::string::npos)
       {
         hits++;
-        selected_core = iter;
         cores_info.push_back(core);
         found = true;
       }
-      iter++;
     }
     if (hits == 1 && found)
     {
@@ -507,9 +503,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       if (instance->core_inpbinds.size() < 2)
       {
         int descnum = 1;
-        for (size_t i = 0; i < instance->core_inpbinds[0].inputbinds.size(); i++)
+        for (auto &bind : instance->core_inpbinds[0].inputbinds)
         {
-          auto &bind = instance->core_inpbinds[0].inputbinds[i];
+          size_t i = &bind - &instance->core_inpbinds[0].inputbinds.front();
           if (bind.description == "")
             continue;
 
@@ -532,46 +528,42 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       {
         int descnum = 1;
         for (auto &control : instance->core_inpbinds)
+        {
+          std::string descstring = "Player " + std::to_string(descnum);
+          if (ImGui::BeginTabItem(descstring.c_str()))
           {
-            std::string descstring = "Player " + std::to_string(descnum);
-            if (ImGui::BeginTabItem(descstring.c_str()))
+            for (auto &bind : control.inputbinds)
             {
-              for (size_t i = 0; i < control.inputbinds.size(); i++)
+              size_t i = &bind - &control.inputbinds.front();
+              if (bind.description == "")
+                continue;
+
+              ImGui::TextWrapped("%s", bind.description.c_str());
+              std::string script = "##" + bind.description;
+              char *button_str = (char *)bind.joykey_desc.c_str();
+              ImVec2 sz = ImGui::GetWindowSize();
+              ImGui::SameLine(sz.x * 0.80);
+              ImGui::SetNextItemWidth(sz.x * 0.2);
+              ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
+              if (ImGui::IsItemClicked())
               {
-                auto &bind = control.inputbinds[i];
-                if (bind.description == "")
-                  continue;
-
-                ImGui::TextWrapped("%s", bind.description.c_str());
-                std::string script = "##" + bind.description;
-                char *button_str = (char *)bind.joykey_desc.c_str();
-                ImVec2 sz = ImGui::GetWindowSize();
-                ImGui::SameLine(sz.x * 0.80);
-                ImGui::SetNextItemWidth(sz.x * 0.2);
-                ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
-                if (ImGui::IsItemClicked())
-                {
-                  selected_inp = i;
-                  isselected_inp = true;
-                  selected_port = descnum - 1;
-                }
+                selected_inp = i;
+                isselected_inp = true;
+                selected_port = descnum - 1;
               }
-
-              ImGui::EndTabItem();
             }
-            descnum++;
+
+            ImGui::EndTabItem();
           }
+          descnum++;
+        }
         ImGui::EndTabBar();
       }
       if (ImGui::Button("OK"))
       {
         inputsettings = false;
         isselected_inp = false;
-        uint32_t crc = 0;
-        for (auto &controller : instance->core_inpbinds)
-          for (auto &bind : controller.inputbinds)
-            crc = MudUtil::crc32(crc, bind.description.c_str(), bind.description.length());
-        loadinpconf(crc,true);
+        loadinpconf(instance->input_confcrc, true);
       }
       ImGui::EndPopup();
     }
@@ -616,16 +608,16 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
               if (bind2.key == bind.category_name && bind.config_visible)
               {
-                for (int j = 0; j < IM_ARRAYSIZE(checkbox_allowable); j++)
+                for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
                 {
                   if (checkbox_enabled)
                     break;
-                  for (int l = 0; l < bind.config_vals.size(); l++)
+                  for (auto &l : bind.config_vals)
                   {
-                    if (stricmp(bind.config_vals[l].c_str(), checkbox_allowable[j]) == 0)
+                    if (stricmp(l.c_str(), checkbox_allowable[j]) == 0)
                     {
                       checkbox_made = true;
-                      for (int k = 0; k < IM_ARRAYSIZE(true_vals); k++)
+                      for (izrange(k, IM_ARRAYSIZE(true_vals)))
                         if (stricmp(var.c_str(), true_vals[k]) == 0)
                           checkbox_enabled = true;
                     }
@@ -662,14 +654,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                   ImGui::SetNextItemWidth(sz.x * 0.3);
                   if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
                   {
-                    for (size_t n = 0; n < bind.config_vals.size(); n++)
+                    for (auto &config_val : bind.config_vals)
                     {
+                      size_t n = &config_val - &bind.config_vals.front();
                       bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
-                      if (ImGui::Selectable(bind.config_vals[n].c_str(), is_selected))
+                      if (ImGui::Selectable(config_val.c_str(), is_selected))
                       {
                         bind.sel_idx = n;
-                        std::string change = bind.config_vals[bind.sel_idx];
-                        bind.var = change;
+                        bind.var = config_val;
                         instance->variables_changed = true;
                       }
 
@@ -696,17 +688,17 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         bool checkbox_enabled = false;
         if (bind.category_name == "")
         {
-          for (int j = 0; j < IM_ARRAYSIZE(checkbox_allowable); j++)
+          for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
           {
             if (checkbox_enabled)
               break;
-            for (int l = 0; l < bind.config_vals.size(); l++)
+            for (izrange(l, bind.config_vals.size()))
             {
               if (stricmp(instance->v2_vars ? bind.config_vals[l].c_str() : bind.usevars.c_str(),
                           instance->v2_vars ? checkbox_allowable[j] : checkbox_allowablev1[j]) == 0)
               {
                 checkbox_made = true;
-                for (int k = 0; k < IM_ARRAYSIZE(true_vals); k++)
+                for (izrange(k, IM_ARRAYSIZE(true_vals)))
                   if (stricmp(var.c_str(), true_vals[k]) == 0)
                     checkbox_enabled = true;
               }
@@ -749,14 +741,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
             ImGui::SetNextItemWidth(sz.x * 0.3);
             if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
             {
-              for (size_t n = 0; n < bind.config_vals.size(); n++)
+              for (auto &config_val : bind.config_vals)
               {
+                size_t n = &config_val - &bind.config_vals.front();
                 bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
-                if (ImGui::Selectable(bind.config_vals[n].c_str(), is_selected))
+                if (ImGui::Selectable(config_val.c_str(), is_selected))
                 {
                   bind.sel_idx = n;
-                  std::string change = bind.config_vals[bind.sel_idx];
-                  bind.var = change;
+                  bind.var = config_val;
                   instance->variables_changed = true;
                 }
 

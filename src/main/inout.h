@@ -4,6 +4,7 @@
 #include <libretro.h>
 #include <SDL2/SDL.h>
 #include <string>
+#include <array>
 #include <iostream>
 #include <filesystem>
 #include "clibretro.h"
@@ -17,8 +18,9 @@ struct vp
     unsigned height;
 };
 
-static const char *retro_descripts[] = {
-    "\"RetroPad\" B",
+static std::array <std::string,24>retro_descripts=
+{
+     "\"RetroPad\" B",
     "\"RetroPad\" Y",
     "\"RetroPad\" Select",
     "\"RetroPad\" Start",
@@ -41,7 +43,8 @@ static const char *retro_descripts[] = {
     "\"RetroPad\" Analog L2",
     "\"RetroPad\" Analog R2",
     "\"RetroPad\" Analog L3",
-    "\"RetroPad\" Analog R3"};
+    "\"RetroPad\" Analog R3"
+};
 
 void video_render();
 void video_bindfb();

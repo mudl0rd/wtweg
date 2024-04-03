@@ -5,6 +5,7 @@
 #include "inout.h"
 #include "out_aud.h"
 #include <algorithm>
+#include <array>
 #define INI_IMPLEMENTATION
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
@@ -26,8 +27,8 @@ bool CLibretro::core_savestateslot(bool save)
 {
   if (rom_path != "")
   {
-    std::filesystem::path save_path = std::filesystem::path(exe_path) / "saves" / 
-    (rom_path.stem().string() + "_" + std::to_string(save_slot) + ".sram");
+    std::filesystem::path save_path = std::filesystem::path(exe_path) / "saves" /
+                                      (rom_path.stem().string() + "_" + std::to_string(save_slot) + ".sram");
     std::string saves = std::filesystem::absolute(save_path).string();
     core_savestate(saves.c_str(), save);
     return true;
@@ -437,8 +438,9 @@ void CLibretro::reset()
     std::vector<coreinput_bind> bind2;
     bind2.clear();
 
-    for (int j = 0; j < sizeof_array(retro_descripts); j++)
+    for (auto &retro_descript : retro_descripts)
     {
+      size_t j = &retro_descript - &retro_descripts.front();
       coreinput_bind bind;
       bind.device = (j > 15) ? RETRO_DEVICE_JOYPAD : RETRO_DEVICE_ANALOG;
       bind.isanalog = (j > 15);
@@ -449,7 +451,7 @@ void CLibretro::reset()
       bind.val = 0;
       bind.SDL_port = -1;
       bind.port = i;
-      bind.description = retro_descripts[j];
+      bind.description = retro_descript;
       bind.joykey_desc = (i == 0 && j < 13) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";
       bind2.push_back(bind);
     }
@@ -472,11 +474,11 @@ void CLibretro::init_lr(SDL_Window *window)
 {
   std::filesystem::path exe(MudUtil::get_wtfwegname());
   exe_path = exe.parent_path().string();
-  const char *dirs[3] = {"cores", "system", "saves"};
-  for (int i = 0; i < ARRAYSIZE(dirs); i++)
+  std::array<std::string, 3> dirs = {"cores", "system", "saves"};
+  for (auto &dir : dirs)
   {
     std::filesystem::path p = exe.parent_path().string();
-    std::filesystem::path path = p / dirs[i];
+    std::filesystem::path path = p / dir;
     std::filesystem::create_directory(path);
   }
 
@@ -519,8 +521,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   rom_path = (ROM == NULL) ? "" : ROM;
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
-  std::filesystem::path save_path;
-  save_path = save_path_ / (std::filesystem::path(corepath).stem().string() + ".sram");
+  std::filesystem::path save_path = save_path_ /
+                                    (std::filesystem::path(corepath).stem().string() + ".sram");
   if (!contentless)
     save_path = save_path_ / (rom_path.stem().string() + ".sram");
 
@@ -708,12 +710,12 @@ void CLibretro::get_cores()
   std::string corelist = "";
 #ifdef _WIN32
 #ifndef DEBUG
-  const char *ext[] = {"cores.zip", "cores.rar", "cores.7z"};
+  std::array<std::string, 3> exts = {"cores.zip", "cores.rar", "cores.7z"};
   bool corefound = false;
   std::filesystem::path corezippath;
-  for (int i = 0; i < ARRAYSIZE(ext); i++)
+  for (auto &ext : exts)
   {
-    std::filesystem::path corepath(p / ext[i]);
+    std::filesystem::path corepath(p / ext);
     if (std::filesystem::exists(corepath))
     {
       fex_t *fex = NULL;

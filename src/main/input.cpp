@@ -423,13 +423,14 @@ bool load_inpcfg(retro_input_descriptor *var)
 
     if (lib->core_inputttypes.size())
     {
-        for (int i = 0; i < lib->core_inputttypes.size(); i++)
+        for (auto &i:lib->core_inputttypes)
         {
-            for (int j = 0; j < lib->core_inputttypes[i].size(); j++)
+            size_t k = &i - &lib->core_inputttypes.front();
+            for(auto &j:i)
             {
-                if (i <= lib->core_inpbinds.size())
-                    if (lib->core_inputttypes[i][j].id == RETRO_DEVICE_JOYPAD)
-                        lib->core_inpbinds[i].controller_type = lib->core_inputttypes[i][j].id;
+                if (k <= lib->core_inpbinds.size())
+                    if (j.id == RETRO_DEVICE_JOYPAD)
+                        lib->core_inpbinds[k].controller_type = j.id;
             }
         }
     }
@@ -463,8 +464,8 @@ void init_inpt()
     int num = SDL_NumJoysticks();
     if (num)
     {
-        for (int i = 0; i < num; i++)
-            Joystick.push_back(SDL_GameControllerOpen(num));
+        for(izrange(i,num))
+            Joystick.push_back(SDL_GameControllerOpen(i));
     }
 }
 
@@ -482,8 +483,8 @@ void reset_inpt()
     int num = SDL_NumJoysticks();
     if (num)
     {
-        for (int i = 0; i < num; i++)
-            Joystick.push_back(SDL_GameControllerOpen(num));
+       for(izrange(i,num))
+            Joystick.push_back(SDL_GameControllerOpen(i));
     }
 }
 
@@ -491,7 +492,8 @@ void init_inp(int num)
 {
     if (Joystick.size())
     {
-        for (int i = 0; i < Joystick.size(); i++)
+          
+        for(izrange(i,Joystick.size()))
         {
             if (i == num)
             {
@@ -534,7 +536,7 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
     const int JOYSTICK_DEAD_ZONE = 0x4000;
     int numkeys = 0;
     const Uint8 *keyboard = SDL_GetKeyboardState(&numkeys);
-    for (int i = 0; i < numkeys; i++)
+    for(izrange(i,numkeys))
     {
         if (keyboard[i])
         {
@@ -554,11 +556,11 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
     SDL_GameControllerUpdate();
     if (num)
     {
-        for (int k = 0; k < num; k++)
+        for(izrange(k,num))
         {
             if (checkjs(k))
             {
-                for (int a = 0; a < SDL_CONTROLLER_AXIS_MAX; a++)
+                for(izrange(a,SDL_CONTROLLER_AXIS_MAX))
                 {
                     if (bind.isanalog)
                     {
@@ -587,7 +589,7 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
                             continue;
                         else
                         {
-                            for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX + 1; i++)
+                            for(izrange(i,SDL_CONTROLLER_AXIS_MAX+1))
                             {
                                 if (a == arr_dig[i].axis)
                                 {
@@ -622,8 +624,7 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
                         }
                     }
                 }
-
-                for (int b = 0; b < SDL_CONTROLLER_BUTTON_MAX; b++)
+                for(izrange(b,SDL_CONTROLLER_BUTTON_MAX))
                 {
                     int btn = SDL_GameControllerGetButton(Joystick[k], (SDL_GameControllerButton)b);
                     if (btn == SDL_PRESSED)
@@ -677,7 +678,7 @@ void keys()
                 libretro_mod |= libretro_mask;
         }
 
-        for (int i = 0; i < num_keys_km; i++)
+        for(izrange(i,num_keys_km))
         {
             struct key_map *map = (key_map *)key_map_;
             for (; map->rk != RETROK_UNKNOWN; map++)

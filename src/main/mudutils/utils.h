@@ -11,6 +11,12 @@
 #include <iostream>
 #include <vector>
 
+#define irange(i,a,b) int i = (a); i < (b); ++i // if you want to use ints all the time
+#define range(i,a,b) i = (a); i < (b); ++i      // if you ever want to use something other than an int
+#define zrange(i,b) i = 0; i < (b); ++i       // if you want to start at zero
+#define izrange(i,b) int i = 0; i < (b); ++i  // if you want to start at zero and use ints
+
+
 namespace MudUtil
 {
   // misc
