@@ -113,7 +113,7 @@ int fifo_readspin(fifo_buffer_t *f, void *buf, unsigned len)
 
 inline void s16tof(float *dst, const int16_t *src, unsigned int count)
 {
-    for (int i=0; i < count; i++)
+    for(izrange(i,count))
         dst[i] = (float)src[i] * 0.000030517578125f;
 }
 

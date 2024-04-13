@@ -88,6 +88,7 @@ add_project_link_arguments (
 common_ldflags,
 language: [ 'c', 'cpp' ],)
 endif
+add_project_link_arguments('-Wl,-Map=wtfweg.map', language : ['c','cpp'])
 
 dir_base = meson.current_source_dir()
 dir_install = join_paths(dir_base, 'compile_dir')
