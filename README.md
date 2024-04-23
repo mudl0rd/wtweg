@@ -30,6 +30,7 @@
 > * Commandline support for debugging cores with GDB.
 > * Per-game settings per-core.
 > * Multiple controller support.
+> * Drag-and-drop loading support for ROMs/ISOs, automatically choosing needed cores.
 
 
 ## How?
