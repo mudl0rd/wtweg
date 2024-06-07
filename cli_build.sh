@@ -20,6 +20,6 @@ fi;
 CC=gcc CXX=g++ CC_LD=g++ meson buildtype=release setup builddir
 meson builddir
 ninja -C builddir -f build.ninja
-cd builddir && meson install --strip
+cd builddir && meson install
 mv "$currentDir/builddir/wtfweg.map" "$currentDir/compile_dir/wtfweg.map"
 

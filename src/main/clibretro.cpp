@@ -319,8 +319,9 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
   }
 
   config_crc = 0;
-  for (auto &vars : core_variables)
-    config_crc = MudUtil::crc32(config_crc, (const void *)vars.name.c_str(), vars.name.length());
+  config_crc = MudUtil::crc32(config_crc,core_path.c_str(),core_path.length());
+  //for (auto &vars : core_variables)
+    //config_crc = MudUtil::crc32(config_crc, (const void *)vars.name.c_str(), vars.name.length());
 
   load_coresettings();
   return false;

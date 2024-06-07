@@ -417,6 +417,7 @@ bool load_inpcfg(retro_input_descriptor *var)
     }
 
     lib->input_confcrc = 0;
+    lib->input_confcrc = MudUtil::crc32(lib->input_confcrc,lib->core_path.c_str(),lib->core_path.length());
     for (auto &controller : lib->core_inpbinds)
         for (auto &bind : controller.inputbinds)
             lib->input_confcrc = MudUtil::crc32(lib->input_confcrc, bind.description.c_str(), bind.description.length());

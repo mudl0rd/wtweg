@@ -34,6 +34,7 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
 
 int main2(const char *rom, const char *core, bool pergame)
 {
+  
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   {
     printf("SDL_Init failed: %s\n", SDL_GetError());
@@ -42,18 +43,22 @@ int main2(const char *rom, const char *core, bool pergame)
 
   int w;int h;
 
-  SDL_GL_LoadLibrary(NULL);
-  const char *glsl_version = "#version 330";
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+  SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 4); //OpenGL 3+
+  SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 6); //OpenGL 3.3
+  SDL_GL_LoadLibrary(NULL);
+  const char *glsl_version = "#version 330";
+ 
   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
   SDL_Window *window = SDL_CreateWindow("WTFweg", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
-  gladLoadGL();
+  gladLoadGLLoader(SDL_GL_GetProcAddress);
 
   int window_indx = SDL_GetWindowDisplayIndex(window);
   float ddpi = -1;
@@ -221,6 +226,7 @@ int main2(const char *rom, const char *core, bool pergame)
       video_bindfb();
       instance->core_run();
       video_render();
+      
     }
     rendermenu(instance, window, show_menu);
   }

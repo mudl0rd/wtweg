@@ -10,6 +10,9 @@
 #include <array>
 using namespace std;
 
+namespace MudUtil
+{
+
 struct md5
 {
   uint32_t h[4];
@@ -143,6 +146,23 @@ static inline size_t md5_g(size_t s, size_t i)
     return 0;
   }
 }
+
+static inline uint32_t sha1_f(size_t s, uint32_t b, uint32_t c, uint32_t d)
+{
+  switch (s)
+  {
+  case 0:
+    return (b & c) | (~b & d);
+  case 1:
+  case 3:
+    return b ^ c ^ d;
+  case 2:
+    return (b & c) | (b & d) | (c & d);
+  default:
+    return 0;
+  }
+}
+
 static void md5_update_(struct md5 *self)
 {
   uint32_t *sh = self->h;
@@ -181,21 +201,6 @@ static void md5_tail_(struct md5 *self)
   md5_update_(self);
 }
 
-static inline uint32_t sha1_f(size_t s, uint32_t b, uint32_t c, uint32_t d)
-{
-  switch (s)
-  {
-  case 0:
-    return (b & c) | (~b & d);
-  case 1:
-  case 3:
-    return b ^ c ^ d;
-  case 2:
-    return (b & c) | (b & d) | (c & d);
-  default:
-    return 0;
-  }
-}
 static void sha1_update_(struct sha1 *self)
 {
   uint32_t *sh = self->h;
@@ -303,8 +308,7 @@ static void sha256_tail_(struct sha256 *self)
   sha256_update_(self);
 }
 
-namespace MudUtil
-{
+
 
   uint32_t adler32(uint32_t adler, const uint8_t *data, size_t len)
   {

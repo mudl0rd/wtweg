@@ -12,6 +12,7 @@ struct fifo_buffer
     volatile int readpos;
     volatile int writepos;
 };
+typedef struct fifo_buffer fifo_buffer_t;
 
 struct audio_ctx
 {
@@ -23,9 +24,8 @@ struct audio_ctx
     void *resample;
     float *input_float;
     float *output_float;
-} audio_ctx_s;
+} audio_ctx_s = {0};
 
-typedef struct fifo_buffer fifo_buffer_t;
 static inline void fifo_clear(fifo_buffer_t *buffer)
 {
     buffer->readpos = 0;
