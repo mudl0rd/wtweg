@@ -298,16 +298,16 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                             open_log == true))
           open_log = !open_log;
 
+
         if (instance->core_inputttypes.size())
         {
           ImGui::Separator();
-          for (auto &inptype : instance->core_inputttypes)
+          for(int i=0;i<instance->core_inpbinds.size();i++)
           {
-            size_t i = &inptype - &instance->core_inputttypes.front();
             std::string player = "Player " + std::to_string(i + 1);
             if (ImGui::BeginMenu(player.c_str()))
             {
-              for (auto &inp2 : inptype)
+              for (auto &inp2 : instance->core_inputttypes[i])
               {
                 const char *label = inp2.desc.c_str();
                 if (ImGui::MenuItem(label, nullptr,
