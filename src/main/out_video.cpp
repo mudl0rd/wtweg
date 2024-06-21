@@ -98,14 +98,6 @@ void video_integerscale(bool yes)
 	g_video.integer_scale = yes;
 }
 
-GLint m_scissor[4] = {};
-GLint m_viewport[4] = {};
-GLenum last_active_texture;
-GLint drawFboId = 0, readFboId = 0;
-GLuint last_texture;
-GLint framebufbinding;
-GLint renderbufbinding;
-
 void video_bindfb()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);

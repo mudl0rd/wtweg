@@ -429,9 +429,11 @@ bool load_inpcfg(retro_input_descriptor *var)
             size_t k = &i - &lib->core_inputttypes.front();
             for(auto &j:i)
             {
-                if (k <= lib->core_inpbinds.size())
-                    if (j.id == RETRO_DEVICE_JOYPAD)
+                if (k < lib->core_inpbinds.size()){
+                if (j.id == RETRO_DEVICE_JOYPAD)
                         lib->core_inpbinds[k].controller_type = j.id;
+                }
+                   
             }
         }
     }
