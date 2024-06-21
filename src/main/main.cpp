@@ -215,18 +215,20 @@ int main2(const char *rom, const char *core, bool pergame)
       }
     }
 
+  
+    if (instance->core_isrunning())
+    {
+      video_bindfb();
+      instance->core_run(); 
+      video_render();
+    }
+    else
+    {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glViewport(0, 0, w, h);
     glScissor(0, 0, w, h);
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (instance->core_isrunning())
-    {
-      video_bindfb();
-      instance->core_run();
-      video_render();
-      
     }
     rendermenu(instance, window, show_menu);
   }

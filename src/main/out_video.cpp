@@ -108,32 +108,12 @@ GLint renderbufbinding;
 
 void video_bindfb()
 {
-	/*	glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*)&last_texture);
-			glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
-			glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFboId);
-			glGetIntegerv(GL_FRAMEBUFFER_BINDING, &framebufbinding);
-			glGetIntegerv(GL_RENDERBUFFER_BINDING, &renderbufbinding);
-			glGetIntegerv(GL_ACTIVE_TEXTURE, (GLint*)&last_active_texture);
-			glGetIntegerv(GL_SCISSOR_BOX, m_scissor);
-			glGetIntegerv(GL_VIEWPORT, m_viewport);*/
 	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
 	if (g_video.software_rast)
 	{
 		glViewport(0, 0, g_video.current_w, g_video.current_h);
 		glScissor(0, 0, g_video.current_w, g_video.current_h);
 	}
-}
-
-void video_unbindfb()
-{
-	glViewport(m_viewport[0], m_viewport[1], m_viewport[2], m_viewport[3]);
-	glViewport(m_scissor[0], m_scissor[1], m_scissor[2], m_scissor[3]);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufbinding);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderbufbinding);
-	glBindTexture(GL_TEXTURE_2D, last_texture);
-	glActiveTexture(last_active_texture);
 }
 
 bool video_sethw(struct retro_hw_render_callback *hw)
@@ -156,7 +136,6 @@ void init_framebuffer(int width, int height)
 		glDeleteRenderbuffers(1, &g_video.rbo_id);
 
 	glCreateFramebuffers(1, &g_video.fbo_id);
-	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
 	glNamedFramebufferTexture(g_video.fbo_id, GL_COLOR_ATTACHMENT0, g_video.tex_id, 0);
 
 	if (g_video.hw.depth)
@@ -275,7 +254,7 @@ static inline unsigned get_alignment(unsigned pitch)
 void video_render()
 {
 	vp vpx = resize_cb();
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, g_video.rend_width, g_video.rend_height);
 	glScissor(0, 0, g_video.rend_width, g_video.rend_height);
 	static const float black[] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -286,8 +265,6 @@ void video_render()
 	GLint dst_x1 = dst_x0 + vpx.width;
 	GLint dst_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
 	GLint dst_y1 = (g_video.software_rast) ? vpx.y : (vpx.y + vpx.height);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
-	glNamedFramebufferReadBuffer(g_video.fbo_id, GL_COLOR_ATTACHMENT0);
 	glBlitNamedFramebuffer(g_video.fbo_id, 0, 0, 0, g_video.current_w, g_video.current_h,
 						   dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
@@ -301,15 +278,16 @@ void video_refresh(const void *data, unsigned width, unsigned height, size_t pit
 		g_video.current_h = height;
 		g_video.current_w = width;
 	}
+	
 	if (data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
 		glBindTextureUnit(0, g_video.tex_id);
-		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(pitch));
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
 		glTextureSubImage2D(g_video.tex_id, 0, 0, 0, width, height, g_video.pixformat.pixtype,
 							g_video.pixformat.pixfmt, data);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	}
 }
 
