@@ -832,21 +832,17 @@ void CLibretro::get_cores()
       }
     }
   }
-
+  std::string sep =",.";
   for (auto &corez : cores)
   {
     if (!corez.no_roms)
-    {
-      std::string test = corez.core_extensions;
-      test = MudUtil::replace_all(test, "|", ",.");
-      corelist += test + ",.";
-    }
+      corelist += MudUtil::replace_all(corez.core_extensions, "|", sep) + sep;
   }
   if (corelist != "")
   {
     coreexts = "All supported {.";
+    corelist = corelist.substr(0, corelist.size() - sep.size());
     coreexts += corelist;
-    coreexts.resize(coreexts.size() - 2);
     coreexts += "}";
   }
 }
