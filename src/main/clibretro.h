@@ -155,6 +155,7 @@ std::vector<core_info> get_cores();
 struct controller_port
 {
 	std::vector<coreinput_bind> inputbinds;
+	std::vector<coreinput_controlinfo> controlinfo;
 	int controller_type;
 };
 
@@ -172,9 +173,10 @@ public:
 	CLibretro(const CLibretro &) = delete;
 	CLibretro &operator=(const CLibretro &) = delete;
 	void init_lr(SDL_Window *window);
-	static CLibretro *get_classinstance()
+	static CLibretro *get_classinstance(SDL_Window* window = NULL)
 	{
-		static CLibretro instance;
+		static thread_local CLibretro instance;
+		if(window)instance.init_lr(window);
 		return &instance;
 	}
 	void poll();

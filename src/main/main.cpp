@@ -113,8 +113,8 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
 
-  auto instance = CLibretro::get_classinstance();
-  instance->init_lr(window);
+  auto instance = CLibretro::get_classinstance(window);
+ 
   // Main loop
   bool done = false;
   bool show_menu = true;

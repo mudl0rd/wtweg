@@ -299,21 +299,26 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           open_log = !open_log;
 
 
-        if (instance->core_inputttypes.size())
+        if (instance->core_inpbinds.size())
         {
-          ImGui::Separator();
-          for(int i=0;i<instance->core_inpbinds.size();i++)
+         
+          for (auto &i : instance->core_inpbinds)
           {
-            std::string player = "Player " + std::to_string(i + 1);
+            size_t k = &i - &instance->core_inpbinds.front();
+            if(!k && i.controlinfo.size() > 1){
+               ImGui::Separator();
+            }
+            std::string player = "Player " + std::to_string(k + 1);
+            if(i.controlinfo.size() > 1)
             if (ImGui::BeginMenu(player.c_str()))
             {
-              for (auto &inp2 : instance->core_inputttypes[i])
+              for (auto &inp2 : i.controlinfo)
               {
                 const char *label = inp2.desc.c_str();
                 if (ImGui::MenuItem(label, nullptr,
-                                    instance->core_inpbinds.at(i).controller_type == inp2.id))
+                                    i.controller_type == inp2.id))
                 {
-                  instance->core_changinpt(inp2.id, i);
+                  instance->core_changinpt(inp2.id, k);
                   loadcontconfig(true);
                 }
               }

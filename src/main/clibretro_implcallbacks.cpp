@@ -186,8 +186,8 @@ static bool core_environment(unsigned cmd, void *data)
   bool *bval;
   auto retro = CLibretro::get_classinstance();
   std::filesystem::path p(MudUtil::get_wtfwegname());
+  std::filesystem::path p_save=p;
   p = p.parent_path() / "system";
-  std::filesystem::path p_save(MudUtil::get_wtfwegname());
   p_save = p_save.parent_path() / "saves";
   switch (cmd)
   {
@@ -367,7 +367,6 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
   case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: // 9
   {
-
     static auto *sys_path = strdup(p.string().c_str());
     *(const char **)data = sys_path;
     return true;

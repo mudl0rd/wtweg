@@ -5,11 +5,15 @@
 			"windows": {
 				"command": "C:\\msys64\\usr\\bin\\bash.exe",
 				"args": [
+					"--login", "-i",
 					"./cli_build.sh"
 				],
 				"options": {
 					"env": {
 						"PATH": "C:\\msys64\\usr\\bin;C:\\msys64\\mingw64\\bin",
+						"MSYSTEM": "MINGW64",
+						"CHERE_INVOKING": "1",
+						"MSYS2_PATH_TYPE": "inherit"
 					},
 				},
 			},
@@ -70,11 +74,15 @@
 			"windows": {
 				"command": "C:\\msys64\\usr\\bin\\bash.exe",
 				"args": [
+					"--login", "-i",
 					"./cli_build.sh"
 				],
 				"options": {
 					"env": {
 						"PATH": "C:\\msys64\\usr\\bin;C:\\msys64\\mingw64\\bin",
+						"MSYSTEM": "MINGW64",
+						"CHERE_INVOKING": "1",
+						"MSYS2_PATH_TYPE": "inherit"
 					},
 				},
 			},
