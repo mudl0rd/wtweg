@@ -213,6 +213,24 @@ bool checkjs(int port)
 bool loadcontconfig(bool save_f)
 {
     auto lib = CLibretro::get_classinstance();
+
+    if (!save_f)
+    {
+        for (auto &i : lib->core_inpbinds)
+        {
+            size_t k = &i - &lib->core_inpbinds.front();
+            for (auto &inp_cfg : lib->core_inputttypes)
+            {
+                size_t l = &inp_cfg - &lib->core_inputttypes.front();
+                if (k == l)
+                {
+                    i.controlinfo = inp_cfg;
+                    i.controller_type = RETRO_DEVICE_JOYPAD;
+                }
+            }
+        }
+    }
+
     std::string core_config = lib->core_config;
     unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
     std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
@@ -376,8 +394,6 @@ bool load_inpcfg(retro_input_descriptor *var)
     auto lib = CLibretro::get_classinstance();
     lib->use_retropad = false;
 
-    lib->core_inpbinds.clear();
-
     retro_input_descriptor *var2 = var;
     int ports = 0;
     while (var2->description != NULL)
@@ -389,11 +405,7 @@ bool load_inpcfg(retro_input_descriptor *var)
     ports++;
     lib->core_inpbinds.resize(ports);
     for (auto &controller : lib->core_inpbinds)
-    {
         controller.inputbinds.clear();
-        controller.controlinfo.clear();
-    }
-        
 
     while (var->description != NULL)
     {
@@ -420,26 +432,10 @@ bool load_inpcfg(retro_input_descriptor *var)
     }
 
     lib->input_confcrc = 0;
-    lib->input_confcrc = MudUtil::crc32(lib->input_confcrc, lib->core_path.c_str(), lib->core_path.length());
+    lib->input_confcrc = MudUtil::crc32(lib->input_confcrc, lib->core_path.c_str(), lib->core_path.size());
     for (auto &controller : lib->core_inpbinds)
         for (auto &bind : controller.inputbinds)
             lib->input_confcrc = MudUtil::crc32(lib->input_confcrc, bind.description.c_str(), bind.description.length());
-
-
-    for(auto &i: lib->core_inpbinds)
-    {
-        size_t k = &i - &lib->core_inpbinds.front();
-        for (auto &inp_cfg : lib->core_inputttypes)
-        {
-          size_t l = &inp_cfg - &lib->core_inputttypes.front();
-          if(k==l)
-          {
-             i.controlinfo = inp_cfg;
-             i.controller_type=RETRO_DEVICE_JOYPAD;
-          }
-         
-        }
-    }
 
     return loadinpconf(lib->input_confcrc, false);
 }

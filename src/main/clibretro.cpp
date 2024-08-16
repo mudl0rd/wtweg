@@ -319,9 +319,10 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
   }
 
   config_crc = 0;
-  config_crc = MudUtil::crc32(config_crc,core_path.c_str(),core_path.length());
-  //for (auto &vars : core_variables)
-    //config_crc = MudUtil::crc32(config_crc, (const void *)vars.name.c_str(), vars.name.length());
+  int len = core_path.length();
+  config_crc = MudUtil::crc32(config_crc, core_path.c_str(), len);
+  // for (auto &vars : core_variables)
+  // config_crc = MudUtil::crc32(config_crc, (const void *)vars.name.c_str(), vars.name.length());
 
   load_coresettings();
   return false;
@@ -586,6 +587,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     const char *err = SDL_GetError();
     return false;
   }
+  core_path=corepath;
 
 #define libload(name) MudUtil::getfunc(hDLL, name)
 #define load_sym(V, name)                         \
@@ -661,11 +663,13 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   core_saveram(romsavesstatespath.c_str(), false);
 
+
+
   loadcontconfig(false);
+  lr_isrunning = true;
   for (int i = 0; i < core_inpbinds.size(); i++)
     core_changinpt(core_inpbinds[i].controller_type, i);
 
-  lr_isrunning = true;
   return true;
 }
 
@@ -832,7 +836,7 @@ void CLibretro::get_cores()
       }
     }
   }
-  std::string sep =",.";
+  std::string sep = ",.";
   for (auto &corez : cores)
   {
     if (!corez.no_roms)

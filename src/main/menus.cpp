@@ -305,11 +305,13 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           for (auto &i : instance->core_inpbinds)
           {
             size_t k = &i - &instance->core_inpbinds.front();
-            if(!k && i.controlinfo.size() > 1){
+            if(!k && i.controlinfo.size() >= 1){
                ImGui::Separator();
             }
-            std::string player = "Player " + std::to_string(k + 1);
-            if(i.controlinfo.size() > 1)
+            if(i.controlinfo.size() >= 1)
+            {
+               std::string player = "Player " + std::to_string(k + 1);
+           
             if (ImGui::BeginMenu(player.c_str()))
             {
               for (auto &inp2 : i.controlinfo)
@@ -324,6 +326,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
               }
               ImGui::EndMenu();
             }
+            }
+           
           }
         }
         ImGui::EndMenu();
