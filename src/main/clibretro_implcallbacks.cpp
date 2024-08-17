@@ -312,8 +312,10 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
   {
     auto *cb = reinterpret_cast<struct retro_core_option_display *>(data);
+
     for (auto &var : retro->core_variables)
     {
+     
       if (strcmp(var.name.c_str(), cb->key) == 0)
       {
         if (var.category_name != "")

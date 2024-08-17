@@ -287,7 +287,7 @@ bool loadcontconfig(bool save_f)
                 std::string str = ini_property_value(ini, section, idx);
                 return str;
             };
-            std::string key = "controller_type" + std::to_string(portage++);
+            std::string key = "controller_type" + std::to_string(portage);
             controller.controller_type = static_cast<int32_t>(std::stoi(load_conf(key,
                                                                                   std::to_string(controller.controller_type))));
         }
@@ -303,6 +303,7 @@ bool loadcontconfig(bool save_f)
             };
             save_conf(key, std::to_string(controller.controller_type));
         }
+        portage++;
     }
     if (save_f)
         save();

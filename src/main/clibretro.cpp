@@ -496,6 +496,7 @@ void CLibretro::core_changinpt(int dev, int port)
 {
   if (lr_isrunning)
   {
+    if(core_inpbinds[port].controller_type != dev)
     core_inpbinds[port].controller_type = dev;
     retro.retro_set_controller_port_device(port, dev);
   }
