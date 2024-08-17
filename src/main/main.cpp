@@ -49,6 +49,7 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
   SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 4); //OpenGL 3+
   SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 6); //OpenGL 3.3
   SDL_GL_LoadLibrary(NULL);
@@ -220,16 +221,13 @@ int main2(const char *rom, const char *core, bool pergame)
     {
       video_bindfb();
       instance->core_run(); 
-      video_render();
     }
-    else
-    {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, w, h);
     glScissor(0, 0, w, h);
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
+    if(instance->core_isrunning())video_render();
     rendermenu(instance, window, show_menu);
   }
 

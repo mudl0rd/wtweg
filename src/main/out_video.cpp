@@ -49,7 +49,7 @@ void reinit_fbo(int width, int height)
 
 void video_changegeom(struct retro_game_geometry *geom)
 {
-	if (geom->max_width > g_video.tex_w || geom->max_height > g_video.tex_h)
+	if (g_video.tex_w>geom->max_width ||g_video.tex_h>geom->max_height)
 	{
 		reinit_fbo(geom->max_width, geom->max_height);
 		g_video.tex_w = geom->max_width;
@@ -100,9 +100,9 @@ void video_integerscale(bool yes)
 
 void video_bindfb()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
 	if (g_video.software_rast)
 	{
+		glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
 		glViewport(0, 0, g_video.current_w, g_video.current_h);
 		glScissor(0, 0, g_video.current_w, g_video.current_h);
 	}
@@ -135,7 +135,8 @@ void init_framebuffer(int width, int height)
 		glCreateRenderbuffers(1, &g_video.rbo_id);
 		glNamedRenderbufferStorage(g_video.rbo_id, g_video.hw.stencil ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT24,
 								   width, height);
-		glNamedFramebufferRenderbuffer(g_video.fbo_id, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, g_video.rbo_id);
+		glNamedFramebufferRenderbuffer(g_video.fbo_id,  g_video.hw.stencil ? GL_DEPTH_STENCIL_ATTACHMENT
+													 : GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, g_video.rbo_id);
 	}
 
 	glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -246,13 +247,6 @@ static inline unsigned get_alignment(unsigned pitch)
 void video_render()
 {
 	vp vpx = resize_cb();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, g_video.rend_width, g_video.rend_height);
-	glScissor(0, 0, g_video.rend_width, g_video.rend_height);
-	static const float black[] = {0.0f, 0.0f, 0.0f, 1.0f};
-	float blackval = 0;
-	glClearBufferfv(GL_COLOR, 0, black);
-	glClearBufferfv(GL_DEPTH, 0, &blackval);
 	GLint dst_x0 = vpx.x;
 	GLint dst_x1 = dst_x0 + vpx.width;
 	GLint dst_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
@@ -270,7 +264,7 @@ void video_refresh(const void *data, unsigned width, unsigned height, size_t pit
 		g_video.current_h = height;
 		g_video.current_w = width;
 	}
-	
+
 	if (data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
 		glBindTextureUnit(0, g_video.tex_id);
