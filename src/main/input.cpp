@@ -656,10 +656,16 @@ static bool key_pressed(int key)
     return lr_keymap[sym];
 }
 
+retro_keyboard_event_t inp_keys = NULL;
+
+void core_kb_callback(retro_keyboard_event_t e)
+{
+    inp_keys = e;
+}
+
 void keys()
 {
-    int num_keys_km;
-    lr_keymap = SDL_GetKeyboardState(&num_keys_km);
+    lr_keymap = SDL_GetKeyboardState(NULL);
     if (inp_keys != NULL)
     {
         SDL_Keymod mod = SDL_GetModState();
@@ -677,15 +683,11 @@ void keys()
             if (mod & sdl_mask)
                 libretro_mod |= libretro_mask;
         }
-
-        for (izrange(i, num_keys_km))
+        struct key_map *map = (key_map *)key_map_;
+        for (; map->rk != RETROK_UNKNOWN; map++)
         {
-            struct key_map *map = (key_map *)key_map_;
-            for (; map->rk != RETROK_UNKNOWN; map++)
-            {
-                unsigned sym = SDL_GetScancodeFromKey(map->sym);
-                inp_keys(lr_keymap[sym], map->rk, map->sym, libretro_mod);
-            }
+            unsigned sym = SDL_GetScancodeFromKey(map->sym);
+            inp_keys(lr_keymap[sym], map->rk, map->sym, libretro_mod);
         }
     }
 }

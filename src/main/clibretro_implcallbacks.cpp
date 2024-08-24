@@ -89,10 +89,7 @@ static void core_log(enum retro_log_level level, const char *fmt, ...)
   add_log(level, buffer);
 }
 
-static void core_kb_callback(retro_keyboard_event_t e)
-{
-  inp_keys = e;
-}
+
 
 static bool core_controller_info(struct retro_controller_info *info)
 {

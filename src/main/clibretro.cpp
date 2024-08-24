@@ -664,8 +664,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
   core_saveram(romsavesstatespath.c_str(), false);
 
-
-
   loadcontconfig(false);
   lr_isrunning = true;
   for (int i = 0; i < core_inpbinds.size(); i++)
