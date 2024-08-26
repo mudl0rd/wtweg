@@ -30,7 +30,7 @@ Recommended cores:
 * gme_libretro.dll.zip (Video game music player)
 * xrick_libretro.dll.zip (Rick Dangerous source port) 
 * nxengine_libretro.dll.zip (Cave Story source port) 
-* dinothawr_libretro.dll.zip (Dinothawr, homebrew Sokoban-like) 
+* dinothawr_libretro.dll.zip (homebrew Sokoban-like) 
 * craft_libretro.dll.zip (homebrew Minecraft-like) 
 * tic80_libretro.dll.zip (TIC-80 VM)
 * retro8_libretro.dll.zip (Pico-8 "console" emulator/VM)
