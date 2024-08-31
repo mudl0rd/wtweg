@@ -32,7 +32,7 @@
 					"CHERE_INVOKING": "1"
 				}
 			},
-			"label": "build",
+			"label": "build64",
 			"problemMatcher": {
 				"owner": "cpp",
 				"fileLocation": [
@@ -53,6 +53,60 @@
 				"isDefault": true
 			}
 		},
+
+        {
+          "windows": {
+				"command": "C:\\msys64\\usr\\bin\\bash.exe",
+				"args": [
+					"--login", "-i",
+					"./cli_build.sh"
+				],
+				"options": {
+					"env": {
+						"PATH": "C:\\msys64\\usr\\bin;C:\\msys64\\mingw64\\bin",
+						"MSYSTEM": "MINGW32",
+						"CHERE_INVOKING": "1",
+						"MSYS2_PATH_TYPE": "inherit"
+					},
+				},
+			},
+			"linux": {
+				"args": [
+					"-lc",
+					"cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f builddir/build.ninja ] || meson builddir) && ninja -C builddir && cd builddir && meson install && $@"
+				],
+				"command": "/bin/bash"
+			},
+			"options": {
+				"env": {
+					"LANG": "C.UTF-8",
+					"PYTHONUNBUFFERD": "1",
+					"MSYSTEM": "MINGW64",
+					"CHERE_INVOKING": "1"
+				}
+			},
+			"label": "build32",
+			"problemMatcher": {
+				"owner": "cpp",
+				"fileLocation": [
+					"relative",
+					"${workspaceRoot}/builddir"
+				],
+				"pattern": {
+					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error|fatal error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			}
+
+		},		
 		{
 			"label": "cppcheck",
 			"group": "build",
@@ -101,7 +155,7 @@
 					"CHERE_INVOKING": "1"
 				}
 			},
-			"label": "builddbg",
+			"label": "builddbg64",
 			"problemMatcher": {
 				"owner": "cpp",
 				"fileLocation": [
@@ -120,6 +174,58 @@
 			"group": {
 				"kind": "none",
 				"isDefault": true
+			}
+		},
+		{
+			"windows": {
+				"command": "C:\\msys64\\usr\\bin\\bash.exe",
+				"args": [
+					"--login", "-i",
+					"./cli_build.sh"
+				],
+				"options": {
+					"env": {
+						"PATH": "C:\\msys64\\usr\\bin;C:\\msys64\\mingw64\\bin",
+						"MSYSTEM": "MINGW64",
+						"CHERE_INVOKING": "1",
+						"MSYS2_PATH_TYPE": "inherit"
+					},
+				},
+			},
+			"linux": {
+				"args": [
+					"-lc",
+					"cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f builddir/build.ninja ] || meson builddir) && ninja -C builddir && cd builddir && meson install && $@"
+				],
+				"command": "/bin/bash"
+			},
+			"options": {
+				"env": {
+					"LANG": "C.UTF-8",
+					"PYTHONUNBUFFERD": "1",
+					"MSYSTEM": "MINGW32",
+					"CHERE_INVOKING": "1"
+				}
+			},
+			"label": "builddbg",
+			"problemMatcher": {
+				"owner": "cpp",
+				"fileLocation": [
+					"relative",
+					"${workspaceRoot}/builddir"
+				],
+				"pattern": {
+					"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error|fatal error):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"message": 5
+				}
+			},
+			"group": {
+				"kind": "none",
+				"isDefault": false
 			}
 		}
 	]

@@ -76,27 +76,47 @@
         ],
     },
 
-        {
-            "preLaunchTask": "builddbg",
-            "name": "Compile/Debug (Windows)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/compile_dir/wtfweg.exe",
-            "args": ["--core_name=D:/codecrak/working_minerepos/wtfweg/compile_dir/cores/snes9x_libretro.dll",
-            "--rom_name=D:/codecrak/working_minerepos/wtfweg/compile_dir/wtftest/Donkey Kong Country (USA).sfc"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/compile_dir",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
-        }
+    {
+        "preLaunchTask": "builddbg64",
+        "name": "Compile/Debug (Windows x64)",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/compile_dir/wtfweg.exe",
+        "args": [""],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}/compile_dir",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            }
+        ]
+    },
+    {
+        "preLaunchTask": "builddbg",
+        "name": "Compile/Debug (Windows x86)",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/compile_dir/wtfweg.exe",
+        "args": [""],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}/compile_dir",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            }
+        ]
+    }
     ]
 }
