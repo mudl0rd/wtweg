@@ -118,6 +118,10 @@ int __fastcall RtlInsertInvertedFunctionTable(PVOID BaseAddress, ULONG uImageSiz
 
 */
 
+#ifdef _WIN32
+
+
+
 #include <windows.h>
 #include <winnt.h>
 #include <stddef.h>
@@ -1585,4 +1589,6 @@ BOOL MemoryModuleTestsuite()
 	}
 	return success;
 }
+#endif
+
 #endif

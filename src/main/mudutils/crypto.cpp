@@ -5,7 +5,8 @@
 #include <iostream>
 #include <filesystem>
 #include <stdio.h>
-#include <io.h>
+#include <stdlib.h>
+#include <string.h>
 #include <vector>
 #include <array>
 using namespace std;

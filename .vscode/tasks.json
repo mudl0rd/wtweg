@@ -5,7 +5,6 @@
 			"windows": {
 				"command": "C:\\msys64\\usr\\bin\\bash.exe",
 				"args": [
-					"--login", "-i",
 					"./cli_build.sh"
 				],
 				"options": {
@@ -19,8 +18,7 @@
 			},
 			"linux": {
 				"args": [
-					"-lc",
-					"cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f builddir/build.ninja ] || meson builddir) && ninja -C builddir && cd builddir && meson install && $@"
+					"./cli_build.sh"
 				],
 				"command": "/bin/bash"
 			},
@@ -72,11 +70,9 @@
 			},
 			"linux": {
 				"args": [
-					"-lc",
-					"cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f builddir/build.ninja ] || meson builddir) && ninja -C builddir && cd builddir && meson install && $@"
+					"./cli_build.sh"
 				],
-				"command": "/bin/bash"
-			},
+				"command": "/bin/bash"},
 			"options": {
 				"env": {
 					"LANG": "C.UTF-8",
@@ -142,8 +138,7 @@
 			},
 			"linux": {
 				"args": [
-					"-lc",
-					"cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f builddir/build.ninja ] || meson builddir) && ninja -C builddir && cd builddir && meson install && $@"
+					"./cli_build.sh"
 				],
 				"command": "/bin/bash"
 			},

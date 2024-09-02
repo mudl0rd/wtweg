@@ -5,7 +5,6 @@
 #include <iostream>
 #include <filesystem>
 #include <stdio.h>
-#include <io.h>
 #include <vector>
 #include <array>
 #ifdef _WIN32

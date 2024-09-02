@@ -66,7 +66,7 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_DisplayMode DM;
   SDL_GetCurrentDisplayMode(window_indx, &DM);
   SDL_GetDisplayDPI(window_indx, NULL, &ddpi, NULL);
-
+  if(!ddpi) ddpi=96.0;
   float dpi_scaling = ddpi / 72.f;
   SDL_Rect display_bounds;
   SDL_GetDisplayUsableBounds(window_indx, &display_bounds);

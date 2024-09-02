@@ -1,5 +1,6 @@
 #define RESAMPLER_IMPLEMENTATION
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_audio.h>
 #include "resampler.h"
 #include "libretro.h"
 #include "inout.h"
