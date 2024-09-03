@@ -80,6 +80,9 @@ if host_machine.system() == 'linux'
 else
     dl_dep = dependency('', required: false)
 
+
+
+
 if get_option('buildtype') == 'debug'
   add_global_arguments('-DDEBUG', language: [ 'c', 'cpp' ])
 endif
@@ -90,8 +93,14 @@ language: [ 'c', 'cpp' ],)
 endif
 add_project_link_arguments('-Wl,-Map=wtfweg.map', language : ['c','cpp'])
 
+progdefs = []
+
+if host_machine.cpu() == 'aarch64'
+  progdefs += ['-DUSE_RPI']
+endif
+
 dir_base = meson.current_source_dir()
 dir_install = join_paths(dir_base, 'compile_dir')
-executable('wtfweg',gui_app : true,install: true,install_dir: dir_install,include_directories : [inc],sources : [src],dependencies : [sdl2dep,dl_dep]
+executable('wtfweg',gui_app : true,c_args: [progdefs],cpp_args: [progdefs], install: true,install_dir: dir_install,include_directories : [inc],sources : [src],dependencies : [sdl2dep,dl_dep]
 )
 

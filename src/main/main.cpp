@@ -2,7 +2,11 @@
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
+#ifndef USE_RPI
 #include "glad.h"
+#else 
+#include "glad_es.h"
+#endif
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <filesystem>
@@ -49,9 +53,17 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+  #ifdef USE_RPI
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,SDL_GL_CONTEXT_PROFILE_ES  );
+  SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 3); //OpenGL 3+
+  SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 0); //OpenGL 3.3
+  #else
+ SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
   SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 4); //OpenGL 3+
   SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 6); //OpenGL 3.3
+  #endif
+  
+ 
   SDL_GL_LoadLibrary(NULL);
   const char *glsl_version = "#version 330";
  
@@ -59,8 +71,11 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_Window *window = SDL_CreateWindow("WTFweg", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
+  #ifndef USE_RPI
   gladLoadGLLoader(SDL_GL_GetProcAddress);
-
+#else
+  gladLoadGLES2Loader(SDL_GL_GetProcAddress);
+  #endif
   int window_indx = SDL_GetWindowDisplayIndex(window);
   float ddpi = -1;
   SDL_DisplayMode DM;

@@ -91,8 +91,11 @@
 #include <stdio.h>
 
 #define IMGL3W_IMPL
+#ifndef USE_RPI
 #include "glad.h"
-
+#else
+#include "glad_es.h"
+#endif
 
 #if defined(_MSC_VER) && _MSC_VER <= 1500 // MSVC 2008 or earlier
 #include <stddef.h>     // intptr_t
@@ -262,6 +265,8 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
 
     // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
+
+    #ifndef USE_RPI
     glDisable(GL_ALPHA_TEST);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -269,7 +274,7 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_INDEX_ARRAY);
     glDisableClientState(GL_ALPHA_TEST);
-
+#endif
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -381,6 +386,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
     GLboolean last_enable_stencil_test = glIsEnabled(GL_STENCIL_TEST);
     GLboolean last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
 
+#ifndef USE_RPI 
     GLboolean last_color_array=glIsEnabled(GL_COLOR_ARRAY);
     GLboolean last_texture_array=glIsEnabled(GL_TEXTURE_COORD_ARRAY);
     GLboolean last_normal_array=glIsEnabled(GL_NORMAL_ARRAY);
@@ -389,7 +395,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
     GLboolean last_alpha_test=glIsEnabled(GL_ALPHA_TEST);
     GLint last_shade_model; glGetIntegerv(GL_SHADE_MODEL, &last_shade_model);
     GLint last_tex_env_mode; glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &last_tex_env_mode);
-   
+   #endif
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_PRIMITIVE_RESTART
     GLboolean last_enable_primitive_restart = (bd->GlVersion >= 310) ? glIsEnabled(GL_PRIMITIVE_RESTART) : GL_FALSE;
 #endif
@@ -476,6 +482,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
     if (last_enable_stencil_test) glEnable(GL_STENCIL_TEST); else glDisable(GL_STENCIL_TEST);
     if (last_enable_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
 
+#ifndef USE_RPI
     if(last_alpha_test)glEnable(GL_ALPHA_TEST);else glDisable(GL_ALPHA_TEST);
     if(last_color_array)glEnableClientState(GL_COLOR_ARRAY);else glDisableClientState(GL_COLOR_ARRAY);
     if(last_texture_array)glEnableClientState(GL_TEXTURE_COORD_ARRAY);else glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -483,7 +490,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
     if(last_vertexclient_array)glEnableClientState(GL_VERTEX_ARRAY);else glDisableClientState(GL_VERTEX_ARRAY);
     if(last_index_array)glEnableClientState(GL_INDEX_ARRAY);else glDisableClientState(GL_INDEX_ARRAY);
     if(last_alpha_test)glEnableClientState(GL_ALPHA_TEST);else glDisableClientState(GL_ALPHA_TEST);
-
+#endif
 
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_PRIMITIVE_RESTART
     if (bd->GlVersion >= 310) { if (last_enable_primitive_restart) glEnable(GL_PRIMITIVE_RESTART); else glDisable(GL_PRIMITIVE_RESTART); }
@@ -494,9 +501,12 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 #endif
     glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
     glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]);
+
+    #ifndef USE_RPI
     glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]); glPolygonMode(GL_BACK, (GLenum)last_polygon_mode[1]);
     glShadeModel(last_shade_model);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, last_tex_env_mode);
+    #endif
     (void)bd; // Not all compilation paths use this
 }
 
