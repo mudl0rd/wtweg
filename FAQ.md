@@ -2,17 +2,13 @@
 
 ## Why no support?
 
-> * Designed for own personal usage.
-> * Thus taking no issue reports/pull requests.
+> * Designed for own personal usage, thus no issue reports/pull requests.
 > * Prefer to do all code, at own pace, in own time.
-> * See [this](https://aarongiles.com/dreamm/docs/v30/#faq-opensource) for ideas why no collab
+> * See [this](https://aarongiles.com/dreamm/docs/v30/#faq-opensource) for ideas why no collab.
 
 ## Why?
 
-> * RetroArch's design decisions bother me.
-> * Figured frontend from scratch would remedy these.
-> * Tighter project scope (Windows 10+/Linux/Pi4-5).
-> * Able to exploit newer tech as result (OGL4.6/OGLES3/SSE4.2/AVX2/NEON).
+> * **Because I am petty enough to do things for myself, my way.**
 > * Experiment with things outside of "emulation" like:
 >   - Compression.
 >   - Audio DSP/synthesis.
@@ -29,7 +25,7 @@
 > * "saves" is where all saves are
 > * "system" is where all BIOSes/system files go
 > 
-> * Emulation General is a useful resource.
+> * "Emulation General" is a useful resource. Use it.
 
 ## With?
 
@@ -46,8 +42,10 @@
 
 ## How?
 
+> * OGL4.6 (Windows/Linux), OGLES3 (RPI4/5)
+> * SSE4.2/AVX2 (Windows/Linux), NEON (RPI4/5)
 > * SDL2
 > * dear-imgui
 > * Meson
-> * MSYS2 (Windows), GCC/G++
+> * MSYS2 (Windows), GCC/G++ (Linux/RPI)
 > * Visual Studio Code
