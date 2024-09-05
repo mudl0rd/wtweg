@@ -5,7 +5,7 @@
 			"windows": {
 				"command": "C:\\msys64\\usr\\bin\\bash.exe",
 				"args": [
-					"--login", "-i,",
+					"--login", "-i",
 					"./cli_build.sh"
 				],
 				"options": {

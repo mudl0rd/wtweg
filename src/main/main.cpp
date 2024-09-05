@@ -63,10 +63,6 @@ int main2(const char *rom, const char *core, bool pergame)
   SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 4); //OpenGL 3+
   SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 6); //OpenGL 3.3
   #endif
-  
- 
-  SDL_GL_LoadLibrary(NULL);
-  const char *glsl_version = "#version 330";
  
   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
   SDL_Window *window = SDL_CreateWindow("WTFweg", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, window_flags);
@@ -122,7 +118,7 @@ int main2(const char *rom, const char *core, bool pergame)
   style->ScaleAllSizes(dpi_scaling);
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-  ImGui_ImplOpenGL3_Init(glsl_version);
+  ImGui_ImplOpenGL3_Init(NULL);
 
   std::filesystem::path p( MudUtil::get_wtfwegname());
   std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
