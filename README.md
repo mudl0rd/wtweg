@@ -6,6 +6,6 @@
 
 * x64 CPUs w/SSE4.1 and above.
 * AArch64 CPUs with NEON
-* OGL 4.6/GLES 3.1
+* OGL 4.6/GLES 3.0
 * Win10 and above/Linux
 * GCC/G++ with C++17 support
