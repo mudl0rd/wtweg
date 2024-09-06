@@ -187,16 +187,13 @@
 			},
 			"linux": {
 				"args": [
-					"-lc",
-					"cd \"\"${workspaceRoot}\"\" && rm -r builddir && ([ -f builddir/build.ninja ] || meson builddir) && ninja -C builddir && cd builddir && meson install && $@"
+					"./cli_build.sh"
 				],
-				"command": "/bin/bash"
-			},
+				"command": "/bin/bash"},
 			"options": {
 				"env": {
 					"LANG": "C.UTF-8",
 					"PYTHONUNBUFFERD": "1",
-					"MSYSTEM": "MINGW32",
 					"CHERE_INVOKING": "1"
 				}
 			},
