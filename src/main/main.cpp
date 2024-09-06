@@ -4,7 +4,7 @@
 #include "imgui_impl_opengl3.h"
 #ifndef USE_RPI
 #include "glad.h"
-#else 
+#else
 #include "glad_es.h"
 #endif
 #define SDL_MAIN_HANDLED
@@ -38,53 +38,55 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
 
 int main2(const char *rom, const char *core, bool pergame)
 {
-  
+
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
   {
     printf("SDL_Init failed: %s\n", SDL_GetError());
     return 1;
   }
 
-  int w;int h;
+  int w;
+  int h;
 
-   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-  #ifdef USE_RPI
+#ifdef USE_RPI
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,SDL_GL_CONTEXT_PROFILE_ES  );
-  SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 3); //OpenGL 3+
-  SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 1); //OpenGL 3.3
-  #else
- SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-  SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 4); //OpenGL 3+
-  SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 6); //OpenGL 3.3
-  #endif
- 
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3); // OpenGL 3+
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1); // OpenGL 3.3
+#else
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // OpenGL 3+
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6); // OpenGL 3.3
+#endif
+
   SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
   SDL_Window *window = SDL_CreateWindow("WTFweg", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, window_flags);
   SDL_GLContext gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
-  #ifndef USE_RPI
+#ifndef USE_RPI
   gladLoadGLLoader(SDL_GL_GetProcAddress);
 #else
   gladLoadGLES2Loader(SDL_GL_GetProcAddress);
-  #endif
+#endif
   int window_indx = SDL_GetWindowDisplayIndex(window);
   float ddpi = -1;
   SDL_DisplayMode DM;
   SDL_GetCurrentDisplayMode(window_indx, &DM);
   SDL_GetDisplayDPI(window_indx, NULL, &ddpi, NULL);
-  if(!ddpi) ddpi=96.0;
+  if (!ddpi)
+    ddpi = 96.0;
   float dpi_scaling = ddpi / 72.f;
   SDL_Rect display_bounds;
   SDL_GetDisplayUsableBounds(window_indx, &display_bounds);
   int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
-  w=win_w;
-  h=win_h;
+  w = win_w;
+  h = win_h;
   SDL_SetWindowSize(window, win_w, win_h);
   video_setsize(win_w, win_h);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -120,14 +122,14 @@ int main2(const char *rom, const char *core, bool pergame)
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(NULL);
 
-  std::filesystem::path p( MudUtil::get_wtfwegname());
+  std::filesystem::path p(MudUtil::get_wtfwegname());
   std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
   std::filesystem::path path2 = p.parent_path() / "mudmaps.txt";
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
 
   auto instance = CLibretro::get_classinstance(window);
- 
+
   // Main loop
   bool done = false;
   bool show_menu = true;
@@ -171,17 +173,16 @@ int main2(const char *rom, const char *core, bool pergame)
             SDL_SetWindowSize(window, j.w, j.h);
             SDL_SetWindowPosition(window, 0, 0);
             video_setsize(j.w, j.h);
-            w=j.w;
-            h=j.h;
-            
+            w = j.w;
+            h = j.h;
           }
           else
           {
             SDL_SetWindowSize(window, window_rect.w, window_rect.h);
             SDL_SetWindowPosition(window, window_rect.x, window_rect.y);
             video_setsize(window_rect.w, window_rect.h);
-            w=window_rect.w;
-            h=window_rect.h;
+            w = window_rect.w;
+            h = window_rect.h;
           }
           SDL_SetWindowAlwaysOnTop(window, (SDL_bool)window_fs);
           SDL_SetWindowResizable(window, (SDL_bool)!window_fs);
@@ -223,23 +224,23 @@ int main2(const char *rom, const char *core, bool pergame)
       if (event.type == SDL_DROPFILE)
       {
         char *filez = (char *)event.drop.file;
-        loadfile(instance, event.drop.file, NULL,false);
+        loadfile(instance, event.drop.file, NULL, false);
         SDL_free(filez);
       }
     }
 
-  
     if (instance->core_isrunning())
     {
       video_bindfb();
-      instance->core_run(); 
+      instance->core_run();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, w, h);
     glScissor(0, 0, w, h);
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if(instance->core_isrunning())video_render();
+    if (instance->core_isrunning())
+      video_render();
     rendermenu(instance, window, show_menu);
   }
 
@@ -287,9 +288,9 @@ int main(int argc, char *argv[])
     std::string rom = a.get<std::string>("rom_name");
     std::string core = a.get<std::string>("core_name");
     bool pergame = a.exist("pergame");
-  
+
     if (!rom.empty() && !core.empty())
-    return main2(rom.c_str(), core.c_str(), pergame);
+      return main2(rom.c_str(), core.c_str(), pergame);
     else
       printf("\nPress any key to continue....\n");
     return 0;
