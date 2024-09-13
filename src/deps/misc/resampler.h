@@ -154,7 +154,7 @@ void memalign_free(void *ptr)
 	free(p[-1]);
 }
 
-void resampler_sinc_process(void *re_, struct resampler_data *data)
+inline void resampler_sinc_process(void *re_, struct resampler_data *data)
 {
 	size_t out_frames = 0;
 	rarch_sinc_resampler_t *resamp = (rarch_sinc_resampler_t *)re_;
