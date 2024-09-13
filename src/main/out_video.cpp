@@ -87,32 +87,10 @@ void video_changegeom(struct retro_game_geometry *geom)
 
 bool video_set_pixelformat(retro_pixel_format fmt)
 {
-#ifndef USE_RPI
-	switch (fmt)
-	{
-	case RETRO_PIXEL_FORMAT_0RGB1555:
-		g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-		g_video.pixformat.pixtype = GL_BGRA;
-		g_video.pixformat.bpp = sizeof(uint16_t);
-		break;
-	case RETRO_PIXEL_FORMAT_XRGB8888:
-		g_video.pixformat.pixfmt = GL_UNSIGNED_INT_8_8_8_8_REV;
-		g_video.pixformat.pixtype = GL_BGRA;
-		g_video.pixformat.bpp = sizeof(uint32_t);
-		break;
-	case RETRO_PIXEL_FORMAT_RGB565:
-		g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_5_6_5;
-		g_video.pixformat.pixtype = GL_RGB;
-		g_video.pixformat.bpp = sizeof(uint16_t);
-		break;
-	default:
-		break;
-	}
-#else
 	switch (fmt)
 	{
 	case RETRO_PIXEL_FORMAT_XRGB8888:
-		g_video.pixformat.pixfmt = GL_UNSIGNED_INT;
+		g_video.pixformat.pixfmt = GL_UNSIGNED_BYTE;
 		g_video.pixformat.pixtype = GL_RGBA;
 		g_video.pixformat.bpp = sizeof(uint32_t);
 		break;
@@ -125,7 +103,6 @@ bool video_set_pixelformat(retro_pixel_format fmt)
 	default:
 		break;
 	}
-#endif
 	g_video.pixfmt = fmt;
 	return true;
 }
@@ -257,13 +234,8 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 	{
 		if (!g_video.pixformat.pixfmt)
 		{
-#ifndef USE_RPI
-			g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-			g_video.pixformat.pixtype = GL_BGRA;
-#else
 			g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_5_6_5;
 			g_video.pixformat.pixtype = GL_RGB;
-#endif
 			g_video.pixformat.bpp = sizeof(uint16_t);
 		}
 	}
@@ -279,7 +251,8 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 		free(g_video.temp_pixbuf);
 		g_video.temp_pixbuf = NULL;
 	}
-	g_video.temp_pixbuf = (uint8_t *)malloc(geom->max_width * geom->max_height * sizeof(uint16_t));
+	int fmt = g_video.pixfmt == RETRO_PIXEL_FORMAT_XRGB8888 ? sizeof(uint32_t) : sizeof(uint16_t);
+	g_video.temp_pixbuf = (uint8_t *)malloc(geom->max_width * geom->max_height * fmt);
 
 #ifndef USE_RPI
 	glCreateTextures(GL_TEXTURE_2D, 1, &g_video.tex_id);
@@ -358,39 +331,17 @@ void video_render()
 #endif
 }
 
-void conv_0rgb1555_rgb565(void *output_, const void *input_,
-						  int width, int height,
-						  int out_stride, int in_stride)
+static inline void conv_0rgb1555_rgb565(void *output_, const void *input_,
+										int width, int height,
+										int out_stride, int in_stride)
 {
 	int h;
 	const uint16_t *input = (const uint16_t *)input_;
 	uint16_t *output = (uint16_t *)output_;
-
-#if defined(__SSE2__)
-	int max_width = width - 7;
-
-	const __m128i hi_mask = _mm_set1_epi16(
-		(int16_t)((0x1f << 11) | (0x1f << 6)));
-	const __m128i lo_mask = _mm_set1_epi16(0x1f);
-	const __m128i glow_mask = _mm_set1_epi16(1 << 5);
-#endif
-
 	for (h = 0; h < height;
 		 h++, output += out_stride >> 1, input += in_stride >> 1)
 	{
 		int w = 0;
-#if defined(__SSE2__)
-		for (; w < max_width; w += 8)
-		{
-			const __m128i in = _mm_loadu_si128((const __m128i *)(input + w));
-			__m128i rg = _mm_and_si128(_mm_slli_epi16(in, 1), hi_mask);
-			__m128i b = _mm_and_si128(in, lo_mask);
-			__m128i glow = _mm_and_si128(_mm_srli_epi16(in, 4), glow_mask);
-			_mm_storeu_si128((__m128i *)(output + w),
-							 _mm_or_si128(rg, _mm_or_si128(b, glow)));
-		}
-#endif
-
 		for (; w < width; w++)
 		{
 			uint16_t col = input[w];
@@ -399,6 +350,23 @@ void conv_0rgb1555_rgb565(void *output_, const void *input_,
 			uint16_t glow = (col >> 4) & (1 << 5);
 			output[w] = rg | b | glow;
 		}
+	}
+}
+
+static inline void conv_argb8888_rgba8888(void *output_, const void *input_,
+										  int width, int height)
+{
+	const uint8_t *input = (const uint8_t *)input_;
+	uint8_t *output = (uint8_t *)output_;
+
+	int offset = 0;
+	for (int x = 0; x < width * height; x++)
+	{
+		output[offset] = input[offset + 2];
+		output[offset + 1] = input[offset + 1];
+		output[offset + 2] = input[offset];
+		output[offset + 3] = input[offset + 3];
+		offset += 4;
 	}
 }
 
@@ -416,40 +384,49 @@ void video_refresh(const void *data, unsigned width, unsigned height, size_t pit
 	{
 #ifndef USE_RPI
 		glBindTextureUnit(0, g_video.tex_id);
+#else
+		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
+#endif
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(pitch));
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
-		glTextureSubImage2D(g_video.tex_id, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-							g_video.pixformat.pixfmt, data);
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-#else
-		if (g_video.pixfmt == RETRO_PIXEL_FORMAT_0RGB1555)
+		switch (g_video.pixfmt)
 		{
+		case RETRO_PIXEL_FORMAT_0RGB1555:
 			memset(g_video.temp_pixbuf, 0, width * height * sizeof(uint16_t));
 			conv_0rgb1555_rgb565(g_video.temp_pixbuf, data, width, height,
-								 width * get_alignment(pitch), pitch);
-			glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-			glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(pitch));
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
+								 pitch, pitch);
+#ifndef USE_RPI
+			glTextureSubImage2D(g_video.tex_id, 0, 0, 0, width, height, g_video.pixformat.pixtype,
+								g_video.pixformat.pixfmt, g_video.temp_pixbuf);
+#else
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
 							g_video.pixformat.pixfmt, g_video.temp_pixbuf);
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-			return;
-		}
-		else if (g_video.pixfmt == RETRO_PIXEL_FORMAT_XRGB8888)
-		{
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
-   			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
-		}
-
-		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(pitch));
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-						g_video.pixformat.pixfmt, data);
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
 #endif
+			break;
+		case RETRO_PIXEL_FORMAT_XRGB8888:
+			memset(g_video.temp_pixbuf, 0, width * height * sizeof(uint32_t));
+			conv_argb8888_rgba8888(g_video.temp_pixbuf, data, width, height);
+#ifndef USE_RPI
+			glTextureSubImage2D(g_video.tex_id, 0, 0, 0, width, height, g_video.pixformat.pixtype,
+								g_video.pixformat.pixfmt, g_video.temp_pixbuf);
+#else
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
+							g_video.pixformat.pixfmt, g_video.temp_pixbuf);
+#endif
+			break;
+		case RETRO_PIXEL_FORMAT_RGB565:
+#ifndef USE_RPI
+			glTextureSubImage2D(g_video.tex_id, 0, 0, 0, width, height, g_video.pixformat.pixtype,
+								g_video.pixformat.pixfmt, data);
+#else
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
+							g_video.pixformat.pixfmt, data);
+#endif
+
+			break;
+		}
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	}
 }
 
