@@ -243,7 +243,7 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 	{
 		g_video.pixformat.pixfmt = GL_UNSIGNED_BYTE;
 		g_video.pixformat.pixtype = GL_RGBA;
-		g_video.pixformat.bpp = sizeof(uint16_t);
+		g_video.pixformat.bpp = sizeof(uint32_t);
 	}
 
 	if (g_video.temp_pixbuf)
