@@ -298,36 +298,35 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                             open_log == true))
           open_log = !open_log;
 
-
         if (instance->core_inpbinds.size())
         {
-         
+
           for (auto &i : instance->core_inpbinds)
           {
             size_t k = &i - &instance->core_inpbinds.front();
-            if(!k && i.controlinfo.size() >= 1){
-               ImGui::Separator();
+            if (!k && i.controlinfo.size() >= 1)
+            {
+              ImGui::Separator();
             }
-            if(i.controlinfo.size() >= 1)
+            if (i.controlinfo.size() >= 1)
             {
-               std::string player = "Player " + std::to_string(k + 1);
-           
-            if (ImGui::BeginMenu(player.c_str()))
-            {
-              for (auto &inp2 : i.controlinfo)
+              std::string player = "Player " + std::to_string(k + 1);
+
+              if (ImGui::BeginMenu(player.c_str()))
               {
-                const char *label = inp2.desc.c_str();
-                if (ImGui::MenuItem(label, nullptr,
-                                    i.controller_type == inp2.id))
+                for (auto &inp2 : i.controlinfo)
                 {
-                  instance->core_changinpt(inp2.id, k);
-                  loadcontconfig(true);
+                  const char *label = inp2.desc.c_str();
+                  if (ImGui::MenuItem(label, nullptr,
+                                      i.controller_type == inp2.id))
+                  {
+                    instance->core_changinpt(inp2.id, k);
+                    loadcontconfig(true);
+                  }
                 }
+                ImGui::EndMenu();
               }
-              ImGui::EndMenu();
             }
-            }
-           
           }
         }
         ImGui::EndMenu();

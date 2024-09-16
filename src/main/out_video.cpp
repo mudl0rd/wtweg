@@ -49,13 +49,13 @@ void reinit_fbo(int width, int height)
 		free(g_video.temp_pixbuf);
 		g_video.temp_pixbuf = NULL;
 	}
-	g_video.temp_pixbuf = (uint8_t *)malloc(width * height * sizeof(uint16_t));
+	g_video.temp_pixbuf = (uint8_t *)malloc(width * height * sizeof(uint32_t));
 
 #ifndef USE_RPI
 	glCreateTextures(GL_TEXTURE_2D, 1, &g_video.tex_id);
 	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureStorage2D(g_video.tex_id, 1, (g_video.pixfmt==RETRO_PIXEL_FORMAT_XRGB8888)?GL_RGBA:GL_RGB, width, height);
+	glTextureStorage2D(g_video.tex_id, 1,GL_RGBA8, width, height);
 #else
 	glGenTextures(1, &g_video.tex_id);
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
@@ -251,21 +251,20 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 		free(g_video.temp_pixbuf);
 		g_video.temp_pixbuf = NULL;
 	}
-	int fmt = g_video.pixfmt == RETRO_PIXEL_FORMAT_XRGB8888 ? sizeof(uint32_t) : sizeof(uint16_t);
-	g_video.temp_pixbuf = (uint8_t *)malloc(geom->max_width * geom->max_height * fmt);
+	g_video.temp_pixbuf = (uint8_t *)malloc(geom->max_width * geom->max_height * sizeof(uint32_t));
 
 #ifndef USE_RPI
 	glCreateTextures(GL_TEXTURE_2D, 1, &g_video.tex_id);
 	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureStorage2D(g_video.tex_id, 1, (g_video.pixfmt==RETRO_PIXEL_FORMAT_XRGB8888)?GL_RGBA:GL_RGB,geom->max_width, geom->max_height);
+	glTextureStorage2D(g_video.tex_id, 1,GL_RGBA8,geom->max_width, geom->max_height);
 #else
 	glGenTextures(1, &g_video.tex_id);
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0,  (g_video.pixfmt==RETRO_PIXEL_FORMAT_XRGB8888)?GL_RGBA:GL_RGB, geom->max_width, geom->max_height, 0,
-				g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0,  (g_video.pixfmt==RETRO_PIXEL_FORMAT_XRGB8888)?GL_RGBA:GL_RGB, 
+	geom->max_width, geom->max_height, 0,g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
 
 #endif
 
