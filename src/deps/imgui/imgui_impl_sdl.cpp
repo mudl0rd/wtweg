@@ -371,7 +371,7 @@ static void ImGui_ImplSDL2_UpdateMouseCursor()
     }
 }
 
-static void ImGui_ImplSDL2_UpdateGamepads()
+void ImGui_ImplSDL2_UpdateGamepads()
 {
     ImGuiIO& io = ImGui::GetIO();
     memset(io.NavInputs, 0, sizeof(io.NavInputs));
@@ -438,6 +438,5 @@ void ImGui_ImplSDL2_NewFrame()
     ImGui_ImplSDL2_UpdateMousePosAndButtons();
     ImGui_ImplSDL2_UpdateMouseCursor();
 
-    // Update game controllers (if enabled and available)
-    ImGui_ImplSDL2_UpdateGamepads();
+   
 }

@@ -203,7 +203,7 @@ void popup_widget(bool *flag, const char *title, const char *msg)
   }
 }
 
-void sdlggerat_menu(CLibretro *instance, std::string *window_str)
+void sdlggerat_menu(CLibretro *instance, std::string *window_str, bool *update)
 {
 
   static bool inputsettings = false;
@@ -216,6 +216,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static int selected_port = 0;
   static bool open_log = false;
   ImGuiIO &io = ImGui::GetIO();
+  *update = isselected_inp;  
 
   if (ImGui::BeginMainMenuBar())
   {
@@ -524,8 +525,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           ImGui::SameLine(sz.x * 0.78);
           ImGui::SetNextItemWidth(sz.x * 0.2);
           ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
-          if (ImGui::IsItemClicked())
+          if (ImGui::IsItemActive())
           {
+            ImGui::SetWindowFocus();
             selected_inp = i;
             isselected_inp = true;
             selected_port = descnum - 1;
@@ -553,8 +555,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
               ImGui::SameLine(sz.x * 0.80);
               ImGui::SetNextItemWidth(sz.x * 0.2);
               ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
-              if (ImGui::IsItemClicked())
+              if (ImGui::IsItemActive())
               {
+                ImGui::SetWindowFocus();
                 selected_inp = i;
                 isselected_inp = true;
                 selected_port = descnum - 1;

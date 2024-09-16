@@ -55,14 +55,14 @@ void reinit_fbo(int width, int height)
 	glCreateTextures(GL_TEXTURE_2D, 1, &g_video.tex_id);
 	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureStorage2D(g_video.tex_id, 1,GL_RGBA8, width, height);
+	glTextureStorage2D(g_video.tex_id, 1, GL_RGBA8, width, height);
 #else
 	glGenTextures(1, &g_video.tex_id);
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0,  (g_video.pixfmt==RETRO_PIXEL_FORMAT_XRGB8888)?GL_RGBA:GL_RGB, width, height, 0,
-				g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, (g_video.pixfmt == RETRO_PIXEL_FORMAT_XRGB8888) ? GL_RGBA : GL_RGB, width, height, 0,
+				 g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
 
 #endif
 	void init_framebuffer(int width, int height);
@@ -257,14 +257,14 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 	glCreateTextures(GL_TEXTURE_2D, 1, &g_video.tex_id);
 	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureStorage2D(g_video.tex_id, 1,GL_RGBA8,geom->max_width, geom->max_height);
+	glTextureStorage2D(g_video.tex_id, 1, GL_RGBA8, geom->max_width, geom->max_height);
 #else
 	glGenTextures(1, &g_video.tex_id);
 	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0,  (g_video.pixfmt==RETRO_PIXEL_FORMAT_XRGB8888)?GL_RGBA:GL_RGB, 
-	geom->max_width, geom->max_height, 0,g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, (g_video.pixfmt == RETRO_PIXEL_FORMAT_XRGB8888) ? GL_RGBA : GL_RGB,
+				 geom->max_width, geom->max_height, 0, g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
 
 #endif
 

@@ -28,8 +28,15 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
+    static bool upd = false;
+    if (!upd)
+    {
+      void ImGui_ImplSDL2_UpdateGamepads();
+      ImGui_ImplSDL2_UpdateGamepads();
+    }
     ImGui::NewFrame();
-    sdlggerat_menu(instance, &window_name);
+    // Update game controllers (if enabled and available)
+    sdlggerat_menu(instance, &window_name, &upd);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
@@ -104,6 +111,8 @@ int main2(const char *rom, const char *core, bool pergame)
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   io.IniFilename = NULL;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+  io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
 
   ImFontConfig font_cfg;
   font_cfg.FontDataOwnedByAtlas = false;
