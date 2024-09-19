@@ -532,7 +532,8 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
         return;
     static int framesload = 0;
 
-    if (framesload == 5)
+    if (framesload < 4) framesload++;
+    else
     {
         auto lib = CLibretro::get_classinstance();
         std::string name;
@@ -654,8 +655,6 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
             }
         }
     }
-    else
-        framesload++;
 }
 
 static bool key_pressed(int key)

@@ -496,8 +496,8 @@ void CLibretro::core_changinpt(int dev, int port)
 {
   if (lr_isrunning)
   {
-    if(core_inpbinds[port].controller_type != dev)
-    core_inpbinds[port].controller_type = dev;
+    if (core_inpbinds[port].controller_type != dev)
+      core_inpbinds[port].controller_type = dev;
     retro.retro_set_controller_port_device(port, dev);
   }
 }
@@ -588,7 +588,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     const char *err = SDL_GetError();
     return false;
   }
-  core_path=corepath;
+  core_path = corepath;
 
 #define libload(name) MudUtil::getfunc(hDLL, name)
 #define load_sym(V, name)                         \
@@ -659,6 +659,14 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
   refreshrate = dm.refresh_rate;
+  float swap_ratio = refreshrate / av.timing.fps;
+  int swap = (unsigned)(swap_ratio + 0.5f);
+  /* > Sanity check: swap interval must be in the
+   *   range [1,4] - if we are outside this, then
+   *   bail... */
+  if ((swap < 1) || (swap > 4))
+    swap = 1;
+  SDL_GL_SetSwapInterval(swap);
   audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps, false);
   video_init(&av.geometry, sdl_window);
 

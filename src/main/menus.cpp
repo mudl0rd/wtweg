@@ -203,7 +203,7 @@ void popup_widget(bool *flag, const char *title, const char *msg)
   }
 }
 
-void sdlggerat_menu(CLibretro *instance, std::string *window_str, bool *update)
+void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 {
 
   static bool inputsettings = false;
@@ -216,7 +216,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str, bool *update)
   static int selected_port = 0;
   static bool open_log = false;
   ImGuiIO &io = ImGui::GetIO();
-  *update = isselected_inp;  
 
   if (ImGui::BeginMainMenuBar())
   {

@@ -73,14 +73,7 @@ namespace MudUtil
 
 	uint32_t pow2up(uint32_t v)
 	{
-		v--;
-		v |= v >> 1;
-		v |= v >> 2;
-		v |= v >> 4;
-		v |= v >> 8;
-		v |= v >> 16;
-		v++;
-		return v;
+		return pow(2, ceil(log2(v)));
 	}
 
 	void vector_appendbytes(std::vector<uint8_t> &vec, uint8_t *bytes, size_t len)

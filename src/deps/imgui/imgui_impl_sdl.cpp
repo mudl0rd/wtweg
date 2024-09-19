@@ -438,5 +438,10 @@ void ImGui_ImplSDL2_NewFrame()
     ImGui_ImplSDL2_UpdateMousePosAndButtons();
     ImGui_ImplSDL2_UpdateMouseCursor();
 
+        {
+      void ImGui_ImplSDL2_UpdateGamepads();
+      ImGui_ImplSDL2_UpdateGamepads();
+    }
+
    
 }

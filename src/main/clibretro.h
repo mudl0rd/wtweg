@@ -225,10 +225,16 @@ public:
 	struct retro_perf_counter *perf_counter_last;
 	retro_frame_time_callback_t frametime_cb;
 	retro_usec_t frametime_ref;
+	
+	std::chrono::system_clock::time_point last;
+	std::chrono::duration<double> timePerFrame;
+	unsigned int frameRate;
+	double nextFrameRate;
+	double desiredFrameRate;
 };
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
-void sdlggerat_menu(CLibretro *instance, std::string *window_str, bool *update);
+void sdlggerat_menu(CLibretro *instance, std::string *window_str);
 void add_log(enum retro_log_level level, const char *fmt);
 
 #endif

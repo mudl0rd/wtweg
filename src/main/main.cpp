@@ -28,15 +28,9 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
-    static bool upd = false;
-    if (!upd)
-    {
-      void ImGui_ImplSDL2_UpdateGamepads();
-      ImGui_ImplSDL2_UpdateGamepads();
-    }
     ImGui::NewFrame();
     // Update game controllers (if enabled and available)
-    sdlggerat_menu(instance, &window_name, &upd);
+    sdlggerat_menu(instance, &window_name);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
@@ -98,6 +92,7 @@ int main2(const char *rom, const char *core, bool pergame)
   video_setsize(win_w, win_h);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_GetDesktopDisplayMode(window_indx, &dm);
+
   int swap = 1;
   swap = (int)dm.refresh_rate / (int)60;
   float refreshtarget = dm.refresh_rate / swap;
