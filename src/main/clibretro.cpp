@@ -15,6 +15,7 @@
 #include <windows.h>
 #endif
 #include "mudutils/utils.h"
+#include "unistd.h"
 using namespace std;
 
 #ifdef _WIN32
@@ -658,15 +659,13 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   retro.retro_get_system_av_info(&av);
   SDL_DisplayMode dm;
   SDL_GetDesktopDisplayMode(0, &dm);
-  refreshrate = dm.refresh_rate;
-  float swap_ratio = refreshrate / av.timing.fps;
-  int swap = (unsigned)(swap_ratio + 0.5f);
-  /* > Sanity check: swap interval must be in the
-   *   range [1,4] - if we are outside this, then
-   *   bail... */
-  if ((swap < 1) || (swap > 4))
-    swap = 1;
+  int swap = 1;
+  float refreshtarget = dm.refresh_rate / av.timing.fps;
+  swap = (unsigned)(refreshtarget + 0.5f);
+  float timing_skew = fabs(1.0f - av.timing.fps / (dm.refresh_rate / swap));
+  swap = (timing_skew <= 0.005) ? swap : 1;
   SDL_GL_SetSwapInterval(swap);
+
   audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps, false);
   video_init(&av.geometry, sdl_window);
 
@@ -676,7 +675,6 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   lr_isrunning = true;
   for (int i = 0; i < core_inpbinds.size(); i++)
     core_changinpt(core_inpbinds[i].controller_type, i);
-
   return true;
 }
 
@@ -689,6 +687,7 @@ void CLibretro::core_run()
 {
   if (frametime_cb != NULL)
     frametime_cb(frametime_ref);
+
   retro.retro_run();
 }
 

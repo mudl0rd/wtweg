@@ -92,8 +92,7 @@ int main2(const char *rom, const char *core, bool pergame)
   video_setsize(win_w, win_h);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_GetDesktopDisplayMode(window_indx, &dm);
-
-  int swap = 1;
+  /*int swap = 1;
   swap = (int)dm.refresh_rate / (int)60;
   float refreshtarget = dm.refresh_rate / swap;
   float timing_skew = fabs(1.0f - 60 / refreshtarget);
@@ -101,6 +100,8 @@ int main2(const char *rom, const char *core, bool pergame)
     SDL_GL_SetSwapInterval((int)swap);
   else
     SDL_GL_SetSwapInterval(1);
+*/
+
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -125,6 +126,8 @@ int main2(const char *rom, const char *core, bool pergame)
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(NULL);
+
+  
 
   std::filesystem::path p(MudUtil::get_wtfwegname());
   std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";

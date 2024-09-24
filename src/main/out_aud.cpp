@@ -136,9 +136,14 @@ void audio_mix(void *samples, size_t size)
     uint32_t in_len = size * 2;
 
     double maxdelta = 0.005;
-    double bufferlevel = double(fifo_read_avail(audio_ctx_s._fifo)) / audio_ctx_s._fifo->size;
-    double newInputFrequency =
-        ((1.0 - maxdelta) + 2.0 * bufferlevel * maxdelta) *
+    auto bufferlevel = []()
+    {
+        return double(
+            (audio_ctx_s._fifo->size - (int)fifo_write_avail(audio_ctx_s._fifo)) /
+            audio_ctx_s._fifo->size);
+    };
+    int newInputFrequency =
+        ((1.0 - maxdelta) + 2.0 * (double)bufferlevel() * maxdelta) *
         audio_ctx_s.system_rate;
     float drc_ratio = (float)audio_ctx_s.client_rate / (float)newInputFrequency;
 
@@ -172,13 +177,17 @@ void audio_mix(void *samples, size_t size)
 
 void audio_changeratefps(float refreshra, float input_srate, float fps)
 {
-    unsigned swap = 1;
-    if (refreshra > fps)
-        swap = refreshra / (unsigned)fps;
-    float refreshtarget = refreshra / swap;
-    float timeskew = fabs(1.0f - fps / refreshtarget);
+    float swap = 1;
+    float refreshtarget = refreshra / fps;
+    swap = (unsigned)(refreshtarget + 0.5f);
+    float swapskew = fabs(1.0f - fps / (refreshra / (float)swap));
+    swap = (swapskew <= 0.005) ? swap : 1;
+    float targetref = refreshra;
+    if (swap > 1)
+        targetref /= swap;
+    float timeskew = fabs(1.0f - fps / targetref);
     if (timeskew <= 0.005)
-        audio_ctx_s.system_rate = input_srate * (refreshtarget / fps);
+        audio_ctx_s.system_rate = input_srate * (targetref / fps);
     else
         audio_ctx_s.system_rate = input_srate;
 }
@@ -192,7 +201,7 @@ bool audio_init(float refreshra, float input_srate, float fps, bool fp)
     SDL_AudioSpec shit2 = {0};
     SDL_GetDefaultAudioInfo(NULL, &shit2, 0);
 
-    auto desired_samples = (30 * shit2.freq) / 1000.0f;
+    auto desired_samples = (64 * shit2.freq) / 1000.0f;
     shit.samples = MudUtil::pow2up(desired_samples); // SDL2 requires power-of-two buffer sizes
     shit.freq = shit2.freq;
     shit.format = AUDIO_F32;
@@ -203,11 +212,11 @@ bool audio_init(float refreshra, float input_srate, float fps, bool fp)
     audio_ctx_s.resample = resampler_sinc_init();
     SDL_AudioSpec out;
     audio_ctx_s.dev = SDL_OpenAudioDevice(NULL, 0, &shit, &out, 0);
-    size_t sampsize = MudUtil::pow2up(out.samples * 4 * (shit.channels * sizeof(float)));
-    audio_ctx_s.input_float = (float *)memalign_alloc(64, sampsize);
-    audio_ctx_s.output_float = (float *)memalign_alloc(64, sampsize);
-    memset(audio_ctx_s.input_float, 0, sampsize);
-    memset(audio_ctx_s.output_float, 0, sampsize);
+    size_t sampsize = out.size * 2;
+    audio_ctx_s.input_float = (float *)memalign_alloc(64, sampsize * 4);
+    audio_ctx_s.output_float = (float *)memalign_alloc(64, sampsize * 4);
+    memset(audio_ctx_s.input_float, 0, sampsize * 4);
+    memset(audio_ctx_s.output_float, 0, sampsize * 4);
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
     SDL_PauseAudioDevice(audio_ctx_s.dev, 0);
     return true;

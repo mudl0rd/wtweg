@@ -173,10 +173,11 @@ public:
 	CLibretro(const CLibretro &) = delete;
 	CLibretro &operator=(const CLibretro &) = delete;
 	void init_lr(SDL_Window *window);
-	static CLibretro *get_classinstance(SDL_Window* window = NULL)
+	static CLibretro *get_classinstance(SDL_Window *window = NULL)
 	{
 		static thread_local CLibretro instance;
-		if(window)instance.init_lr(window);
+		if (window)
+			instance.init_lr(window);
 		return &instance;
 	}
 	void poll();
@@ -225,12 +226,10 @@ public:
 	struct retro_perf_counter *perf_counter_last;
 	retro_frame_time_callback_t frametime_cb;
 	retro_usec_t frametime_ref;
-	
-	std::chrono::system_clock::time_point last;
-	std::chrono::duration<double> timePerFrame;
-	unsigned int frameRate;
-	double nextFrameRate;
-	double desiredFrameRate;
+	double fps;
+
+	std::chrono::system_clock::time_point a;
+	std::chrono::system_clock::time_point b;
 };
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
