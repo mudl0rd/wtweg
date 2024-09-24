@@ -5,6 +5,9 @@
 #include "libretro.h"
 #include "inout.h"
 #include "mudutils/utils.h"
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 struct fifo_buffer
 {
@@ -26,6 +29,9 @@ struct audio_ctx
     float *input_float;
     float *output_float;
     float timeskew;
+    std::mutex mutex;
+    std::condition_variable cv;
+
 } audio_ctx_s = {0};
 
 static inline void fifo_clear(fifo_buffer_t *buffer)
@@ -122,10 +128,12 @@ inline void s16tof(float *dst, const int16_t *src, unsigned int count)
 void func_callback(void *userdata, Uint8 *stream, int len)
 {
     audio_ctx *context = (audio_ctx *)userdata;
+    std::unique_lock<std::mutex> lk(context->mutex);
     int amount = fifo_read_avail(context->_fifo);
     amount = (len > amount) ? amount : len;
     fifo_write(context->_fifo, (uint8_t *)stream, amount, true);
     memset(stream + amount, 0, len - amount);
+    context->cv.notify_all();
 }
 
 void audio_mix(void *samples, size_t size)
@@ -162,15 +170,23 @@ void audio_mix(void *samples, size_t size)
 
     while (written < out_bytes)
     {
+        SDL_LockAudioDevice(audio_ctx_s.dev);
         size_t avail = fifo_write_avail(audio_ctx_s._fifo);
         if (avail)
         {
-            SDL_LockAudioDevice(audio_ctx_s.dev);
+
             size_t write_amt = out_bytes - written > avail ? avail : out_bytes - written;
             fifo_write(audio_ctx_s._fifo,
                        (char *)audio_ctx_s.output_float + written, write_amt, false);
-            SDL_UnlockAudioDevice(audio_ctx_s.dev);
+
             written += write_amt;
+            SDL_UnlockAudioDevice(audio_ctx_s.dev);
+        }
+        else
+        {
+            SDL_UnlockAudioDevice(audio_ctx_s.dev);
+            std::unique_lock<std::mutex> lk(audio_ctx_s.mutex);
+            audio_ctx_s.cv.wait(lk);
         }
     }
 }
@@ -218,6 +234,9 @@ bool audio_init(float refreshra, float input_srate, float fps, bool fp)
     memset(audio_ctx_s.input_float, 0, sampsize * 4);
     memset(audio_ctx_s.output_float, 0, sampsize * 4);
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
+    auto tmp = std::make_unique<uint8_t[]>(sampsize);
+    fifo_write(audio_ctx_s._fifo, tmp.get(), sampsize, false);
+
     SDL_PauseAudioDevice(audio_ctx_s.dev, 0);
     return true;
 }
