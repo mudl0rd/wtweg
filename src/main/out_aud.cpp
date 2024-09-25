@@ -196,8 +196,6 @@ void audio_changeratefps(float refreshra, float input_srate, float fps)
     float swap = 1;
     float refreshtarget = refreshra / fps;
     swap = (unsigned)(refreshtarget + 0.5f);
-    if ((swap < 1) || (swap > 4))
-        swap = 1;
     float swapskew = fabs(1.0f - fps / (refreshra / (float)swap));
     swap = (swapskew <= 0.005) ? swap : 1;
     float targetref = refreshra;

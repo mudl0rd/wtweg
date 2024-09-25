@@ -93,6 +93,10 @@ language: [ 'c', 'cpp' ],)
 endif
 add_project_link_arguments('-Wl,-Map=wtfweg.map', language : ['c','cpp'])
 
+if host_machine.system() == 'windows'
+ add_project_link_arguments('-lwinmm', language : ['c','cpp'])
+ endif
+
 progdefs = []
 
 if host_machine.cpu() == 'aarch64'

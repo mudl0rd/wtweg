@@ -657,26 +657,15 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   }
 
   retro.retro_get_system_av_info(&av);
-  SDL_DisplayMode dm;
-  SDL_GetDesktopDisplayMode(0, &dm);
-  int swap = 1;
-  float refreshtarget = dm.refresh_rate / av.timing.fps;
-  swap = (unsigned)(refreshtarget + 0.5f);
-  if ((swap < 1) || (swap > 4))
-    swap = 1;
-  float timing_skew = fabs(1.0f - av.timing.fps / (dm.refresh_rate / swap));
-  swap = (timing_skew <= 0.005) ? swap : 1;
-  SDL_GL_SetSwapInterval(swap);
-
-  audio_init((float)dm.refresh_rate, av.timing.sample_rate, av.timing.fps, false);
+  audio_init((float)60.0, av.timing.sample_rate, av.timing.fps, false);
   video_init(&av.geometry, sdl_window);
-
   core_saveram(romsavesstatespath.c_str(), false);
 
   loadcontconfig(false);
   lr_isrunning = true;
   for (int i = 0; i < core_inpbinds.size(); i++)
     core_changinpt(core_inpbinds[i].controller_type, i);
+
   return true;
 }
 

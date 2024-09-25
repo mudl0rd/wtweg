@@ -14,6 +14,9 @@
 #include "cmdline.h"
 #include "mudutils/utils.h"
 #include "imgui_font.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #define WIDTH 1280
 #define HEIGHT 720
@@ -34,6 +37,27 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
+
+  unsigned int FPS = 60;
+
+  static double clock = 0;
+  double deltaticks;
+  double newclock = SDL_GetTicks64();
+
+  deltaticks = 1000.0 / FPS - (newclock - clock);
+
+  if (floor(deltaticks) > 0)
+    SDL_Delay(deltaticks);
+
+  if (deltaticks < -30)
+  {
+    clock = newclock - 30;
+  }
+  else
+  {
+    clock = newclock + deltaticks;
+  }
+
   SDL_GL_SwapWindow(window);
 }
 
@@ -102,6 +126,9 @@ int main2(const char *rom, const char *core, bool pergame)
     SDL_GL_SetSwapInterval(1);
 */
 
+#ifdef _WIN32
+  timeBeginPeriod(1);
+#endif
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -126,8 +153,6 @@ int main2(const char *rom, const char *core, bool pergame)
   ImGui::StyleColorsDark();
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(NULL);
-
-  
 
   std::filesystem::path p(MudUtil::get_wtfwegname());
   std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
@@ -253,6 +278,10 @@ int main2(const char *rom, const char *core, bool pergame)
 
   instance->core_unload();
   reset_inpt();
+
+#ifdef _WIN32
+  timeEndPeriod(1);
+#endif
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
