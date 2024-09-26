@@ -87,17 +87,18 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
   double FPS = (1000. / 60.);
   static double clock = 0;
   double deltaticks;
-  double newclock = micros() / 1000.;
-  deltaticks = FPS - (newclock - clock);
+  double newclock = micros();
+  deltaticks = FPS - ((newclock - clock)/1000.);
   int ticks = floor(deltaticks);
   if (ticks > 0)
     SDL_Delay(ticks);
-  double ticks2 = ((newclock + ticks) * 1000.);
+  ticks *= 1000;
+  double ticks2 = newclock + ticks;
   while (micros() < ticks2)
   {
     /* Do nothing... */
   };
-  clock = micros() / 1000.;
+  clock = micros();
 
   SDL_GL_SwapWindow(window);
 }
