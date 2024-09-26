@@ -657,7 +657,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   }
 
   retro.retro_get_system_av_info(&av);
-  audio_init((float)60.0, av.timing.sample_rate, av.timing.fps, false);
+  audio_init((float)60., av.timing.sample_rate, av.timing.fps, false);
   video_init(&av.geometry, sdl_window);
   core_saveram(romsavesstatespath.c_str(), false);
 

@@ -23,6 +23,45 @@
 
 SDL_DisplayMode dm;
 
+uint64_t millis()
+{
+  uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now().time_since_epoch())
+                    .count();
+  return ms;
+}
+
+// Get time stamp in microseconds.
+uint64_t micros()
+{
+  uint64_t us = std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::high_resolution_clock::now().time_since_epoch())
+                    .count();
+  return us;
+}
+
+// Get time stamp in nanoseconds.
+uint64_t nanos()
+{
+  uint64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::high_resolution_clock::now().time_since_epoch())
+                    .count();
+  return ns;
+}
+
+void engine_regulate_fps(double start, double current)
+{
+  double remaining = (1.0 / 60.) - (current - start);
+  int sleep_ms = static_cast<int>(remaining * 1000.0);
+  // Sleep
+  if (sleep_ms > 0)
+    SDL_Delay(remaining);
+  // Busy-wait
+  while (micros() < current + remaining)
+  { /* Do nothing... */
+  };
+}
+
 void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
 {
   std::string window_name;
@@ -38,25 +77,20 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
 
-  unsigned int FPS = 60;
+  double FPS = (1000. / 60.);
 
   static double clock = 0;
   double deltaticks;
-  double newclock = SDL_GetTicks64();
-
-  deltaticks = 1000.0 / FPS - (newclock - clock);
-
+  double newclock = millis();
+  deltaticks = FPS - (newclock - clock);
   if (floor(deltaticks) > 0)
     SDL_Delay(deltaticks);
-
-  if (deltaticks < -30)
+  double ticks = ((newclock + floor(deltaticks)) * 1000.);
+  while (micros() < ticks)
   {
-    clock = newclock - 30;
-  }
-  else
-  {
-    clock = newclock + deltaticks;
-  }
+    /* Do nothing... */
+  };
+  clock = millis();
 
   SDL_GL_SwapWindow(window);
 }
@@ -116,15 +150,6 @@ int main2(const char *rom, const char *core, bool pergame)
   video_setsize(win_w, win_h);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_GetDesktopDisplayMode(window_indx, &dm);
-  /*int swap = 1;
-  swap = (int)dm.refresh_rate / (int)60;
-  float refreshtarget = dm.refresh_rate / swap;
-  float timing_skew = fabs(1.0f - 60 / refreshtarget);
-  if (timing_skew <= 0.05)
-    SDL_GL_SetSwapInterval((int)swap);
-  else
-    SDL_GL_SetSwapInterval(1);
-*/
 
 #ifdef _WIN32
   timeBeginPeriod(1);
