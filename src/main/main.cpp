@@ -18,6 +18,8 @@
 #include <windows.h>
 #endif
 
+#include <unistd.h>
+
 #define WIDTH 1280
 #define HEIGHT 720
 
@@ -49,6 +51,11 @@ uint64_t nanos()
   return ns;
 }
 
+uint64_t inline timein()
+{
+  return SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency();
+}
+
 void engine_regulate_fps(double start, double current)
 {
   double remaining = (1.0 / 60.) - (current - start);
@@ -78,19 +85,19 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
   }
 
   double FPS = (1000. / 60.);
-
   static double clock = 0;
   double deltaticks;
-  double newclock = millis();
+  double newclock = micros() / 1000.;
   deltaticks = FPS - (newclock - clock);
-  if (floor(deltaticks) > 0)
-    SDL_Delay(deltaticks);
-  double ticks = ((newclock + floor(deltaticks)) * 1000.);
-  while (micros() < ticks)
+  int ticks = floor(deltaticks);
+  if (ticks > 0)
+    SDL_Delay(ticks);
+  double ticks2 = ((newclock + ticks) * 1000.);
+  while (micros() < ticks2)
   {
     /* Do nothing... */
   };
-  clock = millis();
+  clock = micros() / 1000.;
 
   SDL_GL_SwapWindow(window);
 }
