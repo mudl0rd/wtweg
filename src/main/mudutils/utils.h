@@ -39,10 +39,6 @@ namespace MudUtil
   std::vector<unsigned char> decompress_deflate(
       uint8_t *buf,
       size_t size, size_t uncomp_sz);
-  std::vector<unsigned char> compress_lzma(unsigned char *buf, size_t size);
-  std::vector<unsigned char> decompress_lzma(
-      uint8_t *buf,
-      size_t size, size_t uncomp_sz);
  // crypto
   uint32_t crc32(uint32_t initial, const void *data, size_t length);
   uint32_t adler32(uint32_t adler, const uint8_t *data, size_t len);
