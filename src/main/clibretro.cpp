@@ -447,7 +447,7 @@ void CLibretro::reset()
       bind.config.bits.sdl_id = (i == 0 && j < 16) ? libretro_dmap[j].keeb : -1;
       bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
       bind.val = 0;
-      bind.SDL_port = -1;
+      bind.SDL_port = 0;
       bind.port = i;
       bind.description = retro_descript;
       bind.joykey_desc = (i == 0 && j < 13) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";

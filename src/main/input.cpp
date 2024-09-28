@@ -422,8 +422,8 @@ bool load_inpcfg(retro_input_descriptor *var)
             bind.isanalog = (uint8_t)((var->device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG);
             bind.retro_id = bind.isanalog ? axistocheck(var->id, var->index) : var->id;
             bind.config.bits.axistrigger = 0;
-            settings.bits.sdl_id = 0;
-            bind.SDL_port = -1;
+            settings.bits.sdl_id = -1;
+            bind.SDL_port = 0;
             settings.bits.joytype = (uint8_t)joytype_::keyboard;
             bind.val = 0;
             bind.joykey_desc = "None";
@@ -532,7 +532,8 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
         return;
     static int framesload = 0;
 
-    if (framesload < 4) framesload++;
+    if (framesload < 4)
+        framesload++;
     else
     {
         auto lib = CLibretro::get_classinstance();
@@ -548,7 +549,7 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
                 bind.joykey_desc = SDL_GetScancodeName((SDL_Scancode)i);
                 bind.config.bits.sdl_id = i;
                 bind.val = 0;
-                bind.SDL_port = -1;
+                bind.SDL_port = 0;
                 bind.port = port;
                 framesload = 0;
                 bind.config.bits.joytype = joytype_::keyboard;
@@ -657,14 +658,16 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
     }
 }
 
-static bool key_pressed(int key)
+static int key_pressed(int key)
 {
     struct key_map *map = (key_map *)key_map_;
-    for (; map->rk != RETROK_UNKNOWN; map++)
+    for (; map->rk != RETROK_LAST; map++)
         if (map->rk == (retro_key)key)
-            break;
-    unsigned sym = SDL_GetScancodeFromKey(map->sym);
-    return lr_keymap[sym];
+        {
+            unsigned sym = SDL_GetScancodeFromKey(map->sym);
+            return lr_keymap[sym];
+        }
+    return false;
 }
 
 retro_keyboard_event_t inp_keys = NULL;
@@ -725,13 +728,15 @@ void poll_lr()
     {
         for (auto &bind : control.inputbinds)
         {
+            if (bind.config.bits.sdl_id == -1)
+            {
+                bind.val = 0;
+                continue;
+            }
 
             if (bind.config.bits.joytype == joytype_::keyboard)
             {
-                if (bind.SDL_port == -1)
-                    bind.val = (lr_keymap[bind.config.bits.sdl_id] == 1) ? 1 : 0;
-                else
-                    bind.val = 0;
+                bind.val = (lr_keymap[bind.config.bits.sdl_id] == 1) ? 1 : 0;
             }
             else if (bind.config.bits.joytype == joytype_::joystick_)
             {
@@ -831,28 +836,19 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
     }
 
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD)
-        return (id < RETROK_LAST) && key_pressed(id);
+        return key_pressed(id);
 
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || RETRO_DEVICE_JOYPAD)
     {
-        bool analog = ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG);
+        if (port > (lib->core_inpbinds.size() - 1))
+            return 0;
         for (auto &bind : lib->core_inpbinds[port].inputbinds)
         {
-            if (analog)
-            {
-                if ((bind.retro_id == axistocheck(id, index)) && bind.isanalog)
-                    return bind.val;
-                else
-                    continue;
-            }
+            if (bind.retro_id == (!bind.isanalog) ? id : axistocheck(id, index))
+                return bind.val;
             else
-            {
-                if (bind.isanalog)
-                    continue;
-                if (bind.retro_id == id)
-                    return bind.val;
-            }
+                continue;
         }
-        return 0;
     }
+    return 0;
 }
