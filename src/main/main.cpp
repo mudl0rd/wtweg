@@ -84,19 +84,21 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
 
-  double FPS = (1000. / 60.) * 1000;
-  double FPS2 = ((1000. / 60.) * 1000) * 2;
+ double FPS = (1000. / 60.);
+
   static double clock = 0;
   double deltaticks;
-  double newclock = micros();
-  deltaticks = FPS - ((newclock - clock));
-  int ticks = floor(deltaticks);
-  if (ticks > 0)
-    usleep(ticks);
-  if (deltaticks < -FPS2)
-    clock = newclock - FPS2;
-  else
-    clock = newclock + deltaticks;
+  double newclock = millis();
+  deltaticks = FPS - (newclock - clock);
+  if (floor(deltaticks) > 0)
+    SDL_Delay(deltaticks);
+  double ticks = ((newclock + floor(deltaticks)) * 1000.);
+  while (micros() < ticks)
+  {
+    /* Do nothing... */
+  };
+  clock = millis();
+
 
   SDL_GL_SwapWindow(window);
 }

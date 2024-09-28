@@ -840,14 +840,17 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
 
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || RETRO_DEVICE_JOYPAD)
     {
-        if (port > (lib->core_inpbinds.size() - 1))
-            return 0;
-        for (auto &bind : lib->core_inpbinds[port].inputbinds)
+        for (auto &binds : lib->core_inpbinds)
         {
-            if (bind.retro_id == (!bind.isanalog) ? id : axistocheck(id, index))
-                return bind.val;
-            else
-                continue;
+            size_t k = &binds - &lib->core_inpbinds.front();
+            if (k == port)
+            {
+                for (auto &bind : binds.inputbinds)
+                {
+                    if (bind.retro_id == ((bind.isanalog == true) ? axistocheck(id, index) : id))
+                        return bind.val;
+                }
+            }
         }
     }
     return 0;
