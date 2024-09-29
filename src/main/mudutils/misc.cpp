@@ -13,12 +13,14 @@
 #include <SDL2/SDL.h>
 #ifdef _WIN32
 #include <windows.h>
-#endif
+#include "fex/fex.h"
+#include "MemoryModulePP.h"
+#else
 #include <unistd.h>
+#endif
 using namespace std;
 
 #ifdef _WIN32
-
 static std::string_view SHLIB_EXTENSION = ".dll";
 #else
 static std::string_view SHLIB_EXTENSION = ".so";
@@ -45,7 +47,7 @@ namespace MudUtil
 		{
 			// get length of file:
 			is.seekg(0, is.end);
-			unsigned t = is.tellg();
+			unsigned t=is.tellg();
 			is.close();
 			return t;
 		}
@@ -113,18 +115,84 @@ namespace MudUtil
 
 	void *openlib(const char *path)
 	{
+#ifdef _WIN32
+#ifndef DEBUG
+		PMEMORYMODULE handle;
+		if (strcmp(get_filename_ext(path), "zip")==0||strcmp(get_filename_ext(path), "7z")==0||
+		strcmp(get_filename_ext(path), "rar") == 0)
+		{
+			fex_t *fex = NULL;
+			fex_err_t err = fex_open(&fex, path);
+			if (err==NULL)
+			while (!fex_done(fex))
+			{
+				if (fex_has_extension(fex_name(fex), ".dll"))
+				{
+					fex_stat(fex);
+					int sz = fex_size(fex);
+					char *buf = (char *)malloc(sz);
+					fex_read(fex, buf, sz);
+					handle = MemoryLoadLibrary(buf, sz);
+					free(buf);
+					if (!handle)
+					{
+						fex_close(fex);
+						fex = NULL;
+					}
+					else
+					{
+						fex_close(fex);
+						fex = NULL;
+						return handle;
+					}
+					fex_next(fex);
+				}
+			}
+			fex_close(fex);
+		}
+
+		std::vector<uint8_t> dll_ptr = load_data(path);
+		handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
+		if (!handle)
+			return NULL;
+		return handle;
+#else
+void *handle = SDL_LoadObject(path);
+		if (!handle)
+			return NULL;
+		return handle;
+#endif
+
+#else
 		void *handle = SDL_LoadObject(path);
 		if (!handle)
 			return NULL;
 		return handle;
+#endif
 	}
 	void *getfunc(void *handle, const char *funcname)
 	{
+#ifdef _WIN32
+#ifndef DEBUG
+		return (void *)MemoryGetProcAddress((PMEMORYMODULE)handle, funcname);
+#else
+return SDL_LoadFunction(handle, funcname);
+#endif
+#else
 		return SDL_LoadFunction(handle, funcname);
+#endif
 	}
 	void freelib(void *handle)
 	{
+#ifdef _WIN32
+#ifndef DEBUG
+		MemoryFreeLibrary((PMEMORYMODULE)handle);
+#else
 		SDL_UnloadObject(handle);
+#endif
+#else
+		SDL_UnloadObject(handle);
+#endif
 	}
 
 	const char *b64tb = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

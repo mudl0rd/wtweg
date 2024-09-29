@@ -42,6 +42,7 @@ struct core_info
 	float samplerate;
 	float fps;
 	bool no_roms;
+	bool in_corezip;
 };
 
 struct retro_core
@@ -184,7 +185,7 @@ public:
 	void reset();
 	void core_changinpt(int dev, int port);
 	bool core_isrunning();
-	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless);
+	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless, bool inzip);
 	void core_unload();
 	bool core_saveram(const char *filename, bool save);
 	bool core_savestateslot(bool save);
