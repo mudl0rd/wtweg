@@ -6,6 +6,16 @@
 #include "out_aud.h"
 #include <algorithm>
 #include <array>
+
+#ifdef _WIN32
+#include <windows.h>
+#include "fex/fex.h"
+#include "MemoryModulePP.h"
+static std::string_view SHLIB_EXTENSION = ".dll";
+#else
+static std::string_view SHLIB_EXTENSION = ".so";
+#endif
+
 #define INI_IMPLEMENTATION
 #define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
 #include "ini.h"
@@ -13,11 +23,7 @@
 #include "unistd.h"
 using namespace std;
 
-#ifdef _WIN32
-static std::string_view SHLIB_EXTENSION = ".dll";
-#else
-static std::string_view SHLIB_EXTENSION = ".so";
-#endif
+
 
 bool CLibretro::core_savestateslot(bool save)
 {
