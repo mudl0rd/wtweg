@@ -446,8 +446,8 @@ void CLibretro::reset()
     {
       size_t j = &retro_descript - &retro_descripts.front();
       coreinput_bind bind;
-      bind.device = (j > 15) ? RETRO_DEVICE_JOYPAD : RETRO_DEVICE_ANALOG;
-      bind.isanalog = (j > 15);
+      bind.device = (j < 16) ? RETRO_DEVICE_JOYPAD : RETRO_DEVICE_ANALOG;
+      bind.isanalog = (j > 16);
       bind.retro_id = j;
       bind.config.bits.axistrigger = 0;
       bind.config.bits.sdl_id = (i == 0 && j < 16) ? libretro_dmap[j].keeb : -1;

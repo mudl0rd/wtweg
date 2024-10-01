@@ -56,17 +56,19 @@ uint64_t inline timein()
   return SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency();
 }
 
-void engine_regulate_fps(double start, double current)
+void framelimit(double FPS)
 {
-  double remaining = (1.0 / 60.) - (current - start);
-  int sleep_ms = static_cast<int>(remaining * 1000.0);
-  // Sleep
-  if (sleep_ms > 0)
-    SDL_Delay(remaining);
-  // Busy-wait
-  while (micros() < current + remaining)
-  { /* Do nothing... */
-  };
+  double FPS = (1000. / FPS);
+
+  static double clock = 0;
+  double deltaticks;
+  double newclock = millis();
+  deltaticks = FPS - (newclock - clock);
+  if (floor(deltaticks) > 0)
+    SDL_Delay(deltaticks);
+  double ticks = ((newclock + floor(deltaticks)) * 1000.);
+  while (micros() < ticks){};
+  clock = millis();
 }
 
 void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
@@ -84,23 +86,9 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
 
- double FPS = (1000. / 60.);
-
-  static double clock = 0;
-  double deltaticks;
-  double newclock = millis();
-  deltaticks = FPS - (newclock - clock);
-  if (floor(deltaticks) > 0)
-    SDL_Delay(deltaticks);
-  double ticks = ((newclock + floor(deltaticks)) * 1000.);
-  while (micros() < ticks)
-  {
-    /* Do nothing... */
-  };
-  clock = millis();
-
-
   SDL_GL_SwapWindow(window);
+
+  framelimit(60.0);
 }
 
 int main2(const char *rom, const char *core, bool pergame)
