@@ -89,8 +89,6 @@ static void core_log(enum retro_log_level level, const char *fmt, ...)
   add_log(level, buffer);
 }
 
-
-
 static bool core_controller_info(struct retro_controller_info *info)
 {
   if (!info)
@@ -183,7 +181,7 @@ static bool core_environment(unsigned cmd, void *data)
   bool *bval;
   auto retro = CLibretro::get_classinstance();
   std::filesystem::path p(MudUtil::get_wtfwegname());
-  std::filesystem::path p_save=p;
+  std::filesystem::path p_save = p;
   p = p.parent_path() / "system";
   p_save = p_save.parent_path() / "saves";
   switch (cmd)
@@ -312,7 +310,7 @@ static bool core_environment(unsigned cmd, void *data)
 
     for (auto &var : retro->core_variables)
     {
-     
+
       if (strcmp(var.name.c_str(), cb->key) == 0)
       {
         if (var.category_name != "")

@@ -47,7 +47,7 @@ namespace MudUtil
 		{
 			// get length of file:
 			is.seekg(0, is.end);
-			unsigned t=is.tellg();
+			unsigned t = is.tellg();
 			is.close();
 			return t;
 		}
@@ -118,36 +118,36 @@ namespace MudUtil
 #ifdef _WIN32
 #ifndef DEBUG
 		PMEMORYMODULE handle;
-		if (strcmp(get_filename_ext(path), "zip")==0||strcmp(get_filename_ext(path), "7z")==0||
-		strcmp(get_filename_ext(path), "rar") == 0)
+		if (strcmp(get_filename_ext(path), "zip") == 0 || strcmp(get_filename_ext(path), "7z") == 0 ||
+			strcmp(get_filename_ext(path), "rar") == 0)
 		{
 			fex_t *fex = NULL;
 			fex_err_t err = fex_open(&fex, path);
-			if (err==NULL)
-			while (!fex_done(fex))
-			{
-				if (fex_has_extension(fex_name(fex), ".dll"))
+			if (err == NULL)
+				while (!fex_done(fex))
 				{
-					fex_stat(fex);
-					int sz = fex_size(fex);
-					char *buf = (char *)malloc(sz);
-					fex_read(fex, buf, sz);
-					handle = MemoryLoadLibrary(buf, sz);
-					free(buf);
-					if (!handle)
+					if (fex_has_extension(fex_name(fex), ".dll"))
 					{
-						fex_close(fex);
-						fex = NULL;
+						fex_stat(fex);
+						int sz = fex_size(fex);
+						char *buf = (char *)malloc(sz);
+						fex_read(fex, buf, sz);
+						handle = MemoryLoadLibrary(buf, sz);
+						free(buf);
+						if (!handle)
+						{
+							fex_close(fex);
+							fex = NULL;
+						}
+						else
+						{
+							fex_close(fex);
+							fex = NULL;
+							return handle;
+						}
+						fex_next(fex);
 					}
-					else
-					{
-						fex_close(fex);
-						fex = NULL;
-						return handle;
-					}
-					fex_next(fex);
 				}
-			}
 			fex_close(fex);
 		}
 
@@ -157,7 +157,7 @@ namespace MudUtil
 			return NULL;
 		return handle;
 #else
-void *handle = SDL_LoadObject(path);
+		void *handle = SDL_LoadObject(path);
 		if (!handle)
 			return NULL;
 		return handle;
@@ -176,7 +176,7 @@ void *handle = SDL_LoadObject(path);
 #ifndef DEBUG
 		return (void *)MemoryGetProcAddress((PMEMORYMODULE)handle, funcname);
 #else
-return SDL_LoadFunction(handle, funcname);
+		return SDL_LoadFunction(handle, funcname);
 #endif
 #else
 		return SDL_LoadFunction(handle, funcname);

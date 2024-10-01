@@ -28,9 +28,6 @@ struct audio_ctx
     void *resample;
     float *input_float;
     float *output_float;
-    float timeskew;
-    std::mutex mutex;
-    std::condition_variable cv;
 
 } audio_ctx_s = {0};
 
@@ -168,11 +165,11 @@ void audio_mix(void *samples, size_t size)
 
     while (written < out_bytes)
     {
-      
+
         size_t avail = fifo_write_avail(audio_ctx_s._fifo);
         if (avail)
         {
-              SDL_LockAudioDevice(audio_ctx_s.dev);
+            SDL_LockAudioDevice(audio_ctx_s.dev);
             size_t write_amt = out_bytes - written > avail ? avail : out_bytes - written;
             fifo_write(audio_ctx_s._fifo,
                        (char *)audio_ctx_s.output_float + written, write_amt, false);

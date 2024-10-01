@@ -67,7 +67,9 @@ void framelimit(double FPS)
   if (floor(deltaticks) > 0)
     SDL_Delay(deltaticks);
   double ticks = ((newclock + floor(deltaticks)) * 1000.);
-  while (micros() < ticks){};
+  while (micros() < ticks)
+  {
+  };
   clock = millis();
 }
 

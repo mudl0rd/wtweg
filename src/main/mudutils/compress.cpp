@@ -17,7 +17,8 @@ using namespace std;
 #include "7z_C/LzmaLib.h"
 #include "miniz.h"
 
-struct head{
+struct head
+{
     uint32_t magic;
     uint32_t unpacked;
     uint32_t packed;
@@ -27,26 +28,27 @@ namespace MudUtil
 {
 
     std::vector<unsigned char> compress_buf(unsigned char *buf, size_t size)
-    { 
-        head header = { 0x12111988,0,0};
+    {
+        head header = {0x12111988, 0, 0};
         std::vector<unsigned char> out_buf;
-        std::vector<unsigned char> out=compress_lzma(buf,size);
+        std::vector<unsigned char> out = compress_lzma(buf, size);
         header.packed = out.size();
         header.unpacked = size;
-        uint8_t * bytes = (uint8_t*)(&header);
-        vector_appendbytes(out_buf,bytes, sizeof(head));
-        vector_appendbytes(out_buf,out.data(),out.size());
+        uint8_t *bytes = (uint8_t *)(&header);
+        vector_appendbytes(out_buf, bytes, sizeof(head));
+        vector_appendbytes(out_buf, out.data(), out.size());
         return out_buf;
     }
 
-        std::vector<unsigned char> decompress_buf(
+    std::vector<unsigned char> decompress_buf(
         uint8_t *buf,
         size_t size)
     {
         std::vector<unsigned char> out;
         struct head *header = (struct head *)buf;
-        if(header->magic != 0x12111988)return {};
-        out=decompress_lzma(buf+sizeof(header),header->packed,header->unpacked);
+        if (header->magic != 0x12111988)
+            return {};
+        out = decompress_lzma(buf + sizeof(header), header->packed, header->unpacked);
         return out;
     }
 
@@ -55,7 +57,7 @@ namespace MudUtil
         std::vector<unsigned char> out;
         mz_ulong out_len = mz_compressBound(size);
         out.resize(out_len);
-        mz_compress(out.data(), &out_len, buf,size);
+        mz_compress(out.data(), &out_len, buf, size);
         out.resize(out_len);
         return out;
     }
@@ -66,8 +68,8 @@ namespace MudUtil
     {
         std::vector<unsigned char> out;
         out.resize(uncomp_sz);
-        mz_ulong us=uncomp_sz;
-        mz_uncompress(out.data(),&us,buf,size);
+        mz_ulong us = uncomp_sz;
+        mz_uncompress(out.data(), &us, buf, size);
         return out;
     }
 
