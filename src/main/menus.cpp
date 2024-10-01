@@ -248,16 +248,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         }
 
         if (ImGui::MenuItem("Load Savestate"))
-        {
-          if (instance->core_isrunning())
-            ImGuiFileDialog::Instance()->OpenDialog("LoadSaveState", "Load a savestate", ".state", ".", "", 1, nullptr, flags);
-        }
+          ImGuiFileDialog::Instance()->OpenDialog("LoadSaveState", "Load a savestate", ".state", ".", "", 1, nullptr, flags);
 
         if (ImGui::MenuItem("Save Savestate"))
-        {
-          if (instance->core_isrunning())
-            ImGuiFileDialog::Instance()->OpenDialog("SaveSaveState", "Save a savestate", ".state", ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
-        }
+          ImGuiFileDialog::Instance()->OpenDialog("SaveSaveState", "Save a savestate", ".state", ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
       }
 
       ImGui::EndMenu();
@@ -274,7 +268,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         ImGui::EndMenu();
       }
     }
-    else if (instance->core_isrunning())
+    else
     {
       if (ImGui::BeginMenu("Options"))
       {
@@ -329,458 +323,457 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         ImGui::EndMenu();
       }
     }
-
     ImGui::EndMainMenuBar();
   }
 
-  if (open_log)
-    my_log.Draw("Core Log");
+if (open_log)
+  my_log.Draw("Core Log");
 
-  ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
-  ImVec2 minSizedlg = ImVec2((float)io.DisplaySize.x * 0.4f, (float)io.DisplaySize.y * 0.4f);
-  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey", 32, minSizedlg, maxSizedlg))
+ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
+ImVec2 minSizedlg = ImVec2((float)io.DisplaySize.x * 0.4f, (float)io.DisplaySize.y * 0.4f);
+if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey", 32, minSizedlg, maxSizedlg))
+{
+  // action if OK
+  if (ImGuiFileDialog::Instance()->IsOk())
   {
-    // action if OK
-    if (ImGuiFileDialog::Instance()->IsOk())
-    {
-      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-      ImGuiFileDialog::Instance()->Close();
-      coreselect = loadfile(instance, (char *)filePathName.c_str(), NULL, false);
-      filenamepath = filePathName;
-    }
-    else
-      ImGuiFileDialog::Instance()->Close();
+    std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+    std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+    ImGuiFileDialog::Instance()->Close();
+    coreselect = loadfile(instance, (char *)filePathName.c_str(), NULL, false);
+    filenamepath = filePathName;
   }
+  else
+    ImGuiFileDialog::Instance()->Close();
+}
 
-  if (no_cores)
+if (no_cores)
+{
+  popup_widget(&no_cores, "No libretro cores", "There is no ROM/ISO loading cores detected.");
+  return;
+}
+
+if (coreselect)
+{
+  int hits = 0;
+  std::vector<core_info> cores_info;
+  cores_info.clear();
+  bool found = false;
+
+  for (auto &core : instance->cores)
   {
-    popup_widget(&no_cores, "No libretro cores", "There is no ROM/ISO loading cores detected.");
+
+    if (core.no_roms && core.core_extensions == "")
+      continue;
+
+    std::string core_ext = core.core_extensions;
+    std::string ext = filenamepath;
+    ext = ext.substr(ext.find_last_of(".") + 1);
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    std::transform(core_ext.begin(), core_ext.end(), core_ext.begin(), ::tolower);
+    if (core_ext.find(ext) != std::string::npos)
+    {
+      hits++;
+      cores_info.push_back(core);
+      found = true;
+    }
+  }
+  if (hits == 1 && found)
+  {
+    instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(0).core_path.c_str(), false, cores_info.at(0).in_corezip);
+    coreselect = false;
+    return;
+  }
+  if (!found)
+  {
+    popup_widget(&coreselect, "Core Load Error", "There is no core to load this particular bit of content.");
+    coreselect = false;
+    return;
+  }
+  else
+    ImGui::OpenPopup("Select a core");
+
+  ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
+                                      ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
+  ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
+  {
+    static int listbox_item_current = 0;
+    ImGui::ListBox("Select a core",
+                   &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
+    if (ImGui::Button("OK"))
+    {
+      instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(listbox_item_current).core_path.c_str(),
+                          false, cores_info.at(listbox_item_current).in_corezip);
+      coreselect = false;
+    }
+    ImGui::Bullet();
+    ImGui::SameLine();
+    ImGui::TextWrapped("WTFweg couldn't determine the core to use.");
+    ImGui::Bullet();
+    ImGui::SameLine();
+    ImGui::TextWrapped("Choose the specific core to load the ROM/ISO.");
+    ImGui::EndPopup();
+  }
+}
+
+if (ImGuiFileDialog::Instance()->Display("LoadSaveState", 32, minSizedlg, maxSizedlg))
+{
+  // action if OK
+  if (ImGuiFileDialog::Instance()->IsOk())
+  {
+    std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+    instance->core_savestate(filePathName.c_str(), false);
+    // action
+  }
+  // close
+  ImGuiFileDialog::Instance()->Close();
+}
+
+if (ImGuiFileDialog::Instance()->Display("SaveSaveState", 32, minSizedlg, maxSizedlg))
+{
+  // action if OK
+  if (ImGuiFileDialog::Instance()->IsOk())
+  {
+    std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+    instance->core_savestate(filePathName.c_str(), true);
+  }
+  // close
+  ImGuiFileDialog::Instance()->Close();
+}
+
+if (load_core)
+{
+  std::vector<core_info> cores_info;
+  cores_info.clear();
+  bool found = false;
+  for (auto &core : instance->cores)
+    if (core.no_roms)
+    {
+      cores_info.push_back(core);
+      found = true;
+    }
+
+  if (!found)
+  {
+    popup_widget(&load_core, "No contentless core", "There is no contentless cores detected.");
     return;
   }
 
-  if (coreselect)
+  ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
+                                      ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
+  ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  ImGui::OpenPopup("Select a contentless core to load");
+  if (ImGui::BeginPopupModal("Select a contentless core to load", &load_core, ImGuiWindowFlags_AlwaysAutoResize))
   {
-    int hits = 0;
-    std::vector<core_info> cores_info;
-    cores_info.clear();
-    bool found = false;
-
-    for (auto &core : instance->cores)
+    static int listbox_item_current = 0;
+    ImGui::ListBox("Select a contentless core",
+                   &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
+    if (ImGui::Button("OK"))
     {
+      instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str(),
+                          true, cores_info.at(listbox_item_current).in_corezip);
+      load_core = false;
+    }
+    ImGui::Bullet();
+    ImGui::SameLine();
+    ImGui::TextWrapped("Choose the specific core to load.");
+    ImGui::Bullet();
+    ImGui::SameLine();
+    ImGui::TextWrapped("These are ones that load their own assets.");
+    ImGui::EndPopup();
+  }
+}
 
-      if (core.no_roms && core.core_extensions == "")
-        continue;
-
-      std::string core_ext = core.core_extensions;
-      std::string ext = filenamepath;
-      ext = ext.substr(ext.find_last_of(".") + 1);
-      std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-      std::transform(core_ext.begin(), core_ext.end(), core_ext.begin(), ::tolower);
-      if (core_ext.find(ext) != std::string::npos)
-      {
-        hits++;
-        cores_info.push_back(core);
-        found = true;
-      }
-    }
-    if (hits == 1 && found)
-    {
-      instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(0).core_path.c_str(), false, cores_info.at(0).in_corezip);
-      coreselect = false;
-      return;
-    }
-    if (!found)
-    {
-      popup_widget(&coreselect, "Core Load Error", "There is no core to load this particular bit of content.");
-      coreselect = false;
-      return;
-    }
-    else
-      ImGui::OpenPopup("Select a core");
-
-    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
-                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-      static int listbox_item_current = 0;
-      ImGui::ListBox("Select a core",
-                     &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
-      if (ImGui::Button("OK"))
-      {
-        instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(listbox_item_current).core_path.c_str(),
-                            false, cores_info.at(listbox_item_current).in_corezip);
-        coreselect = false;
-      }
-      ImGui::Bullet();
-      ImGui::SameLine();
-      ImGui::TextWrapped("WTFweg couldn't determine the core to use.");
-      ImGui::Bullet();
-      ImGui::SameLine();
-      ImGui::TextWrapped("Choose the specific core to load the ROM/ISO.");
-      ImGui::EndPopup();
-    }
+if (inputsettings)
+{
+  static int selected_inp = 0;
+  static bool isselected_inp = false;
+  static int selected_port = 0;
+  checkbuttons_forui(selected_inp, &isselected_inp, selected_port);
+  if (!instance->core_inpbinds.at(0).inputbinds.size())
+  {
+    popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
+    return;
   }
 
-  if (ImGuiFileDialog::Instance()->Display("LoadSaveState", 32, minSizedlg, maxSizedlg))
-  {
-    // action if OK
-    if (ImGuiFileDialog::Instance()->IsOk())
-    {
-      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-      instance->core_savestate(filePathName.c_str(), false);
-      // action
-    }
-    // close
-    ImGuiFileDialog::Instance()->Close();
-  }
+  ImGui::OpenPopup("Input Settings");
+  ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.3f),
+                                      ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
+  ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-  if (ImGuiFileDialog::Instance()->Display("SaveSaveState", 32, minSizedlg, maxSizedlg))
+  if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
   {
-    // action if OK
-    if (ImGuiFileDialog::Instance()->IsOk())
+    if (instance->core_inpbinds.size() < 2)
     {
-      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-      instance->core_savestate(filePathName.c_str(), true);
-    }
-    // close
-    ImGuiFileDialog::Instance()->Close();
-  }
-
-  if (load_core)
-  {
-    std::vector<core_info> cores_info;
-    cores_info.clear();
-    bool found = false;
-    for (auto &core : instance->cores)
-      if (core.no_roms)
+      int descnum = 1;
+      for (auto &bind : instance->core_inpbinds[0].inputbinds)
       {
-        cores_info.push_back(core);
-        found = true;
-      }
+        size_t i = &bind - &instance->core_inpbinds[0].inputbinds.front();
+        if (bind.description == "")
+          continue;
 
-    if (!found)
-    {
-      popup_widget(&load_core, "No contentless core", "There is no contentless cores detected.");
-      return;
-    }
-
-    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
-                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    ImGui::OpenPopup("Select a contentless core to load");
-    if (ImGui::BeginPopupModal("Select a contentless core to load", &load_core, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-      static int listbox_item_current = 0;
-      ImGui::ListBox("Select a contentless core",
-                     &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
-      if (ImGui::Button("OK"))
-      {
-        instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str(),
-                            true, cores_info.at(listbox_item_current).in_corezip);
-        load_core = false;
-      }
-      ImGui::Bullet();
-      ImGui::SameLine();
-      ImGui::TextWrapped("Choose the specific core to load.");
-      ImGui::Bullet();
-      ImGui::SameLine();
-      ImGui::TextWrapped("These are ones that load their own assets.");
-      ImGui::EndPopup();
-    }
-  }
-
-  if (inputsettings)
-  {
-    static int selected_inp = 0;
-    static bool isselected_inp = false;
-    static int selected_port = 0;
-    checkbuttons_forui(selected_inp, &isselected_inp, selected_port);
-    if (!instance->core_inpbinds.at(0).inputbinds.size())
-    {
-      popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
-      return;
-    }
-
-    ImGui::OpenPopup("Input Settings");
-    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.3f),
-                                        ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-
-    if (ImGui::BeginPopupModal("Input Settings", &inputsettings, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-      if (instance->core_inpbinds.size() < 2)
-      {
-        int descnum = 1;
-        for (auto &bind : instance->core_inpbinds[0].inputbinds)
+        ImGui::TextWrapped("%s", bind.description.c_str());
+        std::string script = "##" + bind.description;
+        char *button_str = (char *)bind.joykey_desc.c_str();
+        ImVec2 sz = ImGui::GetWindowSize();
+        ImGui::SameLine(sz.x * 0.78);
+        ImGui::SetNextItemWidth(sz.x * 0.2);
+        ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
+        if (ImGui::IsItemActive())
         {
-          size_t i = &bind - &instance->core_inpbinds[0].inputbinds.front();
-          if (bind.description == "")
-            continue;
-
-          ImGui::TextWrapped("%s", bind.description.c_str());
-          std::string script = "##" + bind.description;
-          char *button_str = (char *)bind.joykey_desc.c_str();
-          ImVec2 sz = ImGui::GetWindowSize();
-          ImGui::SameLine(sz.x * 0.78);
-          ImGui::SetNextItemWidth(sz.x * 0.2);
-          ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
-          if (ImGui::IsItemActive())
-          {
-            ImGui::SetWindowFocus();
-            selected_inp = i;
-            isselected_inp = true;
-            selected_port = descnum - 1;
-          }
+          ImGui::SetWindowFocus();
+          selected_inp = i;
+          isselected_inp = true;
+          selected_port = descnum - 1;
         }
       }
-      else if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
-      {
-        int descnum = 1;
-        for (auto &control : instance->core_inpbinds)
-        {
-          std::string descstring = "Player " + std::to_string(descnum);
-          if (ImGui::BeginTabItem(descstring.c_str()))
-          {
-            for (auto &bind : control.inputbinds)
-            {
-              size_t i = &bind - &control.inputbinds.front();
-              if (bind.description == "")
-                continue;
-
-              ImGui::TextWrapped("%s", bind.description.c_str());
-              std::string script = "##" + bind.description;
-              char *button_str = (char *)bind.joykey_desc.c_str();
-              ImVec2 sz = ImGui::GetWindowSize();
-              ImGui::SameLine(sz.x * 0.80);
-              ImGui::SetNextItemWidth(sz.x * 0.2);
-              ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
-              if (ImGui::IsItemActive())
-              {
-                ImGui::SetWindowFocus();
-                selected_inp = i;
-                isselected_inp = true;
-                selected_port = descnum - 1;
-              }
-            }
-
-            ImGui::EndTabItem();
-          }
-          descnum++;
-        }
-        ImGui::EndTabBar();
-      }
-      if (ImGui::Button("OK"))
-      {
-        inputsettings = false;
-        isselected_inp = false;
-        loadinpconf(instance->input_confcrc, true);
-      }
-      ImGui::EndPopup();
     }
+    else if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
+    {
+      int descnum = 1;
+      for (auto &control : instance->core_inpbinds)
+      {
+        std::string descstring = "Player " + std::to_string(descnum);
+        if (ImGui::BeginTabItem(descstring.c_str()))
+        {
+          for (auto &bind : control.inputbinds)
+          {
+            size_t i = &bind - &control.inputbinds.front();
+            if (bind.description == "")
+              continue;
+
+            ImGui::TextWrapped("%s", bind.description.c_str());
+            std::string script = "##" + bind.description;
+            char *button_str = (char *)bind.joykey_desc.c_str();
+            ImVec2 sz = ImGui::GetWindowSize();
+            ImGui::SameLine(sz.x * 0.80);
+            ImGui::SetNextItemWidth(sz.x * 0.2);
+            ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
+            if (ImGui::IsItemActive())
+            {
+              ImGui::SetWindowFocus();
+              selected_inp = i;
+              isselected_inp = true;
+              selected_port = descnum - 1;
+            }
+          }
+
+          ImGui::EndTabItem();
+        }
+        descnum++;
+      }
+      ImGui::EndTabBar();
+    }
+    if (ImGui::Button("OK"))
+    {
+      inputsettings = false;
+      isselected_inp = false;
+      loadinpconf(instance->input_confcrc, true);
+    }
+    ImGui::EndPopup();
+  }
+}
+
+if (coresettings)
+{
+
+  if (!instance->core_variables.size())
+  {
+    popup_widget(&coresettings, "No core settings", "There is no core settings for this particular core.");
+    return;
   }
 
-  if (coresettings)
+  ImGui::OpenPopup("Core Settings");
+
+  ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.1f),
+                                      ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
+  ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+
+  if (ImGui::BeginPopupModal("Core Settings", &coresettings, ImGuiWindowFlags_AlwaysAutoResize))
   {
 
-    if (!instance->core_variables.size())
+    for (auto &bind2 : instance->core_categories)
     {
-      popup_widget(&coresettings, "No core settings", "There is no core settings for this particular core.");
-      return;
-    }
-
-    ImGui::OpenPopup("Core Settings");
-
-    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.1f),
-                                        ImVec2(io.DisplaySize.x * 0.7f, io.DisplaySize.y * 0.5f));
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-
-    if (ImGui::BeginPopupModal("Core Settings", &coresettings, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-
-      for (auto &bind2 : instance->core_categories)
-      {
-        bool visible = false;
-        for (auto &bind1 : instance->core_variables)
-          if (bind1.category_name == bind2.key && bind1.config_visible)
-            visible = true;
-        if (visible)
-          if (ImGui::TreeNode(bind2.desc.c_str()))
-          {
-            for (auto &bind : instance->core_variables)
-            {
-              std::string descript = bind.description;
-              std::string hidden = "##" + descript;
-              std::string var = bind.var;
-              int sel_idx = bind.sel_idx;
-              std::string current_item = bind.config_vals[sel_idx];
-              bool checkbox_made = false;
-              bool checkbox_enabled = false;
-
-              if (bind2.key == bind.category_name && bind.config_visible)
-              {
-                for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
-                {
-                  if (checkbox_enabled)
-                    break;
-                  for (auto &l : bind.config_vals)
-                  {
-                    if (stricmp(l.c_str(), checkbox_allowable[j]) == 0)
-                    {
-                      checkbox_made = true;
-                      for (izrange(k, IM_ARRAYSIZE(true_vals)))
-                        if (stricmp(var.c_str(), true_vals[k]) == 0)
-                          checkbox_enabled = true;
-                    }
-                  }
-                }
-
-                if (checkbox_made)
-                {
-
-                  int total_w = descript.length();
-                  ImGui::TextWrapped("%s", descript.c_str());
-                  ImGui::SameLine();
-                  HelpMarker(bind.tooltip.c_str());
-                  float w = ImGui::CalcItemWidth();
-                  ImVec2 sz = ImGui::GetWindowSize();
-                  ImGui::SameLine(sz.x * 0.65);
-                  ImGui::SetNextItemWidth(total_w);
-                  if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
-                  {
-                    bind.sel_idx ^= 1;
-                    std::string change = bind.config_vals[bind.sel_idx];
-                    bind.var = change;
-                    instance->variables_changed = true;
-                  }
-                }
-                else
-                {
-
-                  ImGui::TextWrapped("%s", descript.c_str());
-                  ImGui::SameLine();
-                  HelpMarker(bind.tooltip.c_str());
-                  ImVec2 sz = ImGui::GetWindowSize();
-                  ImGui::SameLine(sz.x * 0.65);
-                  ImGui::SetNextItemWidth(sz.x * 0.3);
-                  if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
-                  {
-                    for (auto &config_val : bind.config_vals)
-                    {
-                      size_t n = &config_val - &bind.config_vals.front();
-                      bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
-                      if (ImGui::Selectable(config_val.c_str(), is_selected))
-                      {
-                        bind.sel_idx = n;
-                        bind.var = config_val;
-                        instance->variables_changed = true;
-                      }
-
-                      if (is_selected)
-                        ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                  }
-                }
-              }
-            }
-            ImGui::TreePop();
-          }
-      }
-
-      for (auto &bind : instance->core_variables)
-      {
-        std::string descript = bind.description;
-        std::string hidden = "##" + descript;
-        std::string var = bind.var;
-        int sel_idx = bind.sel_idx;
-        std::string current_item = bind.config_vals[sel_idx];
-        bool checkbox_made = false;
-        bool checkbox_enabled = false;
-        if (bind.category_name == "")
+      bool visible = false;
+      for (auto &bind1 : instance->core_variables)
+        if (bind1.category_name == bind2.key && bind1.config_visible)
+          visible = true;
+      if (visible)
+        if (ImGui::TreeNode(bind2.desc.c_str()))
         {
-          for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
+          for (auto &bind : instance->core_variables)
           {
-            if (checkbox_enabled)
-              break;
-            for (izrange(l, bind.config_vals.size()))
+            std::string descript = bind.description;
+            std::string hidden = "##" + descript;
+            std::string var = bind.var;
+            int sel_idx = bind.sel_idx;
+            std::string current_item = bind.config_vals[sel_idx];
+            bool checkbox_made = false;
+            bool checkbox_enabled = false;
+
+            if (bind2.key == bind.category_name && bind.config_visible)
             {
-              if (stricmp(instance->v2_vars ? bind.config_vals[l].c_str() : bind.usevars.c_str(),
-                          instance->v2_vars ? checkbox_allowable[j] : checkbox_allowablev1[j]) == 0)
+              for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
               {
-                checkbox_made = true;
-                for (izrange(k, IM_ARRAYSIZE(true_vals)))
-                  if (stricmp(var.c_str(), true_vals[k]) == 0)
-                    checkbox_enabled = true;
-              }
-            }
-          }
-
-          if (checkbox_made)
-          {
-
-            int total_w = descript.length();
-            ImGui::TextWrapped("%s", descript.c_str());
-            if (bind.tooltip != "")
-            {
-              ImGui::SameLine();
-              HelpMarker(bind.tooltip.c_str());
-            }
-            float w = ImGui::CalcItemWidth();
-            ImVec2 sz = ImGui::GetWindowSize();
-            ImGui::SameLine(sz.x * 0.65);
-            ImGui::SetNextItemWidth(total_w);
-            if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
-            {
-              bind.sel_idx ^= 1;
-              std::string change = bind.config_vals[bind.sel_idx];
-              bind.var = change;
-              instance->variables_changed = true;
-            }
-          }
-          else
-          {
-
-            ImGui::TextWrapped("%s", descript.c_str());
-            if (bind.tooltip != "")
-            {
-              ImGui::SameLine();
-              HelpMarker(bind.tooltip.c_str());
-            }
-            ImVec2 sz = ImGui::GetWindowSize();
-            ImGui::SameLine(sz.x * 0.65);
-            ImGui::SetNextItemWidth(sz.x * 0.3);
-            if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
-            {
-              for (auto &config_val : bind.config_vals)
-              {
-                size_t n = &config_val - &bind.config_vals.front();
-                bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
-                if (ImGui::Selectable(config_val.c_str(), is_selected))
+                if (checkbox_enabled)
+                  break;
+                for (auto &l : bind.config_vals)
                 {
-                  bind.sel_idx = n;
-                  bind.var = config_val;
+                  if (stricmp(l.c_str(), checkbox_allowable[j]) == 0)
+                  {
+                    checkbox_made = true;
+                    for (izrange(k, IM_ARRAYSIZE(true_vals)))
+                      if (stricmp(var.c_str(), true_vals[k]) == 0)
+                        checkbox_enabled = true;
+                  }
+                }
+              }
+
+              if (checkbox_made)
+              {
+
+                int total_w = descript.length();
+                ImGui::TextWrapped("%s", descript.c_str());
+                ImGui::SameLine();
+                HelpMarker(bind.tooltip.c_str());
+                float w = ImGui::CalcItemWidth();
+                ImVec2 sz = ImGui::GetWindowSize();
+                ImGui::SameLine(sz.x * 0.65);
+                ImGui::SetNextItemWidth(total_w);
+                if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
+                {
+                  bind.sel_idx ^= 1;
+                  std::string change = bind.config_vals[bind.sel_idx];
+                  bind.var = change;
                   instance->variables_changed = true;
                 }
-
-                if (is_selected)
-                  ImGui::SetItemDefaultFocus();
               }
-              ImGui::EndCombo();
+              else
+              {
+
+                ImGui::TextWrapped("%s", descript.c_str());
+                ImGui::SameLine();
+                HelpMarker(bind.tooltip.c_str());
+                ImVec2 sz = ImGui::GetWindowSize();
+                ImGui::SameLine(sz.x * 0.65);
+                ImGui::SetNextItemWidth(sz.x * 0.3);
+                if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
+                {
+                  for (auto &config_val : bind.config_vals)
+                  {
+                    size_t n = &config_val - &bind.config_vals.front();
+                    bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
+                    if (ImGui::Selectable(config_val.c_str(), is_selected))
+                    {
+                      bind.sel_idx = n;
+                      bind.var = config_val;
+                      instance->variables_changed = true;
+                    }
+
+                    if (is_selected)
+                      ImGui::SetItemDefaultFocus();
+                  }
+                  ImGui::EndCombo();
+                }
+              }
+            }
+          }
+          ImGui::TreePop();
+        }
+    }
+
+    for (auto &bind : instance->core_variables)
+    {
+      std::string descript = bind.description;
+      std::string hidden = "##" + descript;
+      std::string var = bind.var;
+      int sel_idx = bind.sel_idx;
+      std::string current_item = bind.config_vals[sel_idx];
+      bool checkbox_made = false;
+      bool checkbox_enabled = false;
+      if (bind.category_name == "")
+      {
+        for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
+        {
+          if (checkbox_enabled)
+            break;
+          for (izrange(l, bind.config_vals.size()))
+          {
+            if (stricmp(instance->v2_vars ? bind.config_vals[l].c_str() : bind.usevars.c_str(),
+                        instance->v2_vars ? checkbox_allowable[j] : checkbox_allowablev1[j]) == 0)
+            {
+              checkbox_made = true;
+              for (izrange(k, IM_ARRAYSIZE(true_vals)))
+                if (stricmp(var.c_str(), true_vals[k]) == 0)
+                  checkbox_enabled = true;
             }
           }
         }
-      }
 
-      // click ok when finished adjusting
-      if (ImGui::Button("OK"))
-      {
-        coresettings = false;
-        instance->save_coresettings();
-      }
+        if (checkbox_made)
+        {
 
-      ImGui::EndPopup();
+          int total_w = descript.length();
+          ImGui::TextWrapped("%s", descript.c_str());
+          if (bind.tooltip != "")
+          {
+            ImGui::SameLine();
+            HelpMarker(bind.tooltip.c_str());
+          }
+          float w = ImGui::CalcItemWidth();
+          ImVec2 sz = ImGui::GetWindowSize();
+          ImGui::SameLine(sz.x * 0.65);
+          ImGui::SetNextItemWidth(total_w);
+          if (ImGui::Checkbox(hidden.c_str(), &checkbox_enabled))
+          {
+            bind.sel_idx ^= 1;
+            std::string change = bind.config_vals[bind.sel_idx];
+            bind.var = change;
+            instance->variables_changed = true;
+          }
+        }
+        else
+        {
+
+          ImGui::TextWrapped("%s", descript.c_str());
+          if (bind.tooltip != "")
+          {
+            ImGui::SameLine();
+            HelpMarker(bind.tooltip.c_str());
+          }
+          ImVec2 sz = ImGui::GetWindowSize();
+          ImGui::SameLine(sz.x * 0.65);
+          ImGui::SetNextItemWidth(sz.x * 0.3);
+          if (ImGui::BeginCombo(hidden.c_str(), current_item.c_str())) // The second parameter is the label previewed before opening the combo.
+          {
+            for (auto &config_val : bind.config_vals)
+            {
+              size_t n = &config_val - &bind.config_vals.front();
+              bool is_selected = (bind.sel_idx == n); // You can store your selection however you want, outside or inside your objects
+              if (ImGui::Selectable(config_val.c_str(), is_selected))
+              {
+                bind.sel_idx = n;
+                bind.var = config_val;
+                instance->variables_changed = true;
+              }
+
+              if (is_selected)
+                ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+          }
+        }
+      }
     }
+
+    // click ok when finished adjusting
+    if (ImGui::Button("OK"))
+    {
+      coresettings = false;
+      instance->save_coresettings();
+    }
+
+    ImGui::EndPopup();
   }
+}
 }

@@ -25,52 +25,25 @@
 
 SDL_DisplayMode dm;
 
-uint64_t millis()
+inline uint64_t SDL_GetMicroTicks()
 {
-  uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::high_resolution_clock::now().time_since_epoch())
-                    .count();
-  return ms;
-}
-
-// Get time stamp in microseconds.
-uint64_t micros()
-{
-  uint64_t us = std::chrono::duration_cast<std::chrono::microseconds>(
-                    std::chrono::high_resolution_clock::now().time_since_epoch())
-                    .count();
-  return us;
-}
-
-// Get time stamp in nanoseconds.
-uint64_t nanos()
-{
-  uint64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                    std::chrono::high_resolution_clock::now().time_since_epoch())
-                    .count();
-  return ns;
-}
-
-uint64_t inline timein()
-{
-  return SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency();
+    static Uint64 freq = SDL_GetPerformanceFrequency();
+    return SDL_GetPerformanceCounter()*1000000ull / freq;
 }
 
 void framelimit(double FPS)
 {
-  double FPS = (1000. / FPS);
-
   static double clock = 0;
   double deltaticks;
-  double newclock = millis();
-  deltaticks = FPS - (newclock - clock);
-  if (floor(deltaticks) > 0)
+  double newclock = SDL_GetTicks64();
+  deltaticks = floor((1000. / FPS) - (newclock - clock));
+  if (deltaticks > 0)
     SDL_Delay(deltaticks);
-  double ticks = ((newclock + floor(deltaticks)) * 1000.);
-  while (micros() < ticks)
+  double ticks = ((newclock + deltaticks) * 1000.);
+  while (SDL_GetMicroTicks() < ticks)
   {
   };
-  clock = millis();
+  clock = SDL_GetTicks64();
 }
 
 void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
