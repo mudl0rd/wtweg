@@ -584,6 +584,23 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
       auto corecode = [](CLibretro *instance, loadedcore_configvars &bind, bool checkbox_made, bool checkbox_enabled)
       {
+        for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
+        {
+          if (checkbox_enabled)
+            break;
+          for (izrange(l, bind.config_vals.size()))
+          {
+            if (stricmp(instance->v2_vars ? bind.config_vals[l].c_str() : bind.usevars.c_str(),
+                        instance->v2_vars ? checkbox_allowable[j] : checkbox_allowablev1[j]) == 0)
+            {
+              checkbox_made = true;
+              for (izrange(k, IM_ARRAYSIZE(true_vals)))
+                if (stricmp(bind.var.c_str(), true_vals[k]) == 0)
+                  checkbox_enabled = true;
+            }
+          }
+        }
+
         std::string descript = bind.description;
         std::string hidden = "##" + descript;
         int sel_idx = bind.sel_idx;
@@ -640,85 +657,48 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       for (auto &bind2 : instance->core_categories)
       {
         bool visible = false;
+
         for (auto &bind1 : instance->core_variables)
         {
-          if (bind1.category_name == bind2.key && bind1.config_visible){
+          if (bind1.category_name == bind2.key && bind1.config_visible)
+          {
             visible = true;
             break;
           }
         }
-        if (visible)
-          if (ImGui::TreeNode(bind2.desc.c_str()))
+        if (bind2.key != "")
+          if (ImGui::TreeNode(bind2.desc.c_str()) && visible)
           {
             for (auto &bind : instance->core_variables)
             {
+              std::string var = bind.var;
+              bool checkbox_made = false;
+              bool checkbox_enabled = false;
 
-              if (bind.category_name == bind2.key && bind.config_visible)
-              {
-                std::string var = bind.var;
-                bool checkbox_made = false;
-                bool checkbox_enabled = false;
-
-                if (bind2.key == bind.category_name && bind.config_visible)
-                {
-                  for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
-                  {
-                    if (checkbox_enabled)
-                      break;
-                    for (auto &l : bind.config_vals)
-                    {
-                      if (stricmp(l.c_str(), checkbox_allowable[j]) == 0)
-                      {
-                        checkbox_made = true;
-                        for (izrange(k, IM_ARRAYSIZE(true_vals)))
-                          if (stricmp(var.c_str(), true_vals[k]) == 0)
-                            checkbox_enabled = true;
-                      }
-                    }
-                  }
-                  corecode(instance, bind, checkbox_made, checkbox_enabled);
-                }
-              }
+              if (bind2.key == bind.category_name && bind.config_visible)
+                corecode(instance, bind, checkbox_made, checkbox_enabled);
             }
-            ImGui::TreePop();
           }
+        ImGui::TreePop();
       }
-
+      // do non categorized vars.
       for (auto &bind : instance->core_variables)
       {
         std::string var = bind.var;
         bool checkbox_made = false;
         bool checkbox_enabled = false;
         if (bind.category_name == "")
-        {
-          for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
-          {
-            if (checkbox_enabled)
-              break;
-            for (izrange(l, bind.config_vals.size()))
-            {
-              if (stricmp(instance->v2_vars ? bind.config_vals[l].c_str() : bind.usevars.c_str(),
-                          instance->v2_vars ? checkbox_allowable[j] : checkbox_allowablev1[j]) == 0)
-              {
-                checkbox_made = true;
-                for (izrange(k, IM_ARRAYSIZE(true_vals)))
-                  if (stricmp(var.c_str(), true_vals[k]) == 0)
-                    checkbox_enabled = true;
-              }
-            }
-          }
           corecode(instance, bind, checkbox_made, checkbox_enabled);
         }
       }
 
-      // click ok when finished adjusting
-      if (ImGui::Button("OK"))
-      {
-        coresettings = false;
-        instance->save_coresettings();
-      }
-
-      ImGui::EndPopup();
+    // click ok when finished adjusting
+    if (ImGui::Button("OK"))
+    {
+      coresettings = false;
+      instance->save_coresettings();
     }
+
+    ImGui::EndPopup();
   }
 }

@@ -317,6 +317,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
       core_variables.push_back(vars_struct);
       var3++;
     }
+
     v2_vars = false;
   }
 
