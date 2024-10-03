@@ -524,18 +524,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         }
       };
 
-      if (instance->core_inpbinds.size() == 1)
-      {
-        for (auto &control : instance->core_inpbinds)
-        {
-          for (auto &bind : control.inputbinds)
-          {
-            size_t i = &bind - &control.inputbinds.front();
-            inpcode(bind, i);
-          }
-        }
-      }
-      else if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
+      if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
       {
         int descnum = 1;
         for (auto &control : instance->core_inpbinds)
@@ -657,7 +646,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       for (auto &bind2 : instance->core_categories)
       {
         bool visible = false;
-
         for (auto &bind1 : instance->core_variables)
         {
           if (bind1.category_name == bind2.key && bind1.config_visible)
