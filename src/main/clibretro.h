@@ -193,6 +193,7 @@ public:
 	void core_run();
 	void set_inputdevice(int device);
 	void get_cores();
+	void framelimit();
 
 	bool init_configvars(retro_variable *var);
 	bool init_configvars_coreoptions(void *var, int version);

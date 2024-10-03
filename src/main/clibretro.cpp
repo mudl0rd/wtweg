@@ -323,9 +323,6 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
   config_crc = 0;
   int len = core_path.length();
   config_crc = MudUtil::crc32(config_crc, core_path.c_str(), len);
-  // for (auto &vars : core_variables)
-  // config_crc = MudUtil::crc32(config_crc, (const void *)vars.name.c_str(), vars.name.length());
-
   load_coresettings();
   return false;
 }
@@ -430,6 +427,7 @@ void CLibretro::reset()
   frametime_cb = NULL;
   frametime_ref = 0;
   use_retropad = true;
+  fps = 60.0;
 
   core_inpbinds.clear();
   core_inpbinds.resize(2);
@@ -450,13 +448,13 @@ void CLibretro::reset()
       bind.isanalog = (j > 16);
       bind.retro_id = j;
       bind.config.bits.axistrigger = 0;
-      bind.config.bits.sdl_id = (i == 0 && j < 16) ? libretro_dmap[j].keeb : -1;
+      bind.config.bits.sdl_id = (i == 0 && j < 14) ? libretro_dmap[j].keeb : -1;
       bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
       bind.val = 0;
       bind.SDL_port = 0;
       bind.port = i;
       bind.description = retro_descript;
-      bind.joykey_desc = (i == 0 && j < 13) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";
+      bind.joykey_desc = (i == 0 && j < 14) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";
       bind2.push_back(bind);
     }
     core_inpbinds[i].inputbinds = bind2;
@@ -660,7 +658,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   }
 
   retro.retro_get_system_av_info(&av);
-  audio_init((float)60.0, av.timing.sample_rate, av.timing.fps, false);
+  fps = av.timing.fps;
+  audio_init((float)fps, av.timing.sample_rate, av.timing.fps, false);
   video_init(&av.geometry, sdl_window);
   core_saveram(romsavesstatespath.c_str(), false);
 
@@ -670,6 +669,35 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     core_changinpt(core_inpbinds[i].controller_type, i);
 
   return true;
+}
+
+inline uint64_t SDL_GetMicroTicks()
+{
+    static Uint64 freq = SDL_GetPerformanceFrequency();
+    return SDL_GetPerformanceCounter()*1000000ull / freq;
+}
+
+inline uint64_t SDL_GetHQTicks() {
+ // return SDL_GetTicks64();
+  
+  static Uint64 freq = SDL_GetPerformanceFrequency(); 
+  return SDL_GetPerformanceCounter()*1000 / freq; 
+  
+  }
+
+void CLibretro::framelimit()
+{
+  static double clock = 0;
+  double deltaticks;
+  double newclock = SDL_GetTicks64();
+  deltaticks = floor((1000. / fps) - (newclock - clock));
+  if (deltaticks > 0)
+    SDL_Delay(deltaticks);
+  double ticks = ((newclock + deltaticks) * 1000.);
+  while (SDL_GetMicroTicks() < ticks)
+  {
+  };
+  clock = SDL_GetTicks64();
 }
 
 bool CLibretro::core_isrunning()
@@ -798,8 +826,10 @@ void CLibretro::get_cores()
     string str = entry.path().string();
     if (entry.is_regular_file() && (entry.path().extension() == SHLIB_EXTENSION
 #ifdef _WIN32
+#ifndef DEBUG
                                     || entry.path().extension() == ".zip" ||
                                     entry.path().extension() == ".rar" || entry.path().extension() == ".7z"
+#endif
 #endif
                                     ))
     {

@@ -63,7 +63,7 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
 
   SDL_GL_SwapWindow(window);
 
-  framelimit(60.0);
+  instance->framelimit();
 }
 
 int main2(const char *rom, const char *core, bool pergame)
