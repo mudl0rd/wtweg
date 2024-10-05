@@ -23,8 +23,6 @@ static std::string_view SHLIB_EXTENSION = ".so";
 #include "unistd.h"
 using namespace std;
 
-
-
 bool CLibretro::core_savestateslot(bool save)
 {
   if (rom_path != "")
@@ -155,7 +153,6 @@ bool CLibretro::load_coresettings()
 
 void CLibretro::save_coresettings()
 {
-  uint32_t crc = 0;
   std::string crc_string = "Core_" + std::to_string(config_crc);
   unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
 
@@ -320,10 +317,6 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
 
     v2_vars = false;
   }
-
-  config_crc = 0;
-  int len = core_path.length();
-  config_crc = MudUtil::crc32(config_crc, core_path.c_str(), len);
   load_coresettings();
   return false;
 }
@@ -515,7 +508,6 @@ static bool no_roms(unsigned cmd, void *data)
   return false;
 }
 
-
 bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless, bool inzip)
 {
   if (lr_isrunning)
@@ -525,6 +517,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   lr_isrunning = false;
 
   rom_path = (ROM == NULL) ? "" : ROM;
+  std::filesystem::path path_core(corepath);
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path = save_path_ /
                                     (std::filesystem::path(corepath).stem().string() + ".sram");
@@ -540,7 +533,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     core_config = std::filesystem::absolute(save_path).string();
   }
 
-   void *hDLL = NULL;
+  void *hDLL = NULL;
 #ifdef _WIN32
 #ifndef DEBUG
   if (inzip)
@@ -590,8 +583,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     const char *err = SDL_GetError();
     return false;
   }
-  core_path = corepath;
-
+  config_crc = MudUtil::crc32(0, path_core.filename().string().c_str(), 
+  path_core.filename().string().length());
 
 #define libload(name) MudUtil::getfunc(hDLL, name)
 #define load_sym(V, name)                         \
@@ -674,17 +667,17 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
 inline uint64_t SDL_GetMicroTicks()
 {
-    static Uint64 freq = SDL_GetPerformanceFrequency();
-    return SDL_GetPerformanceCounter()*1000000ull / freq;
+  static Uint64 freq = SDL_GetPerformanceFrequency();
+  return SDL_GetPerformanceCounter() * 1000000ull / freq;
 }
 
-inline uint64_t SDL_GetHQTicks() {
- // return SDL_GetTicks64();
-  
-  static Uint64 freq = SDL_GetPerformanceFrequency(); 
-  return SDL_GetPerformanceCounter()*1000 / freq; 
-  
-  }
+inline uint64_t SDL_GetHQTicks()
+{
+  // return SDL_GetTicks64();
+
+  static Uint64 freq = SDL_GetPerformanceFrequency();
+  return SDL_GetPerformanceCounter() * 1000 / freq;
+}
 
 void CLibretro::framelimit()
 {
@@ -736,7 +729,6 @@ void CLibretro::core_unload()
     reset();
   }
 }
-
 
 void CLibretro::get_cores()
 {
