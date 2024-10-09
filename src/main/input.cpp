@@ -235,39 +235,45 @@ bool loadcontconfig(bool save_f)
 
     std::string core_config = lib->core_config;
     unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
-    std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
+    std::vector<uint8_t> data;
     int portage = 0;
-    cJSON *cntpt = NULL;
     cJSON *ini = NULL;
-    if (!sz_coreconfig)
+
+    if (sz_coreconfig)
     {
-        ini = cJSON_CreateObject();
-        save_f = true;
-        cntpt = cJSON_AddArrayToObject(ini, std::to_string(lib->config_crc).c_str());
+        data = MudUtil::load_data(core_config.c_str());
+        ini = cJSON_Parse((char *)data.data());
     }
     else
+        ini = cJSON_CreateObject();
+
+    cJSON *config = NULL;
+    cJSON *config_entries = NULL;
+    if (cJSON_HasObjectItem(ini, std::to_string(lib->config_crc).c_str()))
     {
-        ini = cJSON_Parse((char *)data.data());
-        if (cJSON_HasObjectItem(ini, std::to_string(lib->config_crc).c_str()))
-            cntpt = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(lib->config_crc).c_str());
-        else
-        {
-            save_f = true;
-            cntpt = cJSON_AddArrayToObject(ini, std::to_string(lib->config_crc).c_str());
-        }
+        config = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(lib->config_crc).c_str());
+        config_entries = cJSON_GetArrayItem(config, 0);
+    }
+
+    else
+    {
+        save_f = true;
+        config = cJSON_AddArrayToObject(ini, std::to_string(lib->config_crc).c_str());
+        config_entries = cJSON_CreateObject();
+        cJSON_AddItemToArray(config, config_entries);
     }
 
     for (auto &controller : lib->core_inpbinds)
     {
-        std::string play = std::to_string(portage) + "_ct";
-        if (cJSON_HasObjectItem(cntpt, play.c_str()))
+        std::string play = std::to_string(portage) + "_controllerport";
+        if (cJSON_HasObjectItem(config_entries, play.c_str()))
         {
-            cJSON *port = cJSON_GetObjectItemCaseSensitive(cntpt, play.c_str());
+            cJSON *port = cJSON_GetObjectItemCaseSensitive(config_entries, play.c_str());
             controller.controller_type = port->valueint;
         }
         else
         {
-            cJSON_AddNumberToObject(cntpt, play.c_str(), controller.controller_type);
+            cJSON_AddNumberToObject(config_entries, play.c_str(), controller.controller_type);
             save_f = true;
         }
         portage++;

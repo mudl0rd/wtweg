@@ -654,8 +654,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
             break;
           }
         }
-        if (bind2.key != "")
-          if (ImGui::TreeNode(bind2.desc.c_str()) && visible)
+        if (visible)
+          if (ImGui::TreeNode(bind2.desc.c_str()))
           {
             for (auto &bind : instance->core_variables)
             {
@@ -666,8 +666,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
               if (bind2.key == bind.category_name && bind.config_visible)
                 corecode(instance, bind, checkbox_made, checkbox_enabled);
             }
+            ImGui::TreePop();
           }
-        ImGui::TreePop();
       }
       // do non categorized vars.
       for (auto &bind : instance->core_variables)
@@ -677,16 +677,15 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         bool checkbox_enabled = false;
         if (bind.category_name == "")
           corecode(instance, bind, checkbox_made, checkbox_enabled);
-        }
+      }
+      // click ok when finished adjusting
+      if (ImGui::Button("OK"))
+      {
+        coresettings = false;
+        instance->load_coresettings(true);
       }
 
-    // click ok when finished adjusting
-    if (ImGui::Button("OK"))
-    {
-      coresettings = false;
-      instance->load_coresettings(true);
+      ImGui::EndPopup();
     }
-
-    ImGui::EndPopup();
   }
 }
