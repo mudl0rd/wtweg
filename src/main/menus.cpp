@@ -684,7 +684,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     if (ImGui::Button("OK"))
     {
       coresettings = false;
-      instance->save_coresettings();
+      instance->load_coresettings(true);
     }
 
     ImGui::EndPopup();

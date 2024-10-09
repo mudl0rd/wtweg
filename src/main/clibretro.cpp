@@ -16,9 +16,9 @@ static std::string_view SHLIB_EXTENSION = ".dll";
 static std::string_view SHLIB_EXTENSION = ".so";
 #endif
 
-#define INI_IMPLEMENTATION
-#define INI_STRNICMP(s1, s2, cnt) (strcmp(s1, s2))
-#include "ini.h"
+#include "cJSON.h"
+#include "cJSON_Utils.h"
+
 #include "mudutils/utils.h"
 #include "unistd.h"
 using namespace std;
@@ -86,57 +86,43 @@ bool CLibretro::core_saveram(const char *filename, bool save)
   return false;
 }
 
-bool CLibretro::load_coresettings()
+bool CLibretro::load_coresettings(bool save_f)
 {
   int size_ = MudUtil::get_filesize(core_config.c_str());
-  ini_t *ini = NULL;
   std::vector<uint8_t> data;
-  if (!size_)
+  save_f = size_;
+  cJSON *ini = NULL;
+  if (size_)
   {
-    save_coresettings();
-    size_ = MudUtil::get_filesize(core_config.c_str());
     data = MudUtil::load_data(core_config.c_str());
+    ini = cJSON_Parse((char *)data.data());
   }
   else
+    ini = cJSON_CreateObject();
+
+  cJSON *config = NULL;
+  cJSON *config_entries = NULL;
+  if (cJSON_HasObjectItem(ini, std::to_string(config_crc).c_str()))
+    config = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(config_crc).c_str());
+  else
   {
-    data = MudUtil::load_data(core_config.c_str());
+    save_f = true;
+    config = cJSON_AddArrayToObject(ini, std::to_string(config_crc).c_str());
+    config_entries = cJSON_CreateObject();
+    cJSON_AddItemToArray(config, config_entries);
   }
 
-  std::string crc_string = "Core_" + std::to_string(config_crc);
-
-  ini = ini_load((char *)data.data(), NULL);
-  int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
-
-  auto save = [=]()
-  {
-    int size = ini_save(ini, NULL, 0); // Find the size needed
-    auto ini_data = std::make_unique<char[]>(size);
-    size = ini_save(ini, ini_data.get(), size); // Actually save the file
-    MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-  };
-
-  if (section == INI_NOT_FOUND)
-  {
-    ini_destroy(ini);
-    save_coresettings();
-    size_ = MudUtil::get_filesize(core_config.c_str());
-    data = MudUtil::load_data(core_config.c_str());
-    ini = ini_load((char *)data.data(), NULL);
-    section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
-  }
   for (auto &vars : core_variables)
   {
-    int i = ini_find_property(ini, section, vars.name.c_str(), vars.name.length());
-    if (i == INI_NOT_FOUND)
+    if (save_f)
     {
-      ini_property_add(ini, section, (char *)vars.name.c_str(),
-                       vars.name.length(),
-                       (char *)vars.var.c_str(),
-                       vars.var.length());
-      save();
+      cJSON_AddStringToObject(config_entries, vars.name.c_str(), vars.var.c_str());
     }
     else
-      vars.var = ini_property_value(ini, section, i);
+    {
+      cJSON *configval = cJSON_GetObjectItemCaseSensitive(config, vars.name.c_str());
+      vars.var = cJSON_GetStringValue(configval);
+    }
     for (auto j = std::size_t{}; auto &var_val : vars.config_vals)
     {
       if (var_val == vars.var)
@@ -147,65 +133,11 @@ bool CLibretro::load_coresettings()
       j++;
     }
   }
-  ini_destroy(ini);
+  if (save_f)
+  {
+  }
+  cJSON_Delete(ini);
   return true;
-}
-
-void CLibretro::save_coresettings()
-{
-  std::string crc_string = "Core_" + std::to_string(config_crc);
-  unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
-
-  ini_t *ini = NULL;
-  if (sz_coreconfig)
-  {
-    std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
-    ini = ini_load((char *)data.data(), NULL);
-    int section = ini_find_section(ini, crc_string.c_str(), crc_string.length());
-    if (section == INI_NOT_FOUND)
-    {
-      section = ini_section_add(ini, crc_string.c_str(), crc_string.length());
-      for (auto &vars : core_variables)
-        ini_property_add(ini, section, (char *)vars.name.c_str(),
-                         vars.name.length(),
-                         (char *)vars.var.c_str(),
-                         vars.var.length());
-    }
-    for (auto &vars : core_variables)
-    {
-      int idx = ini_find_property(ini, section,
-                                  vars.name.c_str(),
-                                  vars.name.length());
-      if (idx == INI_NOT_FOUND)
-      {
-        ini_property_add(ini, section, (char *)vars.name.c_str(),
-                         vars.name.length(),
-                         (char *)vars.var.c_str(),
-                         vars.var.length());
-        idx = ini_find_property(ini, section,
-                                vars.name.c_str(),
-                                vars.name.length());
-      }
-      else
-        ini_property_value_set(ini, section, idx, vars.var.c_str(),
-                               vars.var.length());
-    }
-  }
-  else
-  {
-    ini = ini_create(NULL);
-    int section = ini_section_add(ini, crc_string.c_str(), crc_string.length());
-    for (auto &vars : core_variables)
-      ini_property_add(ini, section, (char *)vars.name.c_str(),
-                       vars.name.length(),
-                       (char *)vars.var.c_str(),
-                       vars.var.length());
-  }
-  int size = ini_save(ini, NULL, 0); // Find the size needed
-  auto ini_data = std::make_unique<char[]>(size);
-  size = ini_save(ini, ini_data.get(), size); // Actually save the file
-  MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-  ini_destroy(ini);
 }
 
 bool CLibretro::init_inputvars(retro_input_descriptor *var)
@@ -317,7 +249,7 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
 
     v2_vars = false;
   }
-  load_coresettings();
+  load_coresettings(false);
   return false;
 }
 
@@ -357,7 +289,7 @@ bool CLibretro::init_configvars(retro_variable *var)
     var++;
   }
 
-  load_coresettings();
+  load_coresettings(false);
   v2_vars = false;
   return true;
 }
@@ -411,7 +343,7 @@ struct default_retro
 };
 void CLibretro::reset()
 {
-  core_config = (std::filesystem::path(exe_path) / "wtfweg.cfg").string();
+  core_config = (std::filesystem::path(exe_path) / "wtfweg.json").string();
 
   lr_isrunning = false;
   save_slot = 0;
@@ -583,8 +515,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
     const char *err = SDL_GetError();
     return false;
   }
-  config_crc = MudUtil::crc32(0, path_core.filename().string().c_str(), 
-  path_core.filename().string().length());
+  config_crc = MudUtil::crc32(0, path_core.filename().string().c_str(),
+                              path_core.filename().string().length());
 
 #define libload(name) MudUtil::getfunc(hDLL, name)
 #define load_sym(V, name)                         \

@@ -11,6 +11,8 @@
 #include "mudutils/utils.h"
 #include <bitset>
 #include <array>
+#include "cJSON.h"
+#include "cJSON_Utils.h"
 
 struct key_map
 {
@@ -234,159 +236,132 @@ bool loadcontconfig(bool save_f)
     std::string core_config = lib->core_config;
     unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
     std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
-    ini_t *ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
     int portage = 0;
-    std::string section_desc = "contpt_" + std::to_string(lib->config_crc);
-    int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
-    auto save = [=]()
+    cJSON *cntpt = NULL;
+    cJSON *ini = NULL;
+    if (!sz_coreconfig)
     {
-        int size = ini_save(ini, NULL, 0); // Find the size needed
-        auto ini_data = std::make_unique<char[]>(size);
-        size = ini_save(ini, ini_data.get(), size); // Actually save the file
-        MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-    };
-
-    if (section == INI_NOT_FOUND)
-    {
-        // not found, add section
-        section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
-        auto save_conf = [=](std::string keydesc, std::string value_str)
-        {
-            int idx = ini_find_property(ini, section, keydesc.c_str(),
-                                        keydesc.length());
-            if (idx == INI_NOT_FOUND)
-                ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                 value_str.c_str(), value_str.length());
-        };
-        for (auto &controller : lib->core_inpbinds)
-        {
-            std::string key = "controller_type" + std::to_string(portage++);
-            save_conf(key, std::to_string(controller.controller_type));
-        }
-        save();
-        ini_destroy(ini);
-        return true;
+        ini = cJSON_CreateObject();
+        save_f = true;
+        cntpt = cJSON_AddArrayToObject(ini, std::to_string(lib->config_crc).c_str());
     }
-    portage = 0;
+    else
+    {
+        ini = cJSON_Parse((char *)data.data());
+        if (cJSON_HasObjectItem(ini, std::to_string(lib->config_crc).c_str()))
+            cntpt = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(lib->config_crc).c_str());
+        else
+        {
+            save_f = true;
+            cntpt = cJSON_AddArrayToObject(ini, std::to_string(lib->config_crc).c_str());
+        }
+    }
 
     for (auto &controller : lib->core_inpbinds)
     {
-        if (!save_f)
+        std::string play = std::to_string(portage) + "_ct";
+        if (cJSON_HasObjectItem(cntpt, play.c_str()))
         {
-            auto load_conf = [=](std::string keydesc, std::string value_str)
-            {
-                int idx = ini_find_property(ini, section, keydesc.c_str(),
-                                            keydesc.length());
-                if (idx == INI_NOT_FOUND)
-                {
-                    ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                     value_str.c_str(), value_str.length());
-                    save();
-                    return value_str;
-                }
-                std::string str = ini_property_value(ini, section, idx);
-                return str;
-            };
-            std::string key = "controller_type" + std::to_string(portage);
-            controller.controller_type = static_cast<int32_t>(std::stoi(load_conf(key,
-                                                                                  std::to_string(controller.controller_type))));
+            cJSON *port = cJSON_GetObjectItemCaseSensitive(cntpt, play.c_str());
+            controller.controller_type = port->valueint;
         }
         else
         {
-            std::string key = "controller_type" + std::to_string(portage++);
-            auto save_conf = [=](std::string keydesc, std::string value_str)
-            {
-                int idx = ini_find_property(ini, section, keydesc.c_str(), keydesc.length());
-                (idx == INI_NOT_FOUND) ? ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                                          value_str.c_str(), value_str.length())
-                                       : ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
-            };
-            save_conf(key, std::to_string(controller.controller_type));
+            cJSON_AddNumberToObject(cntpt, play.c_str(), controller.controller_type);
+            save_f = true;
         }
         portage++;
     }
     if (save_f)
-        save();
-    ini_destroy(ini);
+    {
+        std::string json = cJSON_Print(ini);
+        MudUtil::save_data((unsigned char *)json.c_str(), json.length(), core_config.c_str());
+    }
+    cJSON_Delete(ini);
     return true;
 }
 
 bool loadinpconf(uint32_t checksum, bool save_f)
 {
     auto lib = CLibretro::get_classinstance();
-    std::string core_config = lib->core_config;
-    unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
-    std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
-    ini_t *ini = NULL;
+    unsigned sz_coreconfig = MudUtil::get_filesize(lib->core_config.c_str());
+    std::vector<uint8_t> data = MudUtil::load_data((const char *)lib->core_config.c_str());
     int portage = 0;
 
-    ini = (!sz_coreconfig) ? ini_create(NULL) : ini_load((char *)data.data(), NULL);
-
-    auto save = [=]()
+    cJSON *inputbinds = NULL;
+    cJSON *ini = NULL;
+    if (!sz_coreconfig)
     {
-        int size = ini_save(ini, NULL, 0); // Find the size needed
-        auto ini_data = std::make_unique<char[]>(size);
-        size = ini_save(ini, ini_data.get(), size); // Actually save the file
-        MudUtil::save_data((unsigned char *)ini_data.get(), size, core_config.c_str());
-    };
-
-    for (auto &controller : lib->core_inpbinds)
+        ini = cJSON_CreateObject();
+        save_f = true;
+        inputbinds = cJSON_AddArrayToObject(ini, std::to_string(checksum).c_str());
+    }
+    else
     {
-        std::string section_desc = "P" + std::to_string(portage++) + "_" + std::to_string(checksum);
-        int section = ini_find_section(ini, section_desc.c_str(), section_desc.length());
-        if (section == INI_NOT_FOUND)
-            section = ini_section_add(ini, section_desc.c_str(), section_desc.length());
-        auto load_conf = [=](std::string keydesc, std::string value_str)
+        ini = cJSON_Parse((char *)data.data());
+        if (cJSON_HasObjectItem(ini, std::to_string(checksum).c_str()))
+            inputbinds = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(checksum).c_str());
+        else
         {
-            int idx = ini_find_property(ini, section, keydesc.c_str(),
-                                        keydesc.length());
-            if (idx == INI_NOT_FOUND)
-            {
-                ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                 value_str.c_str(), value_str.length());
-                save();
-                return value_str;
-            }
-            std::string str = ini_property_value(ini, section, idx);
-            return str;
-        };
-        auto save_conf = [=](std::string keydesc, std::string value_str)
-        {
-            int idx = ini_find_property(ini, section, keydesc.c_str(), keydesc.length());
-            if (idx == INI_NOT_FOUND)
-            {
-                ini_property_add(ini, section, keydesc.c_str(), keydesc.length(),
-                                 value_str.c_str(), value_str.length());
-            }
-            else
-                ini_property_value_set(ini, section, idx, value_str.c_str(), value_str.length());
-        };
+            save_f = true;
+            inputbinds = cJSON_AddArrayToObject(ini, std::to_string(checksum).c_str());
+        }
+    }
 
-        for (auto &bind : controller.inputbinds)
+    if (save_f)
+    {
+        for (auto &controller : lib->core_inpbinds)
         {
-            if (!save_f)
+            size_t i = &controller - &lib->core_inpbinds.front();
+            std::string play;
+            cJSON *player_obj = cJSON_CreateObject();
+            cJSON_AddItemToArray(inputbinds, player_obj);
+            play = std::to_string(i) + "_binds";
+            cJSON *binds = cJSON_AddArrayToObject(player_obj, play.c_str());
+            cJSON *binds_entries = cJSON_CreateObject();
+            cJSON_AddItemToArray(binds, binds_entries);
+            for (auto &bind : controller.inputbinds)
             {
-                bind.config.val = static_cast<int32_t>(std::stoi(load_conf(bind.description,
-                                                                           std::to_string(bind.config.val))));
-                bind.joykey_desc = load_conf(bind.description + "_keydesc",
-                                             bind.joykey_desc);
-                bind.SDL_port = static_cast<int16_t>(std::stoi(load_conf(bind.description + "_sdl_contr",
-                                                                         std::to_string(bind.SDL_port))));
-                bind.config.bits.axistrigger = static_cast<int32_t>(std::stoi(load_conf(bind.description + "_anatrig",
-                                                                                        std::to_string(bind.config.bits.axistrigger))));
+                std::string bindstring;
+                cJSON_AddNumberToObject(binds_entries, bind.description.c_str(), bind.config.val);
+                bindstring = bind.description + "_anatrig";
+                cJSON_AddNumberToObject(binds_entries, bindstring.c_str(), bind.config.bits.axistrigger);
+                bindstring = bind.description + "_sdlport";
+                cJSON_AddNumberToObject(binds_entries, bindstring.c_str(), bind.SDL_port);
+                bindstring = bind.description + "_keydesc";
+                cJSON_AddStringToObject(binds_entries, bindstring.c_str(), bind.joykey_desc.c_str());
             }
-            else
+        }
+        std::string json = cJSON_Print(ini);
+        MudUtil::save_data((unsigned char *)json.c_str(), json.length(), lib->core_config.c_str());
+    }
+    else
+    {
+        for (auto &controller : lib->core_inpbinds)
+        {
+            size_t i = &controller - &lib->core_inpbinds.front();
+            std::string play = std::to_string(i) + "_binds";
+            cJSON *binds_player = cJSON_GetObjectItemCaseSensitive(inputbinds, play.c_str());
+            for (auto &bind : controller.inputbinds)
             {
-                save_conf(bind.description, std::to_string(bind.config.val));
-                save_conf(bind.description + "_anatrig", std::to_string(bind.config.bits.axistrigger));
-                save_conf(bind.description + "_sdl_contr", std::to_string(bind.SDL_port));
-                save_conf(bind.description + "_keydesc", bind.joykey_desc);
+                std::string bindstring;
+
+                cJSON *configval = cJSON_GetObjectItemCaseSensitive(binds_player, bind.description.c_str());
+                bind.config.val = cJSON_GetNumberValue(configval);
+                bindstring = bind.description + "_anatrig";
+                configval = cJSON_GetObjectItemCaseSensitive(binds_player, bindstring.c_str());
+                bind.config.bits.axistrigger = cJSON_GetNumberValue(configval);
+                bindstring = bind.description + "_sdlport";
+                configval = cJSON_GetObjectItemCaseSensitive(binds_player, bindstring.c_str());
+                bind.SDL_port = cJSON_GetNumberValue(configval);
+                bindstring = bind.description + "_keydesc";
+                configval = cJSON_GetObjectItemCaseSensitive(binds_player, bindstring.c_str());
+                bind.joykey_desc = cJSON_GetStringValue(configval);
             }
         }
     }
-    if (save_f)
-        save();
-    ini_destroy(ini);
+    cJSON_Delete(ini);
+
     return true;
 }
 
@@ -432,8 +407,7 @@ bool load_inpcfg(retro_input_descriptor *var)
         var++;
     }
 
-    lib->input_confcrc = 0;
-    lib->input_confcrc = MudUtil::crc32(lib->input_confcrc, lib->core_path.c_str(), lib->core_path.size());
+    lib->input_confcrc = lib->config_crc;
     for (auto &controller : lib->core_inpbinds)
         for (auto &bind : controller.inputbinds)
             lib->input_confcrc = MudUtil::crc32(lib->input_confcrc, bind.description.c_str(), bind.description.length());

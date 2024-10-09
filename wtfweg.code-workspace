@@ -91,7 +91,9 @@
 			"typeindex": "cpp",
 			"io.h": "c",
 			"expected": "cpp",
-			"text_encoding": "cpp"
+			"text_encoding": "cpp",
+			"cjson.h": "c",
+			"ranges": "cpp"
 		}
 	}
 }

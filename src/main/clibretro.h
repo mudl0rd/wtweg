@@ -198,8 +198,7 @@ public:
 	bool init_configvars(retro_variable *var);
 	bool init_configvars_coreoptions(void *var, int version);
 	bool init_inputvars(retro_input_descriptor *var);
-	bool load_coresettings();
-	void save_coresettings();
+	bool load_coresettings(bool save_f);
 
 	const char *load_corevars(retro_variable *var);
 
