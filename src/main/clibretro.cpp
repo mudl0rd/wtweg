@@ -105,9 +105,9 @@ bool CLibretro::load_coresettings(bool save_f)
   if (cJSON_HasObjectItem(ini, std::to_string(config_crc).c_str()))
   {
     config = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(config_crc).c_str());
-    config_entries= cJSON_GetArrayItem(config, 0);
+    config_entries = cJSON_GetArrayItem(config, 0);
   }
-    
+
   else
   {
     save_f = true;
@@ -115,8 +115,6 @@ bool CLibretro::load_coresettings(bool save_f)
     config_entries = cJSON_CreateObject();
     cJSON_AddItemToArray(config, config_entries);
   }
-
-
 
   for (auto &vars : core_variables)
   {
@@ -141,6 +139,8 @@ bool CLibretro::load_coresettings(bool save_f)
   }
   if (save_f)
   {
+    std::string json = cJSON_Print(ini);
+    MudUtil::save_data((unsigned char *)json.c_str(), json.length(), core_config.c_str());
   }
   cJSON_Delete(ini);
   return true;
