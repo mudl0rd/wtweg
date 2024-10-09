@@ -341,10 +341,12 @@ bool loadinpconf(uint32_t checksum, bool save_f)
         {
             size_t i = &controller - &lib->core_inpbinds.front();
             std::string play = std::to_string(i) + "_binds";
-            cJSON *binds_player = cJSON_GetObjectItemCaseSensitive(inputbinds, play.c_str());
+            cJSON *binds = cJSON_GetObjectItemCaseSensitive(inputbinds, play.c_str());
+            cJSON* binds_player= cJSON_GetArrayItem(binds, 0);
             for (auto &bind : controller.inputbinds)
             {
                 std::string bindstring;
+               
 
                 cJSON *configval = cJSON_GetObjectItemCaseSensitive(binds_player, bind.description.c_str());
                 bind.config.val = cJSON_GetNumberValue(configval);

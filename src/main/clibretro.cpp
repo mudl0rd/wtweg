@@ -103,7 +103,11 @@ bool CLibretro::load_coresettings(bool save_f)
   cJSON *config = NULL;
   cJSON *config_entries = NULL;
   if (cJSON_HasObjectItem(ini, std::to_string(config_crc).c_str()))
+  {
     config = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(config_crc).c_str());
+    config_entries= cJSON_GetArrayItem(config, 0);
+  }
+    
   else
   {
     save_f = true;
@@ -111,6 +115,8 @@ bool CLibretro::load_coresettings(bool save_f)
     config_entries = cJSON_CreateObject();
     cJSON_AddItemToArray(config, config_entries);
   }
+
+
 
   for (auto &vars : core_variables)
   {
@@ -120,7 +126,7 @@ bool CLibretro::load_coresettings(bool save_f)
     }
     else
     {
-      cJSON *configval = cJSON_GetObjectItemCaseSensitive(config, vars.name.c_str());
+      cJSON *configval = cJSON_GetObjectItemCaseSensitive(config_entries, vars.name.c_str());
       vars.var = cJSON_GetStringValue(configval);
     }
     for (auto j = std::size_t{}; auto &var_val : vars.config_vals)
