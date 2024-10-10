@@ -435,6 +435,8 @@ void CLibretro::init_lr(SDL_Window *window)
   sdl_window = window;
 }
 
+
+
 void CLibretro::core_changinpt(int dev, int port)
 {
   if (lr_isrunning)
@@ -633,9 +635,9 @@ void CLibretro::framelimit()
   static double clock = 0;
   double deltaticks;
   double newclock = SDL_GetTicks64();
-  deltaticks = floor((1000. / fps) - (newclock - clock));
+  deltaticks = (1000. / fps) - (newclock - clock);
   if (deltaticks > 0)
-    SDL_Delay(deltaticks);
+    SDL_Delay(floor(deltaticks));
   double ticks = ((newclock + deltaticks) * 1000.);
   while (SDL_GetMicroTicks() < ticks)
   {
@@ -747,18 +749,10 @@ void CLibretro::get_cores()
           }
           fex_next(fex);
         }
-      if (corelist != "")
-      {
-        coreexts = "All supported {.";
-        coreexts += corelist;
-        coreexts.resize(coreexts.size() - 2);
-        coreexts += "}";
-      }
       fex_close(fex);
-      fex = NULL;
-      return;
     }
   }
+
 #endif
 #endif
 
