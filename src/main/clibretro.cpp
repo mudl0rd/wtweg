@@ -122,7 +122,8 @@ bool CLibretro::load_coresettings(bool save_f)
   {
     if (save_f)
     {
-      cJSON_AddStringToObject(config_entries, vars.name.c_str(), vars.var.c_str());
+      cJSON *configval = cJSON_GetObjectItemCaseSensitive(config_entries, vars.name.c_str());
+      cJSON_SetValuestring(configval, vars.var.c_str());
     }
     else
     {
