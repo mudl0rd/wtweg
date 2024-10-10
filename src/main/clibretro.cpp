@@ -126,8 +126,13 @@ bool CLibretro::load_coresettings(bool save_f)
 
       if (upd)
       {
-        cJSON *configval = cJSON_GetObjectItemCaseSensitive(config_entries, vars.name.c_str());
-        cJSON_SetValuestring(configval, vars.var.c_str());
+        if (cJSON_HasObjectItem(config_entries, vars.name.c_str()))
+        {
+          cJSON *configval = cJSON_GetObjectItemCaseSensitive(config_entries, vars.name.c_str());
+          cJSON_SetValuestring(configval, vars.var.c_str());
+        }
+        else
+          cJSON_AddStringToObject(config_entries, vars.name.c_str(), vars.var.c_str());
       }
 
       else
@@ -135,8 +140,16 @@ bool CLibretro::load_coresettings(bool save_f)
     }
     else
     {
-      cJSON *configval = cJSON_GetObjectItemCaseSensitive(config_entries, vars.name.c_str());
-      vars.var = cJSON_GetStringValue(configval);
+      if (cJSON_HasObjectItem(config_entries, vars.name.c_str()))
+      {
+        cJSON *configval = cJSON_GetObjectItemCaseSensitive(config_entries, vars.name.c_str());
+        vars.var = cJSON_GetStringValue(configval);
+      }
+      else
+      {
+        cJSON_AddStringToObject(config_entries, vars.name.c_str(), vars.var.c_str());
+        upd = true;
+      }
     }
     for (auto j = std::size_t{}; auto &var_val : vars.config_vals)
     {
@@ -148,7 +161,7 @@ bool CLibretro::load_coresettings(bool save_f)
       j++;
     }
   }
-  if (save_f)
+  if (save_f || upd)
   {
     std::string json = cJSON_Print(ini);
     MudUtil::save_data((unsigned char *)json.c_str(), json.length(), core_config.c_str());
@@ -435,8 +448,6 @@ void CLibretro::init_lr(SDL_Window *window)
   sdl_window = window;
 }
 
-
-
 void CLibretro::core_changinpt(int dev, int port)
 {
   if (lr_isrunning)
@@ -638,7 +649,8 @@ void CLibretro::framelimit()
   deltaticks = (1000. / fps) - (newclock - clock);
   if (deltaticks > 0)
     SDL_Delay(floor(deltaticks));
-  double ticks = ((newclock + deltaticks) * 1000.);
+  double newclock2 = SDL_GetTicks64();
+  double ticks = ((newclock + (deltaticks)) * 1000.);
   while (SDL_GetMicroTicks() < ticks)
   {
   };
