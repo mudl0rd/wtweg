@@ -76,6 +76,14 @@ namespace MudUtil
 		return pow(2, ceil(log2(v)));
 	}
 
+	int clz(uint32_t x)
+	{
+		static const char debruijn32[32] = {
+			0, 31, 9, 30, 3, 8, 13, 29, 2, 5, 7, 21, 12, 24, 28, 19,
+			1, 10, 4, 14, 6, 22, 25, 20, 11, 15, 23, 26, 16, 27, 17, 18};
+		return debruijn32[((x & -x) * 0x077CB531) >> 27];
+	}
+
 	void vector_appendbytes(std::vector<uint8_t> &vec, uint8_t *bytes, size_t len)
 	{
 		vec.insert(vec.end(), bytes, bytes + len);

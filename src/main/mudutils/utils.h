@@ -41,6 +41,7 @@ namespace MudUtil
   std::vector<uint8_t> load_data(const char *path);
   bool save_data(unsigned char *data, unsigned size, const char *path);
   uint32_t pow2up(uint32_t v);
+  int clz(uint32_t x);
   std::string base64_decode(const std::string &in);
   std::string base64_encode(const std::string &in);
   std::string replace_all(std::string str, const std::string &from, const std::string &to);
