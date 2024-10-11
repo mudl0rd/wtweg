@@ -579,10 +579,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
             break;
           for (izrange(l, bind.config_vals.size()))
           {
+
             if (stricmp(instance->v2_vars ? bind.config_vals[l].c_str() : bind.usevars.c_str(),
                         instance->v2_vars ? checkbox_allowable[j] : checkbox_allowablev1[j]) == 0)
             {
-              checkbox_made = true;
+              for (izrange(k, IM_ARRAYSIZE(true_vals)))
+                if (stricmp(instance->v2_vars ? bind.config_vals[l].c_str() : bind.usevars.c_str(), true_vals[k]) == 0)
+                  checkbox_made = true;
+
               for (izrange(k, IM_ARRAYSIZE(true_vals)))
                 if (stricmp(bind.var.c_str(), true_vals[k]) == 0)
                   checkbox_enabled = true;

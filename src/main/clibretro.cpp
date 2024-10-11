@@ -648,7 +648,7 @@ void CLibretro::framelimit()
   double newclock = SDL_GetTicks64();
   deltaticks = (1000. / fps) - (newclock - clock);
   if (deltaticks > 0)
-    SDL_Delay(floor(deltaticks));
+    usleep(floor(deltaticks*1000));
   double newclock2 = SDL_GetTicks64();
   double ticks = ((newclock + (deltaticks)) * 1000.);
   while (SDL_GetMicroTicks() < ticks)
