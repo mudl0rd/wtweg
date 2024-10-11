@@ -27,8 +27,8 @@ SDL_DisplayMode dm;
 
 inline uint64_t SDL_GetMicroTicks()
 {
-    static Uint64 freq = SDL_GetPerformanceFrequency();
-    return SDL_GetPerformanceCounter()*1000000ull / freq;
+  static Uint64 freq = SDL_GetPerformanceFrequency();
+  return SDL_GetPerformanceCounter() * 1000000ull / freq;
 }
 
 void framelimit(double FPS)
@@ -223,10 +223,9 @@ int main2(const char *rom, const char *core, bool pergame)
         instance->core_savestateslot(false);
       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F3)
         instance->core_savestateslot(true);
-
-      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1)
+        
+      if ((event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1))
       {
-
         show_menu ^= true;
         SDL_SetRelativeMouseMode((SDL_bool)(!show_menu));
       }
@@ -273,7 +272,7 @@ int main2(const char *rom, const char *core, bool pergame)
   }
 
   instance->core_unload();
-  reset_inpt();
+  close_inpt();
 
 #ifdef _WIN32
   timeEndPeriod(1);

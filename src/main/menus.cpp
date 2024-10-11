@@ -571,8 +571,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     if (ImGui::BeginPopupModal("Core Settings", &coresettings, ImGuiWindowFlags_AlwaysAutoResize))
     {
 
-      auto corecode = [](CLibretro *instance, loadedcore_configvars &bind, bool checkbox_made, bool checkbox_enabled)
+      auto corecode = [](CLibretro *instance, loadedcore_configvars &bind)
       {
+        bool checkbox_made = false;
+        bool checkbox_enabled = false;
         for (izrange(j, IM_ARRAYSIZE(checkbox_allowable)))
         {
           if (checkbox_enabled)
@@ -664,11 +666,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
             for (auto &bind : instance->core_variables)
             {
               std::string var = bind.var;
-              bool checkbox_made = false;
-              bool checkbox_enabled = false;
 
               if (bind2.key == bind.category_name && bind.config_visible)
-                corecode(instance, bind, checkbox_made, checkbox_enabled);
+                corecode(instance, bind);
             }
             ImGui::TreePop();
           }
@@ -677,10 +677,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       for (auto &bind : instance->core_variables)
       {
         std::string var = bind.var;
-        bool checkbox_made = false;
-        bool checkbox_enabled = false;
         if (bind.category_name == "")
-          corecode(instance, bind, checkbox_made, checkbox_enabled);
+          corecode(instance, bind);
       }
       // click ok when finished adjusting
       if (ImGui::Button("OK"))

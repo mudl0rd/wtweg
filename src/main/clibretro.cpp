@@ -101,16 +101,13 @@ bool CLibretro::load_coresettings(bool save_f)
     save_f = true;
     ini = cJSON_CreateObject();
   }
-  bool upd = false;
   cJSON *config = NULL;
   cJSON *config_entries = NULL;
   if (cJSON_HasObjectItem(ini, std::to_string(config_crc).c_str()))
   {
     config = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(config_crc).c_str());
     config_entries = cJSON_GetArrayItem(config, 0);
-    upd = save_f;
   }
-
   else
   {
     save_f = true;
@@ -121,34 +118,19 @@ bool CLibretro::load_coresettings(bool save_f)
 
   for (auto &vars : core_variables)
   {
-    if (save_f)
-    {
-
-      if (upd)
-      {
-        if (cJSON_HasObjectItem(config_entries, vars.name.c_str()))
-        {
-          cJSON *configval = cJSON_GetObjectItemCaseSensitive(config_entries, vars.name.c_str());
-          cJSON_SetValuestring(configval, vars.var.c_str());
-        }
-        else
-          cJSON_AddStringToObject(config_entries, vars.name.c_str(), vars.var.c_str());
-      }
-
-      else
-        cJSON_AddStringToObject(config_entries, vars.name.c_str(), vars.var.c_str());
-    }
-    else
     {
       if (cJSON_HasObjectItem(config_entries, vars.name.c_str()))
       {
         cJSON *configval = cJSON_GetObjectItemCaseSensitive(config_entries, vars.name.c_str());
-        vars.var = cJSON_GetStringValue(configval);
+        if (save_f)
+          cJSON_SetValuestring(configval, vars.var.c_str());
+        else
+          vars.var = cJSON_GetStringValue(configval);
       }
       else
       {
         cJSON_AddStringToObject(config_entries, vars.name.c_str(), vars.var.c_str());
-        upd = true;
+        save_f=true;
       }
     }
     for (auto j = std::size_t{}; auto &var_val : vars.config_vals)
@@ -161,7 +143,7 @@ bool CLibretro::load_coresettings(bool save_f)
       j++;
     }
   }
-  if (save_f || upd)
+  if (save_f)
   {
     std::string json = cJSON_Print(ini);
     MudUtil::save_data((unsigned char *)json.c_str(), json.length(), core_config.c_str());
@@ -648,8 +630,7 @@ void CLibretro::framelimit()
   double newclock = SDL_GetTicks64();
   deltaticks = (1000. / fps) - (newclock - clock);
   if (deltaticks > 0)
-    usleep(floor(deltaticks*1000));
-  double newclock2 = SDL_GetTicks64();
+    SDL_Delay(floor(deltaticks));
   double ticks = ((newclock + (deltaticks)) * 1000.);
   while (SDL_GetMicroTicks() < ticks)
   {

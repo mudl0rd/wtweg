@@ -238,7 +238,7 @@ bool loadcontconfig(bool save_f)
     std::vector<uint8_t> data;
     int portage = 0;
     cJSON *ini = NULL;
-    bool upd=false;
+    bool upd = false;
     if (sz_coreconfig)
     {
         data = MudUtil::load_data(core_config.c_str());
@@ -253,7 +253,7 @@ bool loadcontconfig(bool save_f)
     {
         config = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(lib->config_crc).c_str());
         config_entries = cJSON_GetArrayItem(config, 0);
-        upd=save_f;
+        upd = save_f;
     }
 
     else
@@ -332,14 +332,12 @@ bool loadinpconf(uint32_t checksum, bool save_f)
         for (auto &controller : lib->core_inpbinds)
         {
             size_t i = &controller - &lib->core_inpbinds.front();
-            std::string play;
+            std::string play = std::to_string(i) + "_binds";
             cJSON *binds_entries = NULL;
             cJSON *binds = NULL;
-            if (upd)
+            cJSON *binds_str = cJSON_GetArrayItem(inputbinds, i);
+            if (binds_str)
             {
-                size_t i = &controller - &lib->core_inpbinds.front();
-                cJSON *binds_str = cJSON_GetArrayItem(inputbinds, i);
-                std::string play = std::to_string(i) + "_binds";
                 binds = cJSON_GetObjectItemCaseSensitive(binds_str, play.c_str());
                 binds_entries = cJSON_GetArrayItem(binds, 0);
             }
@@ -354,40 +352,58 @@ bool loadinpconf(uint32_t checksum, bool save_f)
             }
             for (auto &bind : controller.inputbinds)
             {
-                    std::string bindstring;
-                    cJSON *configval = NULL;
-                    if (upd)
-                    {
-                        cJSON *configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bind.description.c_str());
-                        cJSON_SetNumberValue(configval, bind.config.val);
-                    }
-                    else
-                        cJSON_AddNumberToObject(binds_entries, bind.description.c_str(), bind.config.val);
+                std::string bindstring;
+                cJSON *configval = NULL;
+                if (upd)
+                {
+                    cJSON *configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bind.description.c_str());
+                    cJSON_SetNumberValue(configval, bind.config.val);
+                }
+                else
+                    cJSON_AddNumberToObject(binds_entries, bind.description.c_str(), bind.config.val);
 
-                    bindstring = bind.description + "_anatrig";
-                    if (upd)
-                    {
-                        configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bindstring.c_str());
-                        cJSON_SetNumberValue(configval, bind.config.bits.axistrigger);
-                    }
-                    else
-                        cJSON_AddNumberToObject(binds_entries, bindstring.c_str(), bind.config.bits.axistrigger);
-                    bindstring = bind.description + "_sdlport";
-                    if (upd)
-                    {
-                        configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bindstring.c_str());
-                        cJSON_SetNumberValue(configval, bind.SDL_port);
-                    }
-                    else
-                        cJSON_AddNumberToObject(binds_entries, bindstring.c_str(), bind.SDL_port);
-                    bindstring = bind.description + "_keydesc";
-                    if (upd)
-                    {
-                        configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bindstring.c_str());
-                        cJSON_SetValuestring(configval, bind.joykey_desc.c_str());
-                    }
-                    else
-                        cJSON_AddStringToObject(binds_entries, bindstring.c_str(), bind.joykey_desc.c_str());
+                bindstring = bind.description + "_anatrig";
+                if (upd)
+                {
+                    configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bindstring.c_str());
+                    cJSON_SetNumberValue(configval, bind.config.bits.axistrigger);
+                }
+                else
+                    cJSON_AddNumberToObject(binds_entries, bindstring.c_str(), bind.config.bits.axistrigger);
+                bindstring = bind.description + "_sdlport";
+                if (upd)
+                {
+                    configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bindstring.c_str());
+                    cJSON_SetNumberValue(configval, bind.SDL_port);
+                }
+                else
+                    cJSON_AddNumberToObject(binds_entries, bindstring.c_str(), bind.SDL_port);
+                bindstring = bind.description + "_keydesc";
+                if (upd)
+                {
+                    configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bindstring.c_str());
+                    cJSON_SetValuestring(configval, bind.joykey_desc.c_str());
+                }
+                else
+                    cJSON_AddStringToObject(binds_entries, bindstring.c_str(), bind.joykey_desc.c_str());
+
+                bindstring = bind.description + "_sdlid";
+                if (upd)
+                {
+                    configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bindstring.c_str());
+                    cJSON_SetNumberValue(configval, bind.config.bits.sdl_id);
+                }
+                else
+                    cJSON_AddNumberToObject(binds_entries, bindstring.c_str(), bind.config.bits.sdl_id);
+
+                bindstring = bind.description + "_joytype";
+                if (upd)
+                {
+                    configval = cJSON_GetObjectItemCaseSensitive(binds_entries, bindstring.c_str());
+                    cJSON_SetNumberValue(configval, bind.config.bits.joytype);
+                }
+                else
+                    cJSON_AddNumberToObject(binds_entries, bindstring.c_str(), bind.config.bits.joytype);
             }
         }
     }
@@ -415,6 +431,12 @@ bool loadinpconf(uint32_t checksum, bool save_f)
                 bindstring = bind.description + "_keydesc";
                 configval = cJSON_GetObjectItemCaseSensitive(binds_player, bindstring.c_str());
                 bind.joykey_desc = cJSON_GetStringValue(configval);
+                bindstring = bind.description + "_sdlid";
+                configval = cJSON_GetObjectItemCaseSensitive(binds_player, bindstring.c_str());
+                bind.config.bits.sdl_id = cJSON_GetNumberValue(configval);
+                bindstring = bind.description + "_joytype";
+                configval = cJSON_GetObjectItemCaseSensitive(binds_player, bindstring.c_str());
+                bind.config.bits.joytype = cJSON_GetNumberValue(configval);
             }
         }
     }
