@@ -966,7 +966,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD)
         return key_pressed(id);
 
-    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG)
+    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || RETRO_DEVICE_JOYPAD)
     {
         for (auto &binds : lib->core_inpbinds)
         {
@@ -975,25 +975,17 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
             {
                 for (auto &bind : binds.inputbinds)
                 {
-                    if (bind.isanalog == true)
-                        if (bind.retro_id == axistocheck(id, index))
+                    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
+                    {
+                        if (bind.retro_id == id)
                             return bind.val;
-                }
-            }
-        }
-    }
-
-    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
-    {
-        for (auto &binds : lib->core_inpbinds)
-        {
-            size_t k = &binds - &lib->core_inpbinds.front();
-            if (k == port)
-            {
-                for (auto &bind : binds.inputbinds)
-                {
-                    if (bind.retro_id == id)
-                        return bind.val;
+                    }
+                    else
+                    {
+                        if (bind.isanalog == true)
+                            if (bind.retro_id == axistocheck(id, index))
+                                return bind.val;
+                    }
                 }
             }
         }
