@@ -177,6 +177,75 @@ const struct key_map key_map_[] = {
 };
 std::vector<SDL_GameController *> Joystick = {};
 
+struct default_retro
+{
+    int k;
+    int keeb;
+} libretro_dmap[] = {
+    {RETRO_DEVICE_ID_JOYPAD_B, SDL_SCANCODE_C},
+    {RETRO_DEVICE_ID_JOYPAD_Y, SDL_SCANCODE_X},
+    {RETRO_DEVICE_ID_JOYPAD_SELECT, SDL_SCANCODE_SPACE},
+    {RETRO_DEVICE_ID_JOYPAD_START, SDL_SCANCODE_RETURN},
+    {RETRO_DEVICE_ID_JOYPAD_UP, SDL_SCANCODE_UP},
+    {RETRO_DEVICE_ID_JOYPAD_DOWN, SDL_SCANCODE_DOWN},
+    {RETRO_DEVICE_ID_JOYPAD_LEFT, SDL_SCANCODE_LEFT},
+    {RETRO_DEVICE_ID_JOYPAD_RIGHT, SDL_SCANCODE_RIGHT},
+    {RETRO_DEVICE_ID_JOYPAD_A, SDL_SCANCODE_D},
+    {RETRO_DEVICE_ID_JOYPAD_X, SDL_SCANCODE_S},
+    {RETRO_DEVICE_ID_JOYPAD_L, SDL_SCANCODE_A},
+    {RETRO_DEVICE_ID_JOYPAD_R, SDL_SCANCODE_Z},
+    {RETRO_DEVICE_ID_JOYPAD_L2, SDL_SCANCODE_Q},
+    {RETRO_DEVICE_ID_JOYPAD_R2, SDL_SCANCODE_E},
+    {RETRO_DEVICE_ID_JOYPAD_L3, -1},
+    {RETRO_DEVICE_ID_JOYPAD_R3, -1},
+    {joypad_analogx_l, -1},
+    {joypad_analogy_l, -1},
+    {joypad_analogx_r, -1},
+    {joypad_analogy_r, -1},
+    {joypad_analog_l2, -1},
+    {joypad_analog_r2, -1},
+    {joypad_analog_l3, -1},
+    {joypad_analog_r3, -1},
+};
+
+void reset_retropad()
+{
+
+    auto lib = CLibretro::get_classinstance();
+
+    lib->core_inpbinds.clear();
+    lib->core_inpbinds.resize(2);
+    lib->core_inputttypes.clear();
+
+    for (int i = 0; i < 2; i++)
+    {
+        // Assume "RetroPad"....fuck me
+
+        std::vector<coreinput_bind> bind2;
+        bind2.clear();
+
+        for (auto &retro_descript : retro_descripts)
+        {
+            size_t j = &retro_descript - &retro_descripts.front();
+            coreinput_bind bind;
+            bind.device = (j < 15) ? RETRO_DEVICE_JOYPAD : RETRO_DEVICE_ANALOG;
+            bind.isanalog = (j > 15);
+            bind.retro_id = j;
+            bind.config.bits.axistrigger = 0;
+            bind.config.bits.sdl_id = (i == 0 && j < 15) ? libretro_dmap[j].keeb : -1;
+            bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
+            bind.val = 0;
+            bind.SDL_port = 0;
+            bind.port = i;
+            bind.description = retro_descript;
+            bind.joykey_desc = (i == 0 && j < 15) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";
+            bind2.push_back(bind);
+        }
+        lib->core_inpbinds[i].inputbinds = bind2;
+        lib->core_inpbinds[i].controller_type = RETRO_DEVICE_JOYPAD;
+    }
+}
+
 int axistocheck(int id, int index)
 {
     switch (index)
@@ -897,7 +966,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD)
         return key_pressed(id);
 
-    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || RETRO_DEVICE_JOYPAD)
+    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG)
     {
         for (auto &binds : lib->core_inpbinds)
         {
@@ -906,7 +975,24 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
             {
                 for (auto &bind : binds.inputbinds)
                 {
-                    if (bind.retro_id == ((bind.isanalog == true) ? axistocheck(id, index) : id))
+                    if (bind.isanalog == true)
+                        if (bind.retro_id == axistocheck(id, index))
+                            return bind.val;
+                }
+            }
+        }
+    }
+
+    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
+    {
+        for (auto &binds : lib->core_inpbinds)
+        {
+            size_t k = &binds - &lib->core_inpbinds.front();
+            if (k == port)
+            {
+                for (auto &bind : binds.inputbinds)
+                {
+                    if (bind.retro_id == id)
                         return bind.val;
                 }
             }

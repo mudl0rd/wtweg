@@ -323,36 +323,7 @@ l2-3/r2-3 can be analog buttons as well as digital
 rest are purely digital except for sticks
 */
 
-struct default_retro
-{
-  int k;
-  int keeb;
-} libretro_dmap[] = {
-    {RETRO_DEVICE_ID_JOYPAD_B, SDL_SCANCODE_C},
-    {RETRO_DEVICE_ID_JOYPAD_Y, SDL_SCANCODE_X},
-    {RETRO_DEVICE_ID_JOYPAD_SELECT, SDL_SCANCODE_SPACE},
-    {RETRO_DEVICE_ID_JOYPAD_START, SDL_SCANCODE_RETURN},
-    {RETRO_DEVICE_ID_JOYPAD_UP, SDL_SCANCODE_UP},
-    {RETRO_DEVICE_ID_JOYPAD_DOWN, SDL_SCANCODE_DOWN},
-    {RETRO_DEVICE_ID_JOYPAD_LEFT, SDL_SCANCODE_LEFT},
-    {RETRO_DEVICE_ID_JOYPAD_RIGHT, SDL_SCANCODE_RIGHT},
-    {RETRO_DEVICE_ID_JOYPAD_A, SDL_SCANCODE_D},
-    {RETRO_DEVICE_ID_JOYPAD_X, SDL_SCANCODE_S},
-    {RETRO_DEVICE_ID_JOYPAD_L, SDL_SCANCODE_A},
-    {RETRO_DEVICE_ID_JOYPAD_R, SDL_SCANCODE_Z},
-    {RETRO_DEVICE_ID_JOYPAD_L2, SDL_SCANCODE_Q},
-    {RETRO_DEVICE_ID_JOYPAD_R2, SDL_SCANCODE_E},
-    {RETRO_DEVICE_ID_JOYPAD_L3, -1},
-    {RETRO_DEVICE_ID_JOYPAD_R3, -1},
-    {joypad_analogx_l, -1},
-    {joypad_analogy_l, -1},
-    {joypad_analogx_r, -1},
-    {joypad_analogy_r, -1},
-    {joypad_analog_l2, -1},
-    {joypad_analog_r2, -1},
-    {joypad_analog_l3, -1},
-    {joypad_analog_r3, -1},
-};
+
 void CLibretro::reset()
 {
   core_config = (std::filesystem::path(exe_path) / "wtfweg.json").string();
@@ -367,37 +338,8 @@ void CLibretro::reset()
   use_retropad = true;
   fps = 60.0;
 
-  core_inpbinds.clear();
-  core_inpbinds.resize(2);
-  core_inputttypes.clear();
-
-  for (int i = 0; i < 2; i++)
-  {
-    // Assume "RetroPad"....fuck me
-
-    std::vector<coreinput_bind> bind2;
-    bind2.clear();
-
-    for (auto &retro_descript : retro_descripts)
-    {
-      size_t j = &retro_descript - &retro_descripts.front();
-      coreinput_bind bind;
-      bind.device = (j < 16) ? RETRO_DEVICE_JOYPAD : RETRO_DEVICE_ANALOG;
-      bind.isanalog = (j > 16);
-      bind.retro_id = j;
-      bind.config.bits.axistrigger = 0;
-      bind.config.bits.sdl_id = (i == 0 && j < 14) ? libretro_dmap[j].keeb : -1;
-      bind.config.bits.joytype = (uint8_t)joytype_::keyboard;
-      bind.val = 0;
-      bind.SDL_port = 0;
-      bind.port = i;
-      bind.description = retro_descript;
-      bind.joykey_desc = (i == 0 && j < 14) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";
-      bind2.push_back(bind);
-    }
-    core_inpbinds[i].inputbinds = bind2;
-    core_inpbinds[i].controller_type = RETRO_DEVICE_JOYPAD;
-  }
+  reset_retropad();
+  
   disk_intf.clear();
   core_variables.clear();
   v2_vars = false;

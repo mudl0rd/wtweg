@@ -62,7 +62,7 @@ void audio_changeratefps(float refreshra, float input_srate, float fps);
 uintptr_t video_get_fb();
 
 bool video_set_pixelformat(retro_pixel_format fmt);
-
+void reset_retropad();
 void init_inpt();
 void init_inp(int num);
 void close_inp(int num);
