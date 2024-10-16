@@ -146,6 +146,7 @@ namespace MudUtil
 						{
 							fex_close(fex);
 							fex = NULL;
+							return NULL;
 						}
 						else
 						{

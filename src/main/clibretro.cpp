@@ -130,7 +130,7 @@ bool CLibretro::load_coresettings(bool save_f)
       else
       {
         cJSON_AddStringToObject(config_entries, vars.name.c_str(), vars.var.c_str());
-        save_f=true;
+        save_f = true;
       }
     }
     for (auto j = std::size_t{}; auto &var_val : vars.config_vals)
@@ -323,7 +323,6 @@ l2-3/r2-3 can be analog buttons as well as digital
 rest are purely digital except for sticks
 */
 
-
 void CLibretro::reset()
 {
   core_config = (std::filesystem::path(exe_path) / "wtfweg.json").string();
@@ -339,7 +338,7 @@ void CLibretro::reset()
   fps = 60.0;
 
   reset_retropad();
-  
+
   disk_intf.clear();
   core_variables.clear();
   v2_vars = false;
@@ -394,7 +393,7 @@ static bool no_roms(unsigned cmd, void *data)
   return false;
 }
 
-bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless, bool inzip)
+bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless)
 {
   if (lr_isrunning)
     core_unload();
@@ -420,50 +419,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   }
 
   void *hDLL = NULL;
-#ifdef _WIN32
-#ifndef DEBUG
-  if (inzip)
-  {
-    std::filesystem::path p(exe_path);
-    const char *ext[] = {"cores.zip", "cores.rar", "cores.7z"};
-    bool corefound = false;
-    std::filesystem::path corezippath;
-    for (int i = 0; i < ARRAYSIZE(ext); i++)
-    {
-      std::filesystem::path corepath2(p / ext[i]);
-      if (std::filesystem::exists(corepath2))
-      {
-        fex_t *fex = NULL;
-        fex_err_t err = fex_open(&fex, corepath2.string().c_str());
-        if (err == NULL)
-          while (!fex_done(fex))
-          {
-            if (strcmp(fex_name(fex), corepath) == 0)
-            {
-              fex_stat(fex);
-              int sz = fex_size(fex);
-              char *buf = (char *)malloc(sz);
-              fex_read(fex, buf, sz);
-              hDLL = MemoryLoadLibrary(buf, sz);
-              free(buf);
-              if (!hDLL)
-              {
-                fex_close(fex);
-                fex = NULL;
-                return false;
-              }
-              break;
-            }
-            fex_next(fex);
-          }
-        fex_close(fex);
-      }
-    }
-  }
-  else
-#endif
-#endif
-    hDLL = MudUtil::openlib((const char *)corepath);
+  hDLL = MudUtil::openlib((const char *)corepath);
   if (!hDLL)
   {
     const char *err = SDL_GetError();
@@ -565,12 +521,14 @@ inline uint64_t SDL_GetHQTicks()
   return SDL_GetPerformanceCounter() * 1000 / freq;
 }
 
+
 void CLibretro::framelimit()
 {
-  static double clock = 0;
+  static double frametime = (1000. / fps);
+  static double clock = SDL_GetTicks64();
   double deltaticks;
   double newclock = SDL_GetTicks64();
-  deltaticks = (1000. / fps) - (newclock - clock);
+  deltaticks =  frametime- (newclock - clock);
   if (deltaticks > 0)
     SDL_Delay(floor(deltaticks));
   double ticks = ((newclock + (deltaticks)) * 1000.);
@@ -621,75 +579,6 @@ void CLibretro::get_cores()
   std::filesystem::path p(exe_path);
   coreexts = "";
   std::string corelist = "";
-#ifdef _WIN32
-#ifndef DEBUG
-  std::array<std::string, 3> exts = {"cores.zip", "cores.rar", "cores.7z"};
-  bool corefound = false;
-  std::filesystem::path corezippath;
-  for (auto &ext : exts)
-  {
-    std::filesystem::path corepath(p / ext);
-    if (std::filesystem::exists(corepath))
-    {
-      fex_t *fex = NULL;
-      fex_err_t err = fex_open(&fex, corepath.string().c_str());
-      if (err == NULL)
-        while (!fex_done(fex))
-        {
-          if (fex_has_extension(fex_name(fex), ".dll"))
-          {
-            fex_stat(fex);
-            int sz = fex_size(fex);
-            PMEMORYMODULE handle;
-            char *buf = (char *)malloc(sz);
-            fex_read(fex, buf, sz);
-            handle = MemoryLoadLibrary(buf, sz);
-            free(buf);
-            if (!handle)
-            {
-              fex_close(fex);
-              fex = NULL;
-              continue;
-            }
-            else
-            {
-              struct retro_system_info system = {0};
-              auto *getinfo = (void (*)(retro_system_info *))MudUtil::getfunc(handle, "retro_get_system_info");
-              auto *set_environment =
-                  (void (*)(retro_environment_t))MudUtil::getfunc(handle, "retro_set_environment");
-              no_roms2 = false;
-              set_environment(no_roms);
-              if (getinfo)
-              {
-                getinfo(&system);
-                core_info entry_;
-                entry_.fps = 60;
-                entry_.samplerate = 44100;
-                entry_.aspect_ratio = 4 / 3;
-                entry_.core_name = system.library_name;
-                entry_.core_extensions = (system.valid_extensions == NULL) ? "" : system.valid_extensions;
-                entry_.core_path = fex_name(fex);
-                entry_.in_corezip = true;
-                entry_.no_roms = (system.valid_extensions == NULL) && no_roms2;
-                if (!entry_.no_roms)
-                {
-                  std::string test = entry_.core_extensions;
-                  test = MudUtil::replace_all(test, "|", ",.");
-                  corelist += test + ",.";
-                }
-                cores.push_back(entry_);
-                MudUtil::freelib(handle);
-              }
-            }
-          }
-          fex_next(fex);
-        }
-      fex_close(fex);
-    }
-  }
-
-#endif
-#endif
 
   std::filesystem::path path = p / "cores";
   for (auto &entry : std::filesystem::directory_iterator(path, std::filesystem::directory_options::skip_permission_denied))
@@ -720,7 +609,6 @@ void CLibretro::get_cores()
         getinfo(&system);
         core_info entry_;
         entry_.fps = 60;
-        entry_.in_corezip = false;
         entry_.samplerate = 44100;
         entry_.aspect_ratio = 4 / 3;
         entry_.core_name = system.library_name;

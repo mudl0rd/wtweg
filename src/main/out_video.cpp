@@ -121,7 +121,7 @@ void video_bindfb()
 {
 	if (g_video.software_rast)
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, g_video.fbo_id);
 		glViewport(0, 0, g_video.current_w, g_video.current_h);
 		glScissor(0, 0, g_video.current_w, g_video.current_h);
 	}
