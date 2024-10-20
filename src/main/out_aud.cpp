@@ -47,10 +47,10 @@ double inline resample_ratio(fifo_buffer_t *buf)
             (audio_ctx_s._fifo->size - (int)fifo_write_avail(audio_ctx_s._fifo)) /
             audio_ctx_s._fifo->size);
     };
-    int newInputFrequency =
+    double freq =
         ((1.0 - maxdelta) + 2.0 * (double)bufferlevel() * maxdelta) *
         audio_ctx_s.system_rate;
-    return (float)audio_ctx_s.client_rate / (float)newInputFrequency;
+    return (double)audio_ctx_s.client_rate / freq;
 }
 
 static inline void fifo_clear(fifo_buffer_t *buffer)
@@ -59,7 +59,7 @@ static inline void fifo_clear(fifo_buffer_t *buffer)
     buffer->writepos = 0;
 }
 
-static inline void fifo_free(fifo_buffer_t *buffer)
+void fifo_free(fifo_buffer_t *buffer)
 {
     if (!buffer)
         return;
@@ -138,8 +138,8 @@ int fifo_readspin(fifo_buffer_t *f, void *buf, unsigned len)
 
 inline void s16tof(float *dst, const int16_t *src, unsigned int count)
 {
-    for (izrange(i, count))
-        dst[i] = (float)src[i] * 0.000030517578125f;
+    while(count--)
+        dst[count] = (float)src[count] * 0.000030517578125f;
 }
 
 void func_callback(void *userdata, Uint8 *stream, int len)
@@ -198,7 +198,7 @@ bool audio_init(double refreshra, float input_srate, double fps, bool fp)
     SDL_AudioSpec shit2 = {0};
     SDL_GetDefaultAudioInfo(NULL, &shit2, 0);
 
-    auto desired_samples = (10 * shit2.freq) / 1000.0f;
+    auto desired_samples = (40 * shit2.freq) / 1000.0f;
     shit.samples = MudUtil::pow2up(desired_samples); // SDL2 requires power-of-two buffer sizes
     shit.freq = shit2.freq;
     shit.format = AUDIO_F32;
@@ -210,10 +210,10 @@ bool audio_init(double refreshra, float input_srate, double fps, bool fp)
     SDL_AudioSpec out;
     audio_ctx_s.dev = SDL_OpenAudioDevice(NULL, 0, &shit, &out, 0);
     size_t sampsize = out.size * 2;
-    audio_ctx_s.input_float = (float *)memalign_alloc(64, sampsize * 4);
-    audio_ctx_s.output_float = (float *)memalign_alloc(64, sampsize * 4);
-    memset(audio_ctx_s.input_float, 0, sampsize * 4);
-    memset(audio_ctx_s.output_float, 0, sampsize * 4);
+    audio_ctx_s.input_float = (float *)memalign_alloc(64, sampsize);
+    audio_ctx_s.output_float = (float *)memalign_alloc(64, sampsize);
+    memset(audio_ctx_s.input_float, 0, sampsize);
+    memset(audio_ctx_s.output_float, 0, sampsize);
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
     audio_ctx_s.drc_ratio = (float)audio_ctx_s.client_rate / (float)audio_ctx_s.system_rate;
     SDL_PauseAudioDevice(audio_ctx_s.dev, 0);

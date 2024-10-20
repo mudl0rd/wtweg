@@ -531,6 +531,7 @@ void CLibretro::framelimit()
   {
     SDL_Delay(delay * tick_duration);
   }
+
   timer = SDL_GetPerformanceCounter();
 }
 
