@@ -58,7 +58,7 @@ bool video_sethw(struct retro_hw_render_callback *hw);
 void video_deinit();
 void video_integerscale(bool yes);
 void video_changegeom(struct retro_game_geometry *geom);
-void audio_changeratefps(float refreshra, float input_srate, float fps);
+void audio_changeratefps(double refreshra, float input_srate, double fps);
 uintptr_t video_get_fb();
 
 bool video_set_pixelformat(retro_pixel_format fmt);

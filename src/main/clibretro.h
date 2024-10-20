@@ -222,7 +222,6 @@ public:
 	std::string coreexts;
 	std::string exe_path;
 	int save_slot;
-	float refreshrate;
 	struct retro_perf_counter *perf_counter_last;
 	retro_frame_time_callback_t frametime_cb;
 	retro_usec_t frametime_ref;

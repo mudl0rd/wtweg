@@ -331,7 +331,6 @@ void CLibretro::reset()
   save_slot = 0;
   variables_changed = false;
   perf_counter_last = 0;
-  refreshrate = 0;
   frametime_cb = NULL;
   frametime_ref = 0;
   use_retropad = true;
@@ -507,35 +506,32 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   return true;
 }
 
-inline uint64_t SDL_GetMicroTicks()
+inline double SDL_GetMicroTicks()
 {
-  static Uint64 freq = SDL_GetPerformanceFrequency();
-  return SDL_GetPerformanceCounter() * 1000000ull / freq;
+  static double freq = SDL_GetPerformanceFrequency();
+  return SDL_GetPerformanceCounter() * 1000000. / freq;
 }
 
-inline uint64_t SDL_GetHQTicks()
+inline double SDL_GetHQTicks()
 {
   // return SDL_GetTicks64();
 
-  static Uint64 freq = SDL_GetPerformanceFrequency();
-  return SDL_GetPerformanceCounter() * 1000 / freq;
+  static double freq = SDL_GetPerformanceFrequency();
+  return SDL_GetPerformanceCounter() * 1000. / freq;
 }
-
 
 void CLibretro::framelimit()
 {
-  static double frametime = (1000. / fps);
-  static double clock = SDL_GetTicks64();
-  double deltaticks;
-  double newclock = SDL_GetTicks64();
-  deltaticks =  frametime- (newclock - clock);
-  if (deltaticks > 0)
-    SDL_Delay(floor(deltaticks));
-  double ticks = ((newclock + (deltaticks)) * 1000.);
-  while (SDL_GetMicroTicks() < ticks)
+  static float tick_duration = 1000.0f / SDL_GetPerformanceFrequency();
+  static float frame_ticks = SDL_GetPerformanceFrequency() * 1.0f / fps;
+  static auto timer = SDL_GetPerformanceCounter();
+  auto now = SDL_GetPerformanceCounter();
+  float delay = frame_ticks - (float)(now - timer);
+  if (delay > 0)
   {
-  };
-  clock = SDL_GetTicks64();
+    SDL_Delay(delay * tick_duration);
+  }
+  timer = SDL_GetPerformanceCounter();
 }
 
 bool CLibretro::core_isrunning()
