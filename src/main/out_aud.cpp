@@ -38,7 +38,7 @@ struct audio_ctx
 
 std::mutex buffer_mutex;
 
-double resample_ratio(fifo_buffer_t *buf)
+double inline resample_ratio(fifo_buffer_t *buf)
 {
     double maxdelta = 0.005;
     auto bufferlevel = []()
@@ -87,7 +87,7 @@ fifo_buffer_t *fifo_new(size_t size)
     return buf;
 }
 
-int fifo_write(fifo_buffer_t *buffer, void *in_buf, size_t size, bool read)
+int inline fifo_write(fifo_buffer_t *buffer, void *in_buf, size_t size, bool read)
 {
 
     int total;
@@ -119,7 +119,6 @@ int fifo_write(fifo_buffer_t *buffer, void *in_buf, size_t size, bool read)
         memcpy(buffer->buffer + i, buf, size);
         buffer->writepos = i + size;
     }
-    audio_ctx_s.drc_ratio = resample_ratio(buffer);
     return total;
 }
 
@@ -149,6 +148,7 @@ void func_callback(void *userdata, Uint8 *stream, int len)
     int amount = fifo_read_avail(context->_fifo);
     amount = (len > amount) ? amount : len;
     fifo_write(context->_fifo, (uint8_t *)stream, amount, true);
+    context->drc_ratio = resample_ratio(context->_fifo);
     memset(stream + amount, 0, len - amount);
 }
 
@@ -174,13 +174,13 @@ void audio_mix(void *samples, size_t size)
 
     while (written < out_bytes)
     {
-
         size_t avail = fifo_write_avail(audio_ctx_s._fifo);
         size_t write_amt = out_bytes - written > avail ? avail : out_bytes - written;
         fifo_write(audio_ctx_s._fifo,
                    (char *)audio_ctx_s.output_float + written, write_amt, false);
 
         written += write_amt;
+        audio_ctx_s.drc_ratio = resample_ratio(audio_ctx_s._fifo);
     }
 }
 
