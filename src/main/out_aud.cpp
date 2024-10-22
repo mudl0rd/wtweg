@@ -138,7 +138,7 @@ int fifo_readspin(fifo_buffer_t *f, void *buf, unsigned len)
 
 inline void s16tof(float *dst, const int16_t *src, unsigned int count)
 {
-    while(count--)
+    while (count--)
         dst[count] = (float)src[count] * 0.000030517578125f;
 }
 
@@ -154,7 +154,6 @@ void func_callback(void *userdata, Uint8 *stream, int len)
 
 void audio_mix(void *samples, size_t size)
 {
-    static double drc_ratio = 1.0;
     struct resampler_data src_data = {0};
     size_t written = 0;
     uint32_t in_len = size * 2;
@@ -215,7 +214,7 @@ bool audio_init(double refreshra, float input_srate, double fps, bool fp)
     memset(audio_ctx_s.input_float, 0, sampsize);
     memset(audio_ctx_s.output_float, 0, sampsize);
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
-    audio_ctx_s.drc_ratio = (float)audio_ctx_s.client_rate / (float)audio_ctx_s.system_rate;
+    audio_ctx_s.drc_ratio = resample_ratio(audio_ctx_s._fifo);
     SDL_PauseAudioDevice(audio_ctx_s.dev, 0);
     return true;
 }
