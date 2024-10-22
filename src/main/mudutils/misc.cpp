@@ -125,7 +125,7 @@ namespace MudUtil
 	{
 #ifdef _WIN32
 #ifndef DEBUG
-		PMEMORYMODULE handle;
+		
 		if (strcmp(get_filename_ext(path), "zip") == 0)
 		{
 			struct zip_t *zip = zip_open(path, 0, 'r');
@@ -135,6 +135,7 @@ namespace MudUtil
 				zip_entry_openbyindex(zip, i);
 				if (strcmp(get_filename_ext(zip_entry_name(zip)), "dll") == 0)
 				{
+					PMEMORYMODULE handle= NULL;
 					unsigned long long sz = 0;
 					void *buf = NULL;
 					zip_entry_read(zip, &buf, &sz);
@@ -142,45 +143,30 @@ namespace MudUtil
 					handle = MemoryLoadLibrary(buf, sz);
 					if (buf)
 						free(buf);
-					if (!handle)
-					{
-						zip_entry_close(zip);
-						zip_close(zip);
-						return NULL;
-					}
-					else
-					{
-						zip_entry_close(zip);
-						zip_close(zip);
-						return handle;
-					}
+					zip_entry_close(zip);
+					zip_close(zip);
+					return handle;
 				}
-				zip_entry_close(zip);
 			}
+			zip_entry_close(zip);
 			zip_close(zip);
 			return NULL;
 		}
 		else
 		{
 			std::vector<uint8_t> dll_ptr = load_data(path);
-			handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
-			if (!handle)
-				return NULL;
+			PMEMORYMODULE handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
 			return handle;
 		}
 
 #else
 		void *handle = SDL_LoadObject(path);
-		if (!handle)
-			return NULL;
-		return handle;
+		return (!handle)?NULL:handle;
 #endif
 
 #else
 		void *handle = SDL_LoadObject(path);
-		if (!handle)
-			return NULL;
-		return handle;
+		return (!handle)?NULL:handle;
 #endif
 	}
 	void *getfunc(void *handle, const char *funcname)
