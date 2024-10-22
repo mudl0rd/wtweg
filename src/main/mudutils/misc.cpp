@@ -136,10 +136,9 @@ namespace MudUtil
 				if (strcmp(get_filename_ext(zip_entry_name(zip)), "dll") == 0)
 				{
 					PMEMORYMODULE handle= NULL;
-					unsigned long long sz = 0;
+					size_t sz = 0;
 					void *buf = NULL;
 					zip_entry_read(zip, &buf, &sz);
-
 					handle = MemoryLoadLibrary(buf, sz);
 					if (buf)
 						free(buf);
@@ -158,7 +157,6 @@ namespace MudUtil
 			PMEMORYMODULE handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
 			return handle;
 		}
-
 #else
 		void *handle = SDL_LoadObject(path);
 		return (!handle)?NULL:handle;

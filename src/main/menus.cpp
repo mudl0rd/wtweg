@@ -248,7 +248,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         }
 
         if (ImGui::MenuItem("Load Savestate"))
-          ImGuiFileDialog::Instance()->OpenDialog("LoadSaveState", "Load a savestate", ".state", ".", "", 1, nullptr, flags);
+          ImGuiFileDialog::Instance()->OpenDialog("LoadSaveState", "Load a savestate", ".state", ".");
 
         if (ImGui::MenuItem("Save Savestate"))
           ImGuiFileDialog::Instance()->OpenDialog("SaveSaveState", "Save a savestate", ".state", ".", "", 1, IGFDUserDatas("SaveFile"), ImGuiFileDialogFlags_ConfirmOverwrite);
