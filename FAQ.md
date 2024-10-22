@@ -20,9 +20,9 @@
 > [A list of tested cores is here](https://raw.githubusercontent.com/mudl0rd/WTFweg/master/cores.txt)
 >
 > [Cores can be grabbed here](http://buildbot.libretro.com/nightly/windows/x86_64/latest/)
-> * "cores" is where all libretro cores go. 
-> * "saves" is where all saves are
-> * "system" is where all BIOSes/system files go
+> * "cores" is where all libretro cores go. Cores can be left as-is from buildbot, no need to unzip.
+> * "saves" is where all saves are.
+> * "system" is where all BIOSes/system files go.
 > 
 > * "Emulation General" is a useful resource. Use it.
 
