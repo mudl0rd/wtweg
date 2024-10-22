@@ -13,7 +13,7 @@
 #include <SDL2/SDL.h>
 #ifdef _WIN32
 #include <windows.h>
-#include "fex/fex.h"
+#include "zip.h"
 #include "MemoryModulePP.h"
 #else
 #include <unistd.h>
@@ -126,45 +126,49 @@ namespace MudUtil
 #ifdef _WIN32
 #ifndef DEBUG
 		PMEMORYMODULE handle;
-		if (strcmp(get_filename_ext(path), "zip") == 0 || strcmp(get_filename_ext(path), "7z") == 0 ||
-			strcmp(get_filename_ext(path), "rar") == 0)
+		if (strcmp(get_filename_ext(path), "zip") == 0)
 		{
-			fex_t *fex = NULL;
-			fex_err_t err = fex_open(&fex, path);
-			if (err == NULL)
-				while (!fex_done(fex))
+			struct zip_t *zip = zip_open(path, 0, 'r');
+			int i, n = zip_entries_total(zip);
+			for (i = 0; i < n; ++i)
+			{
+				zip_entry_openbyindex(zip, i);
+				if (strcmp(get_filename_ext(zip_entry_name(zip)), "dll") == 0)
 				{
-					if (fex_has_extension(fex_name(fex), ".dll"))
-					{
-						fex_stat(fex);
-						int sz = fex_size(fex);
-						char *buf = (char *)malloc(sz);
-						fex_read(fex, buf, sz);
-						handle = MemoryLoadLibrary(buf, sz);
+					unsigned long long sz = 0;
+					void *buf = NULL;
+					zip_entry_read(zip, &buf, &sz);
+
+					handle = MemoryLoadLibrary(buf, sz);
+					if (buf)
 						free(buf);
-						if (!handle)
-						{
-							fex_close(fex);
-							fex = NULL;
-							return NULL;
-						}
-						else
-						{
-							fex_close(fex);
-							fex = NULL;
-							return handle;
-						}
-						fex_next(fex);
+					if (!handle)
+					{
+						zip_entry_close(zip);
+						zip_close(zip);
+						return NULL;
+					}
+					else
+					{
+						zip_entry_close(zip);
+						zip_close(zip);
+						return handle;
 					}
 				}
-			fex_close(fex);
+				zip_entry_close(zip);
+			}
+			zip_close(zip);
+			return NULL;
+		}
+		else
+		{
+			std::vector<uint8_t> dll_ptr = load_data(path);
+			handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
+			if (!handle)
+				return NULL;
+			return handle;
 		}
 
-		std::vector<uint8_t> dll_ptr = load_data(path);
-		handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
-		if (!handle)
-			return NULL;
-		return handle;
 #else
 		void *handle = SDL_LoadObject(path);
 		if (!handle)
@@ -248,5 +252,4 @@ namespace MudUtil
 		}
 		return out;
 	}
-
 }

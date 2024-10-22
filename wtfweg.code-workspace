@@ -93,7 +93,8 @@
 			"expected": "cpp",
 			"text_encoding": "cpp",
 			"cjson.h": "c",
-			"ranges": "cpp"
+			"ranges": "cpp",
+			"miniz.h": "c"
 		}
 	}
 }

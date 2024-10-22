@@ -9,7 +9,6 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include "fex/fex.h"
 #include "MemoryModulePP.h"
 static std::string_view SHLIB_EXTENSION = ".dll";
 #else
@@ -584,8 +583,7 @@ void CLibretro::get_cores()
     if (entry.is_regular_file() && (entry.path().extension() == SHLIB_EXTENSION
 #ifdef _WIN32
 #ifndef DEBUG
-                                    || entry.path().extension() == ".zip" ||
-                                    entry.path().extension() == ".rar" || entry.path().extension() == ".7z"
+                                    || entry.path().extension() == ".zip"
 #endif
 #endif
                                     ))
