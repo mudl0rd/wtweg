@@ -24,7 +24,6 @@ typedef struct fifo_buffer fifo_buffer_t;
 
 struct audio_ctx
 {
-    bool floating_point;
     fifo_buffer *_fifo;
     SDL_AudioDeviceID dev;
     unsigned client_rate;
@@ -152,14 +151,10 @@ void audio_mix(int16_t *samples, size_t size)
     size_t written = 0;
     uint32_t in_len = size * 2;
 
-    if (!audio_ctx_s.floating_point)
-    {
-        while (in_len--)
-            audio_ctx_s.input_float[in_len] = (float)samples[in_len] * 0.000030517578125f;
-        src_data.data_in = audio_ctx_s.input_float;
-    }
-    else
-        src_data.data_in = (float *)samples;
+    while (in_len--)
+        audio_ctx_s.input_float[in_len] = (float)samples[in_len] * 0.000030517578125f;
+    src_data.data_in = audio_ctx_s.input_float;
+
     src_data.input_frames = size;
     src_data.ratio = audio_ctx_s.drc_ratio;
     src_data.data_out = audio_ctx_s.output_float;
@@ -185,7 +180,6 @@ void audio_changeratefps(double refreshra, float input_srate, double fps)
 
 bool audio_init(double refreshra, float input_srate, double fps, bool fp)
 {
-    audio_ctx_s.floating_point = fp;
     SDL_AudioSpec shit = {0};
     if (fps)
         audio_changeratefps(refreshra, input_srate, fps);
