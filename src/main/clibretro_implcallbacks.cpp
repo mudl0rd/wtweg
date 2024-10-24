@@ -72,7 +72,7 @@ static size_t core_audio_sample_batch(const int16_t *data, size_t frames)
 {
   if (!frames && data == NULL)
     return 0;
-  audio_mix((void *)data, frames);
+  audio_mix((int16_t*)data, frames);
   return frames;
 }
 

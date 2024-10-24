@@ -136,12 +136,6 @@ int fifo_readspin(fifo_buffer_t *f, void *buf, unsigned len)
     return fifo_write(f, buf, len, true);
 }
 
-inline void s16tof(float *dst, const int16_t *src, unsigned int count)
-{
-    while (count--)
-        dst[count] = (float)src[count] * 0.000030517578125f;
-}
-
 void func_callback(void *userdata, Uint8 *stream, int len)
 {
     audio_ctx *context = (audio_ctx *)userdata;
@@ -152,7 +146,7 @@ void func_callback(void *userdata, Uint8 *stream, int len)
     memset(stream + amount, 0, len - amount);
 }
 
-void audio_mix(void *samples, size_t size)
+void audio_mix(int16_t *samples, size_t size)
 {
     struct resampler_data src_data = {0};
     size_t written = 0;
@@ -160,7 +154,8 @@ void audio_mix(void *samples, size_t size)
 
     if (!audio_ctx_s.floating_point)
     {
-        s16tof(audio_ctx_s.input_float, (int16_t *)samples, in_len);
+        while (in_len--)
+            audio_ctx_s.input_float[in_len] = (float)samples[in_len] * 0.000030517578125f;
         src_data.data_in = audio_ctx_s.input_float;
     }
     else
