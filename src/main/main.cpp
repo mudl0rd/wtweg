@@ -195,8 +195,6 @@ int main2(const char *rom, const char *core, bool pergame)
         SDL_SetWindowFullscreen(window, window_fs ? SDL_WINDOW_FULLSCREEN : 0);
         SDL_SetWindowSize(window, window_fs ? fullscreen_bounds.w : window_rect.w,
                           window_fs ? fullscreen_bounds.h : window_rect.h);
-        video_setsize(window_fs ? fullscreen_bounds.w : window_rect.w,
-                      window_fs ? fullscreen_bounds.h : window_rect.h);
         w = window_fs ? fullscreen_bounds.w : window_rect.w;
         h = window_fs ? fullscreen_bounds.h : window_rect.h;
       }
@@ -228,7 +226,6 @@ int main2(const char *rom, const char *core, bool pergame)
       {
         w = event.window.data1;
         h = event.window.data2;
-        video_setsize(w, h);
       }
       if (event.type == SDL_DROPFILE)
       {
@@ -249,7 +246,10 @@ int main2(const char *rom, const char *core, bool pergame)
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (instance->core_isrunning())
+    {
+      video_setsize(w, h);
       video_render();
+    }
     rendermenu(instance, window, show_menu);
   }
 

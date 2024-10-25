@@ -232,7 +232,7 @@ vp resize_cb()
 		max_scale = (unsigned)std::min(g_video.rend_width / width,
 									   g_video.rend_height / height);
 	}
-	if (height * max_scale < g_video.rend_height)
+	if ((height * max_scale) <= g_video.rend_height)
 	{
 		width *= max_scale;
 		height *= max_scale;
@@ -305,11 +305,6 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 
 	if (g_video.hw.context_reset)
 		g_video.hw.context_reset();
-
-	int w;int h;
-	SDL_GetWindowSizeInPixels(0, &w,&h);
-	g_video.rend_width = w;
-	g_video.rend_height = h;
 
 	return true;
 }
