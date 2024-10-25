@@ -188,6 +188,25 @@ void init_framebuffer(int width, int height)
 #endif
 }
 
+
+int gcdfunction(int n, int m){
+
+   // Make sure n is the smaller of the numbers.
+   if ( n > m )
+   {
+      std::swap(n, m);
+   }
+
+   while ( m % n != 0 )
+   {
+      int next = m % n;
+      m = n;
+      n = next;
+   }
+
+   return n;
+}
+
 vp resize_cb()
 {
 	vp vp_ = {0};
@@ -202,8 +221,10 @@ vp resize_cb()
 	}
 	if (!height || !width)
 		return vp_;
+
 	unsigned max_scale = (unsigned)std::min(g_video.rend_width / width,
-											g_video.rend_height / height);
+								  g_video.rend_height / height);
+
 	if (!max_scale)
 	{
 		height = g_video.base_h;
@@ -211,8 +232,11 @@ vp resize_cb()
 		max_scale = (unsigned)std::min(g_video.rend_width / width,
 									   g_video.rend_height / height);
 	}
-	width *= max_scale;
-	height *= max_scale;
+	if (height * max_scale < g_video.rend_height)
+	{
+		width *= max_scale;
+		height *= max_scale;
+	}
 	x = SDL_floor(g_video.rend_width - width) / 2;
 	y = SDL_floor(g_video.rend_height - height) / 2;
 	vp_ = {x, y, width, height};
@@ -282,18 +306,12 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
 	if (g_video.hw.context_reset)
 		g_video.hw.context_reset();
 
-	video_restoresz();
+	int w;int h;
+	SDL_GetWindowSizeInPixels(0, &w,&h);
+	g_video.rend_width = w;
+	g_video.rend_height = h;
 
 	return true;
-}
-
-void video_restoresz()
-{
-	SDL_Rect display_bounds;
-	SDL_GetDisplayUsableBounds(0, &display_bounds);
-	g_video.rend_width = display_bounds.w * 7 / 8, g_video.rend_height = display_bounds.h * 7 / 8;
-	SDL_SetWindowSize((SDL_Window *)g_video.sdl_context, g_video.rend_width, g_video.rend_height);
-	SDL_SetWindowPosition((SDL_Window *)g_video.sdl_context, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 }
 
 static inline unsigned get_alignment(unsigned pitch)

@@ -113,6 +113,8 @@ int main2(const char *rom, const char *core, bool pergame)
     ddpi = 96.0;
   float dpi_scaling = ddpi / 72.f;
   SDL_Rect display_bounds;
+  SDL_Rect fullscreen_bounds;
+  SDL_GetDisplayBounds(window_indx, &fullscreen_bounds);
   SDL_GetDisplayUsableBounds(window_indx, &display_bounds);
   int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
   w = win_w;
@@ -184,135 +186,127 @@ int main2(const char *rom, const char *core, bool pergame)
         done = true;
       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F12)
       {
-          static bool window_fs = false;
-          window_fs = !window_fs;
+        static bool window_fs = false;
+        window_fs = !window_fs;
+        if (window_fs)
+          SDL_GetWindowSizeInPixels(window, &window_rect.w,
+                                    &window_rect.h);
 
-          if (window_fs)
-          {
-            SDL_GetWindowSize(window, &window_rect.w, &window_rect.h);
-            SDL_Rect j;
-            int i = SDL_GetWindowDisplayIndex(window);
-            SDL_GetDisplayBounds(i, &j);
-            SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
-            video_setsize(j.w, j.h);
-            w = j.w;
-            h = j.h;
-          }
-          else
-          {
-            SDL_SetWindowFullscreen(window, 0);
-            video_setsize(window_rect.w, window_rect.h);
-            w = window_rect.w;
-            h = window_rect.h;
-          }
+        SDL_SetWindowFullscreen(window, window_fs ? SDL_WINDOW_FULLSCREEN : 0);
+        SDL_SetWindowSize(window, window_fs ? fullscreen_bounds.w : window_rect.w,
+                          window_fs ? fullscreen_bounds.h : window_rect.h);
+        video_setsize(window_fs ? fullscreen_bounds.w : window_rect.w,
+                      window_fs ? fullscreen_bounds.h : window_rect.h);
+        w = window_fs ? fullscreen_bounds.w : window_rect.w;
+        h = window_fs ? fullscreen_bounds.h : window_rect.h;
       }
 
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2)
-          instance->core_savestateslot(false);
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F3)
-          instance->core_savestateslot(true);
+      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2)
+        instance->core_savestateslot(false);
+      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F3)
+        instance->core_savestateslot(true);
 
-        if ((event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1))
-        {
-          show_menu ^= true;
-          SDL_SetRelativeMouseMode((SDL_bool)(!show_menu));
-        }
-
-        if (event.type == SDL_CONTROLLERDEVICEREMOVED)
-        {
-          close_inp(event.cdevice.which);
-          SDL_GameControllerUpdate();
-        }
-
-        if (event.type == SDL_CONTROLLERDEVICEADDED)
-        {
-          init_inp(event.cdevice.which);
-          SDL_GameControllerUpdate();
-        }
-
-        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-        {
-          w = event.window.data1;
-          h = event.window.data2;
-          video_setsize(w, h);
-        }
-        if (event.type == SDL_DROPFILE)
-        {
-          char *filez = (char *)event.drop.file;
-          loadfile(instance, event.drop.file, NULL, false);
-          SDL_free(filez);
-        }
-      }
-
-      if (instance->core_isrunning())
+      if ((event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1))
       {
-        video_bindfb();
-        instance->core_run();
+        show_menu ^= true;
+        SDL_SetRelativeMouseMode((SDL_bool)(!show_menu));
       }
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-      glViewport(0, 0, w, h);
-      glScissor(0, 0, w, h);
-      glClearColor(0., 0., 0., 1.0);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      if (instance->core_isrunning())
-        video_render();
-      rendermenu(instance, window, show_menu);
+
+      if (event.type == SDL_CONTROLLERDEVICEREMOVED)
+      {
+        close_inp(event.cdevice.which);
+        SDL_GameControllerUpdate();
+      }
+
+      if (event.type == SDL_CONTROLLERDEVICEADDED)
+      {
+        init_inp(event.cdevice.which);
+        SDL_GameControllerUpdate();
+      }
+
+      if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+      {
+        w = event.window.data1;
+        h = event.window.data2;
+        video_setsize(w, h);
+      }
+      if (event.type == SDL_DROPFILE)
+      {
+        char *filez = (char *)event.drop.file;
+        loadfile(instance, event.drop.file, NULL, false);
+        SDL_free(filez);
+      }
     }
 
-    instance->core_unload();
-    close_inpt();
+    if (instance->core_isrunning())
+    {
+      video_bindfb();
+      instance->core_run();
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, w, h);
+    glScissor(0, 0, w, h);
+    glClearColor(0., 0., 0., 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (instance->core_isrunning())
+      video_render();
+    rendermenu(instance, window, show_menu);
+  }
+
+  instance->core_unload();
+  close_inpt();
 
 #ifdef _WIN32
-    timeEndPeriod(1);
+  timeEndPeriod(1);
 #endif
 
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-    SDL_GL_DeleteContext(gl_context);
-    SDL_GL_UnloadLibrary();
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    return 0;
-  }
+  // Cleanup
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
+  SDL_GL_DeleteContext(gl_context);
+  SDL_GL_UnloadLibrary();
+  SDL_DestroyWindow(window);
+  SDL_Quit();
+  return 0;
+}
 
 #ifdef _WIN32
 
 #include <windows.h>
 
-  int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                     LPSTR lpCmdLine, int nCmdShow)
-  {
-    // avoid unused argument error while matching template
-    ((void)hInstance);
-    ((void)hPrevInstance);
-    ((void)lpCmdLine);
-    ((void)nCmdShow);
-    return main(__argc, __argv);
-  }
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                   LPSTR lpCmdLine, int nCmdShow)
+{
+  // avoid unused argument error while matching template
+  ((void)hInstance);
+  ((void)hPrevInstance);
+  ((void)lpCmdLine);
+  ((void)nCmdShow);
+  return main(__argc, __argv);
+}
 
 #endif
 
-  int main(int argc, char *argv[])
+int main(int argc, char *argv[])
+{
+
+  if (argc > 2)
   {
+    cmdline::parser a;
+    a.add<std::string>("core_name", 'c', "core filename", true, "");
+    a.add<std::string>("rom_name", 'r', "rom filename", true, "");
+    a.add("pergame", 'g', "per-game configuration");
+    a.parse_check(argc, argv);
+    std::string rom = a.get<std::string>("rom_name");
+    std::string core = a.get<std::string>("core_name");
+    bool pergame = a.exist("pergame");
 
-    if (argc > 2)
-    {
-      cmdline::parser a;
-      a.add<std::string>("core_name", 'c', "core filename", true, "");
-      a.add<std::string>("rom_name", 'r', "rom filename", true, "");
-      a.add("pergame", 'g', "per-game configuration");
-      a.parse_check(argc, argv);
-      std::string rom = a.get<std::string>("rom_name");
-      std::string core = a.get<std::string>("core_name");
-      bool pergame = a.exist("pergame");
-
-      if (!rom.empty() && !core.empty())
-        return main2(rom.c_str(), core.c_str(), pergame);
-      else
-        printf("\nPress any key to continue....\n");
-      return 0;
-    }
-    return main2(NULL, NULL, false);
+    if (!rom.empty() && !core.empty())
+      return main2(rom.c_str(), core.c_str(), pergame);
+    else
+      printf("\nPress any key to continue....\n");
+    return 0;
   }
+  return main2(NULL, NULL, false);
+}
