@@ -188,23 +188,23 @@ void init_framebuffer(int width, int height)
 #endif
 }
 
+int gcdfunction(int n, int m)
+{
 
-int gcdfunction(int n, int m){
+	// Make sure n is the smaller of the numbers.
+	if (n > m)
+	{
+		std::swap(n, m);
+	}
 
-   // Make sure n is the smaller of the numbers.
-   if ( n > m )
-   {
-      std::swap(n, m);
-   }
+	while (m % n != 0)
+	{
+		int next = m % n;
+		m = n;
+		n = next;
+	}
 
-   while ( m % n != 0 )
-   {
-      int next = m % n;
-      m = n;
-      n = next;
-   }
-
-   return n;
+	return n;
 }
 
 vp resize_cb()
@@ -223,22 +223,11 @@ vp resize_cb()
 		return vp_;
 
 	unsigned max_scale = (unsigned)std::min(g_video.rend_width / width,
-								  g_video.rend_height / height);
-
-	if (!max_scale)
-	{
-		height = g_video.base_h;
-		width = height * g_video.aspect;
-		max_scale = (unsigned)std::min(g_video.rend_width / width,
-									   g_video.rend_height / height);
-	}
-	if ((height * max_scale) <= g_video.rend_height)
-	{
-		width *= max_scale;
-		height *= max_scale;
-	}
-	x = SDL_floor(g_video.rend_width - width) / 2;
-	y = SDL_floor(g_video.rend_height - height) / 2;
+											g_video.rend_height / height);
+	width *= (!max_scale)?1:max_scale;
+	height *= (!max_scale)?1:max_scale;
+	x = (g_video.rend_width > width)? (SDL_floor(g_video.rend_width - width) / 2):0;
+	y = (g_video.rend_height > height)?(SDL_floor(g_video.rend_height - height) / 2):0;
 	vp_ = {x, y, width, height};
 	return vp_;
 }

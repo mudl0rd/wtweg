@@ -188,15 +188,7 @@ int main2(const char *rom, const char *core, bool pergame)
       {
         static bool window_fs = false;
         window_fs = !window_fs;
-        if (window_fs)
-          SDL_GetWindowSizeInPixels(window, &window_rect.w,
-                                    &window_rect.h);
-
         SDL_SetWindowFullscreen(window, window_fs ? SDL_WINDOW_FULLSCREEN : 0);
-        SDL_SetWindowSize(window, window_fs ? fullscreen_bounds.w : window_rect.w,
-                          window_fs ? fullscreen_bounds.h : window_rect.h);
-        w = window_fs ? fullscreen_bounds.w : window_rect.w;
-        h = window_fs ? fullscreen_bounds.h : window_rect.h;
       }
 
       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2)

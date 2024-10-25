@@ -495,12 +495,13 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   fps = av.timing.fps;
   audio_init((float)fps, av.timing.sample_rate, av.timing.fps, false);
   video_init(&av.geometry, sdl_window);
-  core_saveram(romsavesstatespath.c_str(), false);
 
   loadcontconfig(false);
+
   lr_isrunning = true;
   for (int i = 0; i < core_inpbinds.size(); i++)
     core_changinpt(core_inpbinds[i].controller_type, i);
+  core_saveram(romsavesstatespath.c_str(), false);
 
   return true;
 }
