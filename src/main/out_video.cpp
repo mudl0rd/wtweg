@@ -334,21 +334,17 @@ static inline unsigned get_alignment(unsigned pitch)
 void video_render()
 {
 	vp vpx = resize_cb();
-#ifndef USE_RPI
 	GLint dst_x0 = vpx.x;
 	GLint dst_x1 = dst_x0 + vpx.width;
 	GLint dst_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
 	GLint dst_y1 = (g_video.software_rast) ? vpx.y : (vpx.y + vpx.height);
+#ifndef USE_RPI
 	glBlitNamedFramebuffer(g_video.fbo_id, 0, 0, 0, g_video.current_w, g_video.current_h,
 						   dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #else
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	GLint dst_x0 = vpx.x;
-	GLint dst_x1 = dst_x0 + vpx.width;
-	GLint dst_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
-	GLint dst_y1 = (g_video.software_rast) ? vpx.y : (vpx.y + vpx.height);
 	glBlitFramebuffer(0, 0, g_video.current_w, g_video.current_h,
 					  dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
