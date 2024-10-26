@@ -237,8 +237,8 @@ vp resize_cb()
 		}
 	}
 
-	x = (g_video.rend_width > width) ? (SDL_floor(g_video.rend_width - width) / 2) : 0;
-	y = (g_video.rend_height > height) ? (SDL_floor(g_video.rend_height - height) / 2) : 0;
+	x = SDL_floor(g_video.rend_width - width) / 2;
+	y = SDL_floor(g_video.rend_height - height) / 2;
 	vp_ = {x, y, width, height};
 	return vp_;
 }
