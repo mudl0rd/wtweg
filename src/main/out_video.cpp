@@ -224,18 +224,29 @@ vp resize_cb()
 
 	unsigned max_scale = (unsigned)std::min(g_video.rend_width / width,
 											g_video.rend_height / height);
-	width *= (!max_scale) ? 1 : max_scale;
-	height *= (!max_scale) ? 1 : max_scale;
+
 	if (!max_scale)
 	{
-		height = g_video.rend_height;
-		width = height * g_video.aspect;
-		if (width > g_video.rend_width)
+		if (g_video.base_h < height)
 		{
-			height = g_video.rend_width / g_video.aspect;
-			width = g_video.rend_width;
+			height = g_video.base_h;
+			width = height * g_video.aspect;
+			max_scale = (unsigned)std::min(g_video.rend_width / width,
+										   g_video.rend_height / height);
+		}
+		else
+		{
+			height = g_video.rend_height;
+			width = height * g_video.aspect;
+			if (width > g_video.rend_width)
+			{
+				height = g_video.rend_width / g_video.aspect;
+				width = g_video.rend_width;
+			}
 		}
 	}
+	width *= (!max_scale) ? 1 : max_scale;
+	height *= (!max_scale) ? 1 : max_scale;
 
 	x = SDL_floor(g_video.rend_width - width) / 2;
 	y = SDL_floor(g_video.rend_height - height) / 2;
