@@ -120,7 +120,6 @@ int main2(const char *rom, const char *core, bool pergame)
   w = win_w;
   h = win_h;
   SDL_SetWindowSize(window, win_w, win_h);
-  video_setsize(win_w, win_h);
   SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_GetDesktopDisplayMode(window_indx, &dm);
 
@@ -188,7 +187,17 @@ int main2(const char *rom, const char *core, bool pergame)
       {
         static bool window_fs = false;
         window_fs = !window_fs;
-        SDL_SetWindowFullscreen(window, window_fs ? SDL_WINDOW_FULLSCREEN : 0);
+        if(window_fs)
+        {
+          SDL_GetWindowSize(window,&window_rect.w,&window_rect.h);
+          SDL_SetWindowSize(window,fullscreen_bounds.w,fullscreen_bounds.h);
+          SDL_SetWindowFullscreen(window,SDL_WINDOW_FULLSCREEN);
+        }
+        else
+        {
+          SDL_SetWindowFullscreen(window,0);
+          SDL_SetWindowSize(window,window_rect.w,window_rect.h);
+        }
       }
 
       if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2)
@@ -214,11 +223,6 @@ int main2(const char *rom, const char *core, bool pergame)
         SDL_GameControllerUpdate();
       }
 
-      if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-      {
-        w = event.window.data1;
-        h = event.window.data2;
-      }
       if (event.type == SDL_DROPFILE)
       {
         char *filez = (char *)event.drop.file;
@@ -226,6 +230,8 @@ int main2(const char *rom, const char *core, bool pergame)
         SDL_free(filez);
       }
     }
+
+    SDL_GetWindowSizeInPixels(window,&w, &h);
 
     if (instance->core_isrunning())
     {
@@ -238,10 +244,7 @@ int main2(const char *rom, const char *core, bool pergame)
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (instance->core_isrunning())
-    {
-      video_setsize(w, h);
-      video_render();
-    }
+      video_render(w,h);
     rendermenu(instance, window, show_menu);
   }
 

@@ -34,12 +34,6 @@ struct
 	SDL_Window *sdl_context;
 } g_video = {0};
 
-void video_setsize(unsigned width, unsigned height)
-{
-	g_video.rend_width = width;
-	g_video.rend_height = height;
-}
-
 void reinit_fbo(int width, int height)
 {
 	if (g_video.tex_id)
@@ -331,8 +325,10 @@ static inline unsigned get_alignment(unsigned pitch)
 	return 8;
 }
 
-void video_render()
+void video_render(int width,int height)
 {
+	g_video.rend_width = width;
+	g_video.rend_height = height;
 	vp vpx = resize_cb();
 	GLint dst_x0 = vpx.x;
 	GLint dst_x1 = dst_x0 + vpx.width;

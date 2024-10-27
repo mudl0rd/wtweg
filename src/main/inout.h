@@ -46,14 +46,13 @@ static std::array <std::string,24>retro_descripts=
     "\"RetroPad\" Analog R3"
 };
 
-void video_render();
+void video_render(int width,int height);
 void video_bindfb();
 void video_unbindfb();
 void video_restoresz();
 vp resize_cb();
 bool video_init(struct retro_game_geometry *geom, SDL_Window *window);
 void video_refresh(const void *data, unsigned width,unsigned height, size_t pitch);
-void video_setsize(unsigned width, unsigned height);
 bool video_sethw(struct retro_hw_render_callback *hw);
 void video_deinit();
 void video_integerscale(bool yes);
