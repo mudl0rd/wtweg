@@ -25,27 +25,6 @@
 
 SDL_DisplayMode dm;
 
-inline uint64_t SDL_GetMicroTicks()
-{
-  static Uint64 freq = SDL_GetPerformanceFrequency();
-  return SDL_GetPerformanceCounter() * 1000000ull / freq;
-}
-
-void framelimit(double FPS)
-{
-  static double clock = 0;
-  double deltaticks;
-  double newclock = SDL_GetTicks64();
-  deltaticks = floor((1000. / FPS) - (newclock - clock));
-  if (deltaticks > 0)
-    SDL_Delay(deltaticks);
-  double ticks = ((newclock + deltaticks) * 1000.);
-  while (SDL_GetMicroTicks() < ticks)
-  {
-  };
-  clock = SDL_GetTicks64();
-}
-
 void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
 {
   std::string window_name;
