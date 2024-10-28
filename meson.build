@@ -1,4 +1,4 @@
-project('tutorial', 'c','cpp',default_options: [ 'buildtype=debug', 'c_std=c11','cpp_std=c++17'])
+project('tutorial', 'c','cpp',default_options: [ 'buildtype=release', 'c_std=c11','cpp_std=c++17'])
 if host_machine.system() == 'linux'
 sdl2dep = dependency('sdl2',
   required: true,
