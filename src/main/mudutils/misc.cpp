@@ -16,9 +16,22 @@
 #include "zip.h"
 #include "MemoryModulePP.h"
 #else
+#ifndef _LARGEFILE64_SOURCE
+#define _LARGEFILE64_SOURCE
+#endif
+#ifdef  _FILE_OFFSET_BITS
+#undef  _FILE_OFFSET_BITS
+#endif
+#define _FILE_OFFSET_BITS 64
+// and include needed headers
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <unistd.h>
 #endif
 using namespace std;
+
 
 #ifdef _WIN32
 static std::string_view SHLIB_EXTENSION = ".dll";
