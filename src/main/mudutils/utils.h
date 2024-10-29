@@ -39,32 +39,31 @@ typedef struct
 
 typedef struct
 {
-  int8_t *_ptr;
+  uint8_t *_ptr;
   uint32_t _cnt;
-  int8_t *_base;
+  uint8_t *_base;
   uint32_t _bufsiz;
   int32_t _eof;
-  #ifdef _WIN32
-  typedef void* handle;
+#ifdef _WIN32
+  typedef void *handle;
   /// Windows handle to memory mapping of _file
-  void*       _mappedfile;
+  void *_mappedfile;
 #else
-  typedef int   handle;
+  typedef int handle;
 #endif
   /// file handle
-  handle  _file;
+  handle _file;
   /// pointer to the file contents mapped into memory
-  void*       _mapped;
-  uint64_t    _mappedsize;
+  void *_mapped;
+  uint64_t _mappedsize;
 } MEMMAP;
 
-  enum MEMMAPHint
-  {
-    Normal,         ///< good overall performance
-    SequentialScan, ///< read file only once with few seeks
-    RandomAccess    ///< jump around
-  };
-
+enum MEMMAPHint
+{
+  Normal,         ///< good overall performance
+  SequentialScan, ///< read file only once with few seeks
+  RandomAccess    ///< jump around
+};
 
 namespace MudUtil
 {
@@ -92,12 +91,12 @@ namespace MudUtil
   int32_t meof(MEM *buf);
   void mseek(MEM *buf, int32_t offset, int32_t whence);
 
-  MEMMAP *memmap_open(const char* fname, size_t *sz);
+  MEMMAP *memmap_open(const char *fname, size_t *sz);
   void memmap_close(MEMMAP *buf);
-  int32_t memmap_tell(MEMMAP *buf);
+  size_t memmap_tell(MEMMAP *buf);
   size_t memmap_read(void *buffer, size_t size, size_t count, MEMMAP *buf);
-  int32_t memmap_eof(MEMMAP *buf);
-  void memmap_seek(MEMMAP *buf, int32_t offset, int32_t whence);
+  size_t memmap_eof(MEMMAP *buf);
+  void memmap_seek(MEMMAP *buf, size_t offset, int32_t whence);
 
   // compression
   std::vector<unsigned char> compress_deflate(unsigned char *buf, size_t size);

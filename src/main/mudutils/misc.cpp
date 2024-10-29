@@ -412,21 +412,42 @@ namespace MudUtil
 			memmap_close(b);
 			return (NULL);
 		}
-		
-		b->_mappedsize = b->_mappedsize;
-		b->_ptr = (int8_t*)::MapViewOfFile(b->_mappedfile, FILE_MAP_READ, 0, 0, b->_mappedsize);
+
+		b->_ptr = (uint8_t *)MapViewOfFile(b->_mappedfile, FILE_MAP_READ, 0, 0, b->_bufsiz);
 		if (!b->_ptr)
 		{
 			memmap_close(b);
 			return (NULL);
 		}
 		b->_base = b->_ptr;
-		b->_cnt = b->_mappedsize;
-		b->_bufsiz = b->_mappedsize;
+		b->_cnt = b->_bufsiz;
+		b->_bufsiz = b->_bufsiz;
 		b->_eof = 0;
 		return b;
 #else
-		typedef int handle;
+		b->_file = ::open(fname, O_RDONLY | O_LARGEFILE);
+		if (b->_file == -1)
+		{
+			memmap_close(b);
+			return (NULL);
+		}
+
+		// file size
+		struct stat64 statInfo;
+		if (fstat64(b->_file, &statInfo) < 0)
+		{
+			memmap_close(b);
+			return (NULL);
+		}
+
+		b->_bufsiz = statInfo.st_size;
+		b->_ptr = (uint8_t *)mmap64(NULL, b->_bufsiz, PROT_READ, MAP_SHARED, b->_file, 0);
+		b->_bufsiz = statInfo.st_size;
+		b->_base = b->_ptr;
+		b->_cnt = b->_bufsiz;
+		b->_bufsiz = b->_bufsiz;
+		b->_eof = 0;
+		return b;
 #endif
 	}
 
@@ -434,24 +455,31 @@ namespace MudUtil
 	{
 		if (buf != NULL)
 		{
+#ifdef _WIN32
 			if (buf->_ptr)
 				::UnmapViewOfFile(buf->_ptr);
 			if (buf->_mappedfile)
 				::CloseHandle(buf->_mappedfile);
 			if (buf->_file)
 				::CloseHandle(buf->_file);
+#else
+			if (buf->ptr)
+				munmap(buf->_ptr, buf->_bufsiz);
+			if (buf->_file)
+				close(buf->_file);
+#endif
 			free(buf);
 			buf = NULL;
 		}
 	}
-	int32_t memmap_tell(MEMMAP *buf)
+	size_t memmap_tell(MEMMAP *buf)
 	{
 		return (buf->_bufsiz - buf->_cnt);
 	}
 	size_t memmap_read(void *buffer, size_t size, size_t count, MEMMAP *buf)
 	{
 		size_t wrcnt;
-		int32_t pcnt;
+		size_t pcnt;
 
 		if (buf == NULL)
 			return (0);
@@ -462,7 +490,7 @@ namespace MudUtil
 		if ((size == 0) || buf->_eof)
 			return (0);
 
-		pcnt = ((uint32_t)(buf->_cnt) > wrcnt) ? wrcnt : buf->_cnt;
+		pcnt = (buf->_cnt > wrcnt) ? wrcnt : buf->_cnt;
 		memcpy(buffer, buf->_ptr, pcnt);
 
 		buf->_cnt -= pcnt;
@@ -477,14 +505,14 @@ namespace MudUtil
 
 		return (pcnt / size);
 	}
-	int32_t memmap_eof(MEMMAP *buf)
+	size_t memmap_eof(MEMMAP *buf)
 	{
 		if (buf == NULL)
 			return (1); // XXX: Should return a different value?
 
 		return (buf->_eof);
 	}
-	void memmap_seek(MEMMAP *buf, int32_t offset, int32_t whence)
+	void memmap_seek(MEMMAP *buf, size_t offset, int32_t whence)
 	{
 		if (buf == NULL)
 			return;
