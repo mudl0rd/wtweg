@@ -125,7 +125,7 @@ namespace MudUtil
 	{
 #ifdef _WIN32
 #ifndef DEBUG
-		
+
 		if (strcmp(get_filename_ext(path), "zip") == 0)
 		{
 			struct zip_t *zip = zip_open(path, 0, 'r');
@@ -135,7 +135,7 @@ namespace MudUtil
 				zip_entry_openbyindex(zip, i);
 				if (strcmp(get_filename_ext(zip_entry_name(zip)), "dll") == 0)
 				{
-					PMEMORYMODULE handle= NULL;
+					PMEMORYMODULE handle = NULL;
 					size_t sz = 0;
 					void *buf = NULL;
 					zip_entry_read(zip, &buf, &sz);
@@ -159,12 +159,12 @@ namespace MudUtil
 		}
 #else
 		void *handle = SDL_LoadObject(path);
-		return (!handle)?NULL:handle;
+		return (!handle) ? NULL : handle;
 #endif
 
 #else
 		void *handle = SDL_LoadObject(path);
-		return (!handle)?NULL:handle;
+		return (!handle) ? NULL : handle;
 #endif
 	}
 	void *getfunc(void *handle, const char *funcname)
@@ -237,122 +237,288 @@ namespace MudUtil
 		return out;
 	}
 
-
-MEM *mopen(const int8_t *src, uint32_t length)
-{
-	MEM *b;
-
-	if ((src == NULL) || (length <= 0)) return (NULL);
-
-	b = (MEM *)(malloc(sizeof (MEM)));
-	if (b == NULL) return (NULL);
-
-	b->_base   = (int8_t *)(src);
-	b->_ptr    = (int8_t *)(src);
-	b->_cnt    = length;
-	b->_bufsiz = length;
-	b->_eof    = 0;
-
-	return (b);
-}
-
-void mclose(MEM *buf)
-{
-	if (buf != NULL)
+	MEM *mopen(const int8_t *src, uint32_t length)
 	{
-		free(buf);
-		buf = NULL;
-	}
-}
+		MEM *b;
 
-int32_t mtell(MEM *buf)
-{
-	return (buf->_bufsiz - buf->_cnt);
-}
+		if ((src == NULL) || (length <= 0))
+			return (NULL);
 
-size_t mread(void *buffer, size_t size, size_t count, MEM *buf)
-{
-	size_t wrcnt;
-	int32_t pcnt;
+		b = (MEM *)(malloc(sizeof(MEM)));
+		if (b == NULL)
+			return (NULL);
 
-	if (buf       == NULL) return (0);
-	if (buf->_ptr == NULL) return (0);
+		b->_base = (int8_t *)(src);
+		b->_ptr = (int8_t *)(src);
+		b->_cnt = length;
+		b->_bufsiz = length;
+		b->_eof = 0;
 
-	wrcnt = size * count;
-	if ((size == 0) || buf->_eof) return (0);
-
-	pcnt = ((uint32_t)(buf->_cnt) > wrcnt) ? wrcnt : buf->_cnt;
-	memcpy(buffer, buf->_ptr, pcnt);
-
-	buf->_cnt -= pcnt;
-	buf->_ptr += pcnt;
-
-	if (buf->_cnt <= 0)
-	{
-		buf->_ptr = buf->_base + buf->_bufsiz;
-		buf->_cnt = 0;
-		buf->_eof = 1;
+		return (b);
 	}
 
-	return (pcnt / size);
-}
-
-size_t mwrite(const void *buffer, size_t size, size_t count, MEM *buf)
-{
-	size_t wrcnt;
-	int32_t pcnt;
-
-	if (buf       == NULL) return (0);
-	if (buf->_ptr == NULL) return (0);
-
-	wrcnt = size * count;
-	if ((size == 0) || buf->_eof) return (0);
-
-	pcnt = ((uint32_t)(buf->_cnt) > wrcnt) ? wrcnt : buf->_cnt;
-	memcpy(buf->_ptr, buffer, pcnt);
-
-	buf->_cnt -= pcnt;
-	buf->_ptr += pcnt;
-
-	if (buf->_cnt <= 0)
+	void mclose(MEM *buf)
 	{
-		buf->_ptr = buf->_base + buf->_bufsiz;
-		buf->_cnt = 0;
-		buf->_eof = 1;
-	}
-
-	return (pcnt / size);
-}
-
-int32_t meof(MEM *buf)
-{
-	if (buf == NULL) return (1); // XXX: Should return a different value?
-
-	return (buf->_eof);
-}
-
-void mseek(MEM *buf, int32_t offset, int32_t whence)
-{
-	if (buf == NULL) return;
-
-	if (buf->_base)
-	{
-		switch (whence)
+		if (buf != NULL)
 		{
-		case SEEK_SET: buf->_ptr  = buf->_base + offset;                break;
-		case SEEK_CUR: buf->_ptr += offset;                             break;
-		case SEEK_END: buf->_ptr  = buf->_base + buf->_bufsiz + offset; break;
-		default: break;
+			free(buf);
+			buf = NULL;
 		}
+	}
 
-		buf->_eof = 0;
-		if (buf->_ptr >= (buf->_base + buf->_bufsiz))
+	int32_t mtell(MEM *buf)
+	{
+		return (buf->_bufsiz - buf->_cnt);
+	}
+
+	size_t mread(void *buffer, size_t size, size_t count, MEM *buf)
+	{
+		size_t wrcnt;
+		int32_t pcnt;
+
+		if (buf == NULL)
+			return (0);
+		if (buf->_ptr == NULL)
+			return (0);
+
+		wrcnt = size * count;
+		if ((size == 0) || buf->_eof)
+			return (0);
+
+		pcnt = ((uint32_t)(buf->_cnt) > wrcnt) ? wrcnt : buf->_cnt;
+		memcpy(buffer, buf->_ptr, pcnt);
+
+		buf->_cnt -= pcnt;
+		buf->_ptr += pcnt;
+
+		if (buf->_cnt <= 0)
 		{
 			buf->_ptr = buf->_base + buf->_bufsiz;
+			buf->_cnt = 0;
 			buf->_eof = 1;
 		}
 
-		buf->_cnt = (buf->_base + buf->_bufsiz) - buf->_ptr;
+		return (pcnt / size);
 	}
-}
+
+	size_t mwrite(const void *buffer, size_t size, size_t count, MEM *buf)
+	{
+		size_t wrcnt;
+		int32_t pcnt;
+
+		if (buf == NULL)
+			return (0);
+		if (buf->_ptr == NULL)
+			return (0);
+
+		wrcnt = size * count;
+		if ((size == 0) || buf->_eof)
+			return (0);
+
+		pcnt = ((uint32_t)(buf->_cnt) > wrcnt) ? wrcnt : buf->_cnt;
+		memcpy(buf->_ptr, buffer, pcnt);
+
+		buf->_cnt -= pcnt;
+		buf->_ptr += pcnt;
+
+		if (buf->_cnt <= 0)
+		{
+			buf->_ptr = buf->_base + buf->_bufsiz;
+			buf->_cnt = 0;
+			buf->_eof = 1;
+		}
+
+		return (pcnt / size);
+	}
+
+	int32_t meof(MEM *buf)
+	{
+		if (buf == NULL)
+			return (1); // XXX: Should return a different value?
+
+		return (buf->_eof);
+	}
+
+	void mseek(MEM *buf, int32_t offset, int32_t whence)
+	{
+		if (buf == NULL)
+			return;
+
+		if (buf->_base)
+		{
+			switch (whence)
+			{
+			case SEEK_SET:
+				buf->_ptr = buf->_base + offset;
+				break;
+			case SEEK_CUR:
+				buf->_ptr += offset;
+				break;
+			case SEEK_END:
+				buf->_ptr = buf->_base + buf->_bufsiz + offset;
+				break;
+			default:
+				break;
+			}
+
+			buf->_eof = 0;
+			if (buf->_ptr >= (buf->_base + buf->_bufsiz))
+			{
+				buf->_ptr = buf->_base + buf->_bufsiz;
+				buf->_eof = 1;
+			}
+
+			buf->_cnt = (buf->_base + buf->_bufsiz) - buf->_ptr;
+		}
+	}
+
+	MEMMAP *memmap_open(const char *fname, size_t *sz)
+	{
+		MEMMAP *b;
+
+		if ((fname == NULL))
+			return (NULL);
+
+		b = (MEMMAP *)(malloc(sizeof(MEMMAP)));
+		if (b == NULL)
+			return (NULL);
+		memset(b, 0, sizeof(MEMMAP));
+		b->_mappedsize = 0;
+
+#ifdef _WIN32
+		// open file
+		b->_file = ::CreateFileA(fname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (!b->_file)
+		{
+			memmap_close(b);
+			return (NULL);
+		}
+
+		// file size
+		LARGE_INTEGER result;
+		if (!GetFileSizeEx(b->_file, &result))
+		{
+			memmap_close(b);
+			return (NULL);
+		}
+
+		b->_bufsiz = static_cast<uint64_t>(result.QuadPart);
+		*sz = b->_bufsiz;
+
+		// convert to mapped mode
+		b->_mappedfile = ::CreateFileMapping(b->_file, NULL, PAGE_READONLY, 0, 0, NULL);
+		if (!b->_mappedfile)
+		{
+			memmap_close(b);
+			return (NULL);
+		}
+
+		DWORD offsetLow = DWORD(0 & 0xFFFFFFFF);
+		DWORD offsetHigh = DWORD(0 >> 32);
+
+		b->_mappedsize = b->_mappedsize;
+		b->_mapped = ::MapViewOfFile(b->_mappedfile, FILE_MAP_READ, offsetHigh, offsetLow, b->_mappedsize);
+		if (!b->_mapped)
+		{
+			memmap_close(b);
+			return (NULL);
+		}
+		b->_base = (int8_t *)(b->_mapped);
+		b->_ptr = (int8_t *)(b->_mapped);
+		b->_cnt = b->_mappedsize;
+		b->_bufsiz = b->_mappedsize;
+		b->_eof = 0;
+		return b;
+#else
+		typedef int handle;
+#endif
+	}
+
+	void memmap_close(MEMMAP *buf)
+	{
+		if (buf != NULL)
+		{
+			if (buf->_mapped)
+				::UnmapViewOfFile(buf->_mapped);
+			if (buf->_mappedfile)
+				::CloseHandle(buf->_mappedfile);
+			if (buf->_file)
+				::CloseHandle(buf->_file);
+			free(buf);
+			buf = NULL;
+		}
+	}
+	int32_t memmap_tell(MEMMAP *buf)
+	{
+		return (buf->_bufsiz - buf->_cnt);
+	}
+	size_t memmap_read(void *buffer, size_t size, size_t count, MEMMAP *buf)
+	{
+		size_t wrcnt;
+		int32_t pcnt;
+
+		if (buf == NULL)
+			return (0);
+		if (buf->_ptr == NULL)
+			return (0);
+
+		wrcnt = size * count;
+		if ((size == 0) || buf->_eof)
+			return (0);
+
+		pcnt = ((uint32_t)(buf->_cnt) > wrcnt) ? wrcnt : buf->_cnt;
+		memcpy(buffer, buf->_ptr, pcnt);
+
+		buf->_cnt -= pcnt;
+		buf->_ptr += pcnt;
+
+		if (buf->_cnt <= 0)
+		{
+			buf->_ptr = buf->_base + buf->_bufsiz;
+			buf->_cnt = 0;
+			buf->_eof = 1;
+		}
+
+		return (pcnt / size);
+	}
+	int32_t memmap_eof(MEMMAP *buf)
+	{
+		if (buf == NULL)
+			return (1); // XXX: Should return a different value?
+
+		return (buf->_eof);
+	}
+	void memmap_seek(MEMMAP *buf, int32_t offset, int32_t whence)
+	{
+		if (buf == NULL)
+			return;
+
+		if (buf->_base)
+		{
+			switch (whence)
+			{
+			case SEEK_SET:
+				buf->_ptr = buf->_base + offset;
+				break;
+			case SEEK_CUR:
+				buf->_ptr += offset;
+				break;
+			case SEEK_END:
+				buf->_ptr = buf->_base + buf->_bufsiz + offset;
+				break;
+			default:
+				break;
+			}
+
+			buf->_eof = 0;
+			if (buf->_ptr >= (buf->_base + buf->_bufsiz))
+			{
+				buf->_ptr = buf->_base + buf->_bufsiz;
+				buf->_eof = 1;
+			}
+
+			buf->_cnt = (buf->_base + buf->_bufsiz) - buf->_ptr;
+		}
+	}
+
 }

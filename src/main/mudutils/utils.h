@@ -28,6 +28,44 @@
   i < (b);            \
   ++i // if you want to start at zero and use ints
 
+typedef struct
+{
+  int8_t *_ptr;
+  uint32_t _cnt;
+  int8_t *_base;
+  uint32_t _bufsiz;
+  int32_t _eof;
+} MEM;
+
+typedef struct
+{
+  int8_t *_ptr;
+  uint32_t _cnt;
+  int8_t *_base;
+  uint32_t _bufsiz;
+  int32_t _eof;
+  #ifdef _WIN32
+  typedef void* handle;
+  /// Windows handle to memory mapping of _file
+  void*       _mappedfile;
+#else
+  typedef int   handle;
+#endif
+  /// file handle
+  handle  _file;
+  /// pointer to the file contents mapped into memory
+  void*       _mapped;
+  uint64_t    _mappedsize;
+} MEMMAP;
+
+  enum MEMMAPHint
+  {
+    Normal,         ///< good overall performance
+    SequentialScan, ///< read file only once with few seeks
+    RandomAccess    ///< jump around
+  };
+
+
 namespace MudUtil
 {
   // misc
@@ -45,6 +83,21 @@ namespace MudUtil
   std::string base64_decode(const std::string &in);
   std::string base64_encode(const std::string &in);
   std::string replace_all(std::string str, const std::string &from, const std::string &to);
+
+  MEM *mopen(const int8_t *src, uint32_t length);
+  void mclose(MEM *buf);
+  int32_t mtell(MEM *buf);
+  size_t mread(void *buffer, size_t size, size_t count, MEM *buf);
+  size_t mwrite(const void *buffer, size_t size, size_t count, MEM *buf);
+  int32_t meof(MEM *buf);
+  void mseek(MEM *buf, int32_t offset, int32_t whence);
+
+  MEMMAP *memmap_open(const char* fname, size_t *sz);
+  void memmap_close(MEMMAP *buf);
+  int32_t memmap_tell(MEMMAP *buf);
+  size_t memmap_read(void *buffer, size_t size, size_t count, MEMMAP *buf);
+  int32_t memmap_eof(MEMMAP *buf);
+  void memmap_seek(MEMMAP *buf, int32_t offset, int32_t whence);
 
   // compression
   std::vector<unsigned char> compress_deflate(unsigned char *buf, size_t size);
