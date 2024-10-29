@@ -412,19 +412,15 @@ namespace MudUtil
 			memmap_close(b);
 			return (NULL);
 		}
-
-		DWORD offsetLow = DWORD(0 & 0xFFFFFFFF);
-		DWORD offsetHigh = DWORD(0 >> 32);
-
+		
 		b->_mappedsize = b->_mappedsize;
-		b->_mapped = ::MapViewOfFile(b->_mappedfile, FILE_MAP_READ, offsetHigh, offsetLow, b->_mappedsize);
-		if (!b->_mapped)
+		b->_ptr = (int8_t*)::MapViewOfFile(b->_mappedfile, FILE_MAP_READ, 0, 0, b->_mappedsize);
+		if (!b->_ptr)
 		{
 			memmap_close(b);
 			return (NULL);
 		}
-		b->_base = (int8_t *)(b->_mapped);
-		b->_ptr = (int8_t *)(b->_mapped);
+		b->_base = b->_ptr;
 		b->_cnt = b->_mappedsize;
 		b->_bufsiz = b->_mappedsize;
 		b->_eof = 0;
@@ -438,8 +434,8 @@ namespace MudUtil
 	{
 		if (buf != NULL)
 		{
-			if (buf->_mapped)
-				::UnmapViewOfFile(buf->_mapped);
+			if (buf->_ptr)
+				::UnmapViewOfFile(buf->_ptr);
 			if (buf->_mappedfile)
 				::CloseHandle(buf->_mappedfile);
 			if (buf->_file)
