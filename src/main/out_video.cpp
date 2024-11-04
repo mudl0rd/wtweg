@@ -111,16 +111,6 @@ void video_integerscale(bool yes)
 	g_video.integer_scale = yes;
 }
 
-void video_bindfb()
-{
-	if (g_video.software_rast)
-	{
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, g_video.fbo_id);
-		glViewport(0, 0, g_video.current_w, g_video.current_h);
-		glScissor(0, 0, g_video.current_w, g_video.current_h);
-	}
-}
-
 bool video_sethw(struct retro_hw_render_callback *hw)
 {
 #ifndef USE_RPI
@@ -180,25 +170,6 @@ void init_framebuffer(int width, int height)
 	}
 	glCheckFramebufferStatus(GL_FRAMEBUFFER);
 #endif
-}
-
-int gcdfunction(int n, int m)
-{
-
-	// Make sure n is the smaller of the numbers.
-	if (n > m)
-	{
-		std::swap(n, m);
-	}
-
-	while (m % n != 0)
-	{
-		int next = m % n;
-		m = n;
-		n = next;
-	}
-
-	return n;
 }
 
 vp resize_cb()

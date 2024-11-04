@@ -213,10 +213,7 @@ int main2(const char *rom, const char *core, bool pergame)
     SDL_GetWindowSizeInPixels(window,&w, &h);
 
     if (instance->core_isrunning())
-    {
-      video_bindfb();
       instance->core_run();
-    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, w, h);
     glScissor(0, 0, w, h);

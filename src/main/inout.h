@@ -47,8 +47,6 @@ static std::array <std::string,24>retro_descripts=
 };
 
 void video_render(int width,int height);
-void video_bindfb();
-void video_unbindfb();
 void video_restoresz();
 vp resize_cb();
 bool video_init(struct retro_game_geometry *geom, SDL_Window *window);
