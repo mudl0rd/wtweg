@@ -135,6 +135,31 @@ int fifo_readspin(fifo_buffer_t *f, void *buf, unsigned len)
     return fifo_write(f, buf, len, true);
 }
 
+unsigned int
+mix_sample_buffer(
+		const float volume,
+		unsigned int num_frames,
+        const float *src,
+		float    *dst)
+{
+    #define fmin -1.0f
+    #define fmax 1.0f
+    while (num_frames) {
+        float s = *src;
+        float d = *dst;
+        float m = s * volume;
+        float a = d + m;
+        d = a > fmax ? fmax : a < fmin ? fmin : a;
+        *dst = d;
+        dst++;
+        src++;
+        num_frames--;
+    }
+	return num_frames;
+}
+
+
+
 void func_callback(void *userdata, Uint8 *stream, int len)
 {
     audio_ctx *context = (audio_ctx *)userdata;

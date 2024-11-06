@@ -106,11 +106,6 @@ uintptr_t video_get_fb()
 	return g_video.fbo_id;
 }
 
-void video_integerscale(bool yes)
-{
-	g_video.integer_scale = yes;
-}
-
 bool video_sethw(struct retro_hw_render_callback *hw)
 {
 #ifndef USE_RPI
@@ -296,7 +291,7 @@ static inline unsigned get_alignment(unsigned pitch)
 	return 8;
 }
 
-void video_render(int width,int height)
+void video_render(int width, int height)
 {
 	g_video.rend_width = width;
 	g_video.rend_height = height;

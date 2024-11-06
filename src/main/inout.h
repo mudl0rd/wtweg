@@ -53,7 +53,6 @@ bool video_init(struct retro_game_geometry *geom, SDL_Window *window);
 void video_refresh(const void *data, unsigned width,unsigned height, size_t pitch);
 bool video_sethw(struct retro_hw_render_callback *hw);
 void video_deinit();
-void video_integerscale(bool yes);
 void video_changegeom(struct retro_game_geometry *geom);
 void audio_changeratefps(double refreshra, float input_srate, double fps);
 uintptr_t video_get_fb();

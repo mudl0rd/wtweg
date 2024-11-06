@@ -278,7 +278,15 @@ int axistocheck(int id, int index)
 
 bool checkjs(int port)
 {
-    return (Joystick.size() && Joystick[port]) ? SDL_GameControllerGetAttached(Joystick[port]) : false;
+    for (auto &i : Joystick)
+    {
+        size_t k = &i - &Joystick.front();
+        if (k == port)
+        {
+            return SDL_GameControllerGetAttached(i);
+        }
+    }
+    return false;
 }
 
 bool loadcontconfig(bool save_f)
@@ -581,11 +589,16 @@ void close_inpt()
 
 void close_inp(int num)
 {
-    if (Joystick[num])
+    for (auto &i : Joystick)
     {
-        SDL_GameControllerClose(Joystick[num]);
-        Joystick[num] = NULL;
-        Joystick.pop_back();
+        size_t k = &i - &Joystick.front();
+        if (k == num)
+        {
+            SDL_GameControllerClose(i);
+            i = NULL;
+            Joystick.pop_back();
+            return;
+        }
     }
 }
 
