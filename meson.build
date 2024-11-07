@@ -49,6 +49,7 @@ else
 
 
 
+
 if get_option('buildtype') == 'debug'
   add_global_arguments('-DDEBUG', language: [ 'c', 'cpp' ])
 endif

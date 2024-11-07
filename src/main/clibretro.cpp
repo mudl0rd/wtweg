@@ -90,7 +90,7 @@ bool CLibretro::load_coresettings(bool save_f)
   int size_ = MudUtil::get_filesize(core_config.c_str());
   std::vector<uint8_t> data;
   cJSON *ini = NULL;
-   save_f = (size_ == 0);
+  save_f = (size_ == 0);
   if (size_)
   {
     data = MudUtil::load_data(core_config.c_str());
@@ -505,16 +505,28 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   return true;
 }
 
+inline uint64_t SDL_GetMicroTicks()
+{
+  static Uint64 freq = SDL_GetPerformanceFrequency();
+  return SDL_GetPerformanceCounter() * 1000000ull / freq;
+}
+
+
+
+
 void CLibretro::framelimit()
 {
-  static float tick_duration = 1000.0f / SDL_GetPerformanceFrequency();
-  static float frame_ticks = SDL_GetPerformanceFrequency() * 1.0f / fps;
-  static auto timer = SDL_GetPerformanceCounter();
-  auto now = SDL_GetPerformanceCounter();
-  float delay = frame_ticks - (float)(now - timer);
-  if (delay > 0)
-    SDL_Delay(delay * tick_duration);
-  timer = SDL_GetPerformanceCounter();
+  static double frametime = (1000. / fps);
+  static auto clock = SDL_GetTicks64();
+  auto newclock = SDL_GetTicks64();
+  double deltaticks =  frametime- double(newclock - clock);
+  if (deltaticks > 0)
+    SDL_Delay(deltaticks);
+  double ticks = ((newclock + (deltaticks)) * 1000.);
+  while (SDL_GetMicroTicks() < ticks)
+  {
+  };
+  clock = SDL_GetTicks64();
 }
 
 bool CLibretro::core_isrunning()
