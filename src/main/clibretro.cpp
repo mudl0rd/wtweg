@@ -511,21 +511,33 @@ inline uint64_t SDL_GetMicroTicks()
   return SDL_GetPerformanceCounter() * 1000000ull / freq;
 }
 
-
-
-
 void CLibretro::framelimit()
 {
+
   static double frametime = (1000. / fps);
   static auto clock = SDL_GetTicks64();
   auto newclock = SDL_GetTicks64();
-  double deltaticks =  frametime- double(newclock - clock);
+  double deltaticks = frametime - double(newclock - clock);
+
   if (deltaticks > 0)
     SDL_Delay(deltaticks);
-  double ticks = ((newclock + (deltaticks)) * 1000.);
-  while (SDL_GetMicroTicks() < ticks)
+  else
   {
-  };
+    clock = SDL_GetTicks64();
+    return;
+  }
+  double ticks = ((newclock + (deltaticks)) * 1000.);
+  int64_t remain;
+  do
+  {
+// according to all available processor documentation for x86 and arm,
+// spinning should pause the processor for a short while for better
+// power efficiency and (surprisingly) overall faster system performance
+#ifdef SDL_CPUPauseInstruction
+    SDL_CPUPauseInstruction();
+#endif
+    remain = ticks - SDL_GetMicroTicks();
+  } while (remain > 0);
   clock = SDL_GetTicks64();
 }
 
