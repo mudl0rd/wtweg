@@ -36,6 +36,7 @@ struct mousiebind
 };
 mousiebind mousiez = {0};
 const Uint8 *lr_keymap;
+retro_keyboard_event_t inp_keys = NULL;
 
 const struct key_map key_map_[] = {
     {SDLK_BACKSPACE, RETROK_BACKSPACE},
@@ -216,6 +217,8 @@ void reset_retropad()
     lib->core_inpbinds.clear();
     lib->core_inpbinds.resize(2);
     lib->core_inputttypes.clear();
+
+    inp_keys = NULL;
 
     for (int i = 0; i < 2; i++)
     {
@@ -811,7 +814,7 @@ static int key_pressed(int key)
     return false;
 }
 
-retro_keyboard_event_t inp_keys = NULL;
+
 
 void core_kb_callback(retro_keyboard_event_t e)
 {
