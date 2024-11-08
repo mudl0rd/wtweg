@@ -505,40 +505,38 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   return true;
 }
 
-inline uint64_t SDL_GetMicroTicks()
-{
-  static Uint64 freq = SDL_GetPerformanceFrequency();
-  return SDL_GetPerformanceCounter() * 1000000ull / freq;
-}
-
 void CLibretro::framelimit()
 {
-
-  static double frametime = (1000. / fps);
-  static auto clock = SDL_GetTicks64();
-  auto newclock = SDL_GetTicks64();
-  double deltaticks = frametime - double(newclock - clock);
-
-  if (deltaticks > 0)
-    SDL_Delay(deltaticks);
-  else
+  static uint64_t perffreq = 0;
+  if (!perffreq)
+    perffreq = SDL_GetPerformanceFrequency();
+  auto supersleep = [](uint64_t target)
   {
-    clock = SDL_GetTicks64();
-    return;
-  }
-  double ticks = ((newclock + (deltaticks)) * 1000.);
-  int64_t remain;
-  do
-  {
-// according to all available processor documentation for x86 and arm,
-// spinning should pause the processor for a short while for better
-// power efficiency and (surprisingly) overall faster system performance
+    uint64_t time = SDL_GetPerformanceCounter();
+    if (time >= target)
+    {
+      return;
+    }
+    // Because OS sleep is not accurate,
+    // we actually sleep until a maximum of 2 milliseconds are left.
+    while (int64_t(target - time) * 1000 > 2 * int64_t(perffreq))
+    {
+      SDL_Delay(1);
+      time = SDL_GetPerformanceCounter();
+    }
+    int64_t remain;
+    do
+    {
 #ifdef SDL_CPUPauseInstruction
-    SDL_CPUPauseInstruction();
+      SDL_CPUPauseInstruction();
 #endif
-    remain = ticks - SDL_GetMicroTicks();
-  } while (remain > 0);
-  clock = SDL_GetTicks64();
+      remain = target - SDL_GetPerformanceCounter();
+    } while (remain > 0);
+  };
+  static uint64_t fps_ = uint64_t(1000.0 * std::abs(fps));
+  static uint64_t time = 0;
+  supersleep(time);
+  time = SDL_GetPerformanceCounter() + (perffreq * 1000 / fps_);
 }
 
 bool CLibretro::core_isrunning()
