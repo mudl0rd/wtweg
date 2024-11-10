@@ -307,7 +307,15 @@ bool loadcontconfig(bool save_f)
                 if (k == l)
                 {
                     i.controlinfo = inp_cfg;
-                    i.controller_type = RETRO_DEVICE_JOYPAD;
+
+                    for (auto &j : inp_cfg)
+                    {
+                        if ((j.id & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
+                        {
+                            i.controller_type = j.id;
+                            continue;
+                        }
+                    }
                 }
             }
         }
@@ -813,8 +821,6 @@ static int key_pressed(int key)
         }
     return false;
 }
-
-
 
 void core_kb_callback(retro_keyboard_event_t e)
 {
