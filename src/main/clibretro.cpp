@@ -90,14 +90,16 @@ bool CLibretro::load_coresettings(bool save_f)
   int size_ = MudUtil::get_filesize(core_config.c_str());
   std::vector<uint8_t> data;
   cJSON *ini = NULL;
-  save_f = (size_ == 0);
   if (size_)
   {
     data = MudUtil::load_data(core_config.c_str());
     ini = cJSON_Parse((char *)data.data());
   }
   else
+  {
+    save_f = true;
     ini = cJSON_CreateObject();
+  }
 
   cJSON *config = NULL;
   cJSON *config_entries = NULL;
