@@ -307,13 +307,12 @@ bool loadcontconfig(bool save_f)
                 if (k == l)
                 {
                     i.controlinfo = inp_cfg;
-
                     for (auto &j : inp_cfg)
                     {
                         if ((j.id & RETRO_DEVICE_MASK) == RETRO_DEVICE_JOYPAD)
                         {
                             i.controller_type = j.id;
-                            continue;
+                           break;
                         }
                     }
                 }
@@ -326,7 +325,6 @@ bool loadcontconfig(bool save_f)
     std::vector<uint8_t> data;
     int portage = 0;
     cJSON *ini = NULL;
-    bool upd = false;
     if (sz_coreconfig)
     {
         data = MudUtil::load_data(core_config.c_str());
@@ -341,7 +339,6 @@ bool loadcontconfig(bool save_f)
     {
         config = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(lib->config_crc).c_str());
         config_entries = cJSON_GetArrayItem(config, 0);
-        upd = save_f;
     }
 
     else
@@ -357,9 +354,10 @@ bool loadcontconfig(bool save_f)
         std::string play = std::to_string(portage) + "_controllerport";
         if (cJSON_HasObjectItem(config_entries, play.c_str()))
         {
-            if (upd)
+            if (save_f)
             {
-                cJSON_SetNumberValue(config_entries, controller.controller_type);
+                cJSON *configval = cJSON_GetObjectItemCaseSensitive(config_entries, play.c_str());
+                cJSON_SetNumberValue(configval, controller.controller_type);
             }
             else
             {
