@@ -432,7 +432,7 @@ bool loadinpconf(uint32_t checksum, bool save_f)
         for (auto &bind : controller.inputbinds)
         {
             std::string bindstring;
-            auto entryupd = [save_f](std::string entry, cJSON *entryjs, auto &bind)
+            auto entryupd = [&save_f](std::string entry, cJSON *entryjs, auto &bind)
             {
                 if (cJSON_HasObjectItem(entryjs, entry.c_str()))
                 {
@@ -443,7 +443,10 @@ bool loadinpconf(uint32_t checksum, bool save_f)
                         bind = cJSON_GetNumberValue(configval);
                 }
                 else
+                {
                     cJSON_AddNumberToObject(entryjs, entry.c_str(), bind);
+                    save_f = true;
+                }
             };
             entryupd(bind.description, binds_entries, bind.config.val);
             bindstring = bind.description + "_anatrig";
@@ -464,7 +467,10 @@ bool loadinpconf(uint32_t checksum, bool save_f)
                     bind.joykey_desc = cJSON_GetStringValue(configval);
             }
             else
+            {
                 cJSON_AddStringToObject(binds_entries, bindstring.c_str(), bind.joykey_desc.c_str());
+                save_f = true;
+            }
         }
     }
     if (save_f)
