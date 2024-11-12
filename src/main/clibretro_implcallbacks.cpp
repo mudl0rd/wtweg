@@ -286,8 +286,8 @@ static bool core_environment(unsigned cmd, void *data)
     auto info = reinterpret_cast<struct retro_system_av_info *>(data);
     auto *geo = (struct retro_game_geometry *)&info->geometry;
     video_changegeom(geo);
-    retro->fps = info->timing.fps;
-    audio_changeratefps(retro->fps, info->timing.sample_rate, info->timing.fps);
+    retro->fps = retro->perfc * 1000 / uint64_t(1000.0 * std::abs(info->timing.fps));
+    audio_changerate(info->timing.sample_rate);
     return true;
   }
 

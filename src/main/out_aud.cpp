@@ -198,16 +198,14 @@ void audio_mix(int16_t *samples, size_t size)
     }
 }
 
-void audio_changeratefps(double refreshra, float input_srate, double fps)
+void audio_changerate(float input_srate)
 {
     audio_ctx_s.system_rate = input_srate;
 }
 
-bool audio_init(double refreshra, float input_srate, double fps, bool fp)
+bool audio_init(float input_srate)
 {
     SDL_AudioSpec shit = {0};
-    if (fps)
-        audio_changeratefps(refreshra, input_srate, fps);
     SDL_AudioSpec shit2 = {0};
     SDL_GetDefaultAudioInfo(NULL, &shit2, 0);
     

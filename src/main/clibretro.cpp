@@ -335,6 +335,7 @@ void CLibretro::reset()
   frametime_ref = 0;
   use_retropad = true;
   fps = 60.0;
+  perfc = SDL_GetPerformanceFrequency();
 
   reset_retropad();
 
@@ -493,8 +494,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   }
 
   retro.retro_get_system_av_info(&av);
-  fps = av.timing.fps;
-  audio_init((float)fps, av.timing.sample_rate, av.timing.fps, false);
+  fps = perfc * 1000/uint64_t(1000.0 * std::abs(av.timing.fps));
+  audio_init(av.timing.sample_rate);
   video_init(&av.geometry, sdl_window);
 
   loadcontconfig(false);
@@ -509,10 +510,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
 
 void CLibretro::framelimit()
 {
-  static uint64_t perffreq = 0;
-  if (!perffreq)
-    perffreq = SDL_GetPerformanceFrequency();
-  auto supersleep = [](uint64_t target)
+  auto supersleep = [](uint64_t target, uint64_t perf)
   {
     uint64_t time = SDL_GetPerformanceCounter();
     if (time >= target)
@@ -521,7 +519,7 @@ void CLibretro::framelimit()
     }
     // Because OS sleep is not accurate,
     // we actually sleep until a maximum of 2 milliseconds are left.
-    while (int64_t(target - time) * 1000 > 2 * int64_t(perffreq))
+    while (int64_t(target - time) * 1000 > 2 * int64_t(perf))
     {
       SDL_Delay(1);
       time = SDL_GetPerformanceCounter();
@@ -535,10 +533,9 @@ void CLibretro::framelimit()
       remain = target - SDL_GetPerformanceCounter();
     } while (remain > 0);
   };
-  static uint64_t fps_ = uint64_t(1000.0 * std::abs(fps));
   static uint64_t time = 0;
-  supersleep(time);
-  time = SDL_GetPerformanceCounter() + (perffreq * 1000 / fps_);
+  supersleep(time,perfc);
+  time = SDL_GetPerformanceCounter() + fps;
 }
 
 bool CLibretro::core_isrunning()

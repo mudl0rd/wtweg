@@ -225,9 +225,8 @@ public:
 	struct retro_perf_counter *perf_counter_last;
 	retro_frame_time_callback_t frametime_cb;
 	retro_usec_t frametime_ref;
-	double tick_duration;
-	double frame_ticks;
-	double fps;
+	uint64_t fps;
+	uint64_t perfc;
 };
 
 bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
