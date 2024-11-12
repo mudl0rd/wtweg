@@ -207,8 +207,8 @@ bool audio_init(float input_srate)
 {
     SDL_AudioSpec shit = {0};
     SDL_AudioSpec shit2 = {0};
+    audio_ctx_s.system_rate = input_srate;
     SDL_GetDefaultAudioInfo(NULL, &shit2, 0);
-    
     auto desired_samples = (64 * shit2.freq) / 1000.0f;
     shit.samples = MudUtil::pow2up(desired_samples); // SDL2 requires power-of-two buffer sizes
     shit.freq = shit2.freq;
