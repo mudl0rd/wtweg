@@ -290,8 +290,13 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Cap FPS to core limit"))
-          cap_fps = true;
+        if (ImGui::MenuItem("Cap FPS to core limit",nullptr,cap_fps == true))
+        {
+          cap_fps = !cap_fps;
+          instance->framecap(cap_fps);
+          audio_framelimit(cap_fps);
+        }
+          
 
         if (ImGui::MenuItem("Developer Window"))
           profile = true;

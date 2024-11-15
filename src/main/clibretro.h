@@ -202,6 +202,7 @@ public:
 	void set_inputdevice(int device);
 	void get_cores();
 	void framelimit();
+	void framecap(bool cap){capfps=cap;};
 
 	bool init_configvars(retro_variable *var);
 	bool init_configvars_coreoptions(void *var, int version);
@@ -237,6 +238,7 @@ public:
 	retro_usec_t frametime_ref;
 	uint64_t fps;
 	uint64_t perfc;
+	bool capfps;
 };
 
 bool loadfile(CLibretro *instance, clibretro_startoptions *options);

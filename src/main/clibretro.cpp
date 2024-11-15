@@ -497,6 +497,7 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   retro.retro_get_system_av_info(&av);
   fps = perfc * 1000/uint64_t(1000.0 * std::abs(av.timing.fps));
   audio_init(av.timing.sample_rate);
+  audio_framelimit(options->framelimit);
   video_init(&av.geometry, sdl_window);
 
   loadcontconfig(false);
@@ -507,12 +508,15 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   core_saveram(romsavesstatespath.c_str(), false);
 
   load_savestate=options->savestate;
+  capfps = options->framelimit;
 
   return true;
 }
 
 void CLibretro::framelimit()
 {
+  if(capfps)
+  {
   auto supersleep = [](uint64_t target, uint64_t perf)
   {
     uint64_t time = SDL_GetPerformanceCounter();
@@ -539,6 +543,7 @@ void CLibretro::framelimit()
   static uint64_t time = 0;
   supersleep(time,perfc);
   time = SDL_GetPerformanceCounter() + fps;
+  }
 }
 
 bool CLibretro::core_isrunning()

@@ -32,6 +32,7 @@ struct audio_ctx
     float *input_float;
     float *output_float;
     double drc_ratio;
+    bool cap;
 
 } audio_ctx_s = {0};
 
@@ -137,64 +138,78 @@ int fifo_readspin(fifo_buffer_t *f, void *buf, unsigned len)
 
 unsigned int
 mix_sample_buffer(
-		const float volume,
-		unsigned int num_frames,
-        const float *src,
-		float    *dst)
+    const float volume,
+    unsigned int num_frames,
+    const float *src,
+    float *dst)
 {
-    #define fmin -1.0f
-    #define fmax 1.0f
-    while (num_frames) {
+#define fmin -1.0f
+#define fmax 1.0f
+    while (num_frames)
+    {
         float s = *src;
         float d = *dst;
         float m = s * volume;
         float a = d + m;
-        d = a > fmax ? fmax : a < fmin ? fmin : a;
+        d = a > fmax ? fmax : a < fmin ? fmin
+                                       : a;
         *dst = d;
         dst++;
         src++;
         num_frames--;
     }
-	return num_frames;
+    return num_frames;
 }
 
-
+void audio_framelimit(bool cap)
+{
+    audio_ctx_s.cap = cap;
+}
 
 void func_callback(void *userdata, Uint8 *stream, int len)
 {
     audio_ctx *context = (audio_ctx *)userdata;
-    int amount = fifo_read_avail(context->_fifo);
-    amount = (len > amount) ? amount : len;
-    fifo_write(context->_fifo, (uint8_t *)stream, amount, true);
-    context->drc_ratio = resample_ratio(context->_fifo);
-    memset(stream + amount, 0, len - amount);
+    if (context->cap)
+    {
+        int amount = fifo_read_avail(context->_fifo);
+        amount = (len > amount) ? amount : len;
+        fifo_write(context->_fifo, (uint8_t *)stream, amount, true);
+        context->drc_ratio = resample_ratio(context->_fifo);
+        memset(stream + amount, 0, len - amount);
+    }
+    else
+        memset(stream, 0, len);
 }
 
 void audio_mix(int16_t *samples, size_t size)
 {
-    struct resampler_data src_data = {0};
-    size_t written = 0;
-    uint32_t in_len = size * 2;
-
-    while (in_len--)
-        audio_ctx_s.input_float[in_len] = (float)samples[in_len] * 0.000030517578125f;
-    src_data.data_in = audio_ctx_s.input_float;
-
-    src_data.input_frames = size;
-    src_data.ratio = audio_ctx_s.drc_ratio;
-    src_data.data_out = audio_ctx_s.output_float;
-    resampler_sinc_process(audio_ctx_s.resample, &src_data);
-    size_t out_bytes = src_data.output_frames * 2 * sizeof(float);
-
-    while (written < out_bytes)
+    if (audio_ctx_s.cap)
     {
-        size_t avail = fifo_write_avail(audio_ctx_s._fifo);
-        size_t write_amt = out_bytes - written > avail ? avail : out_bytes - written;
-        fifo_write(audio_ctx_s._fifo,
-                   (char *)audio_ctx_s.output_float + written, write_amt, false);
 
-        written += write_amt;
-        audio_ctx_s.drc_ratio = resample_ratio(audio_ctx_s._fifo);
+        struct resampler_data src_data = {0};
+        size_t written = 0;
+        uint32_t in_len = size * 2;
+
+        while (in_len--)
+            audio_ctx_s.input_float[in_len] = (float)samples[in_len] * 0.000030517578125f;
+        src_data.data_in = audio_ctx_s.input_float;
+
+        src_data.input_frames = size;
+        src_data.ratio = audio_ctx_s.drc_ratio;
+        src_data.data_out = audio_ctx_s.output_float;
+        resampler_sinc_process(audio_ctx_s.resample, &src_data);
+        size_t out_bytes = src_data.output_frames * 2 * sizeof(float);
+
+        while (written < out_bytes)
+        {
+            size_t avail = fifo_write_avail(audio_ctx_s._fifo);
+            size_t write_amt = out_bytes - written > avail ? avail : out_bytes - written;
+            fifo_write(audio_ctx_s._fifo,
+                       (char *)audio_ctx_s.output_float + written, write_amt, false);
+
+            written += write_amt;
+            audio_ctx_s.drc_ratio = resample_ratio(audio_ctx_s._fifo);
+        }
     }
 }
 
