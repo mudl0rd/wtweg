@@ -102,6 +102,15 @@ struct coreinput_bind
 	} config;
 };
 
+struct clibretro_startoptions
+{
+	std::string rom;
+	std::string savestate;
+	std::string core;
+	bool game_specific_settings;
+	bool framelimit;
+};
+
 enum libretro_binds
 {
 	joypad_b,
@@ -184,7 +193,7 @@ public:
 	void reset();
 	void core_changinpt(int dev, int port);
 	bool core_isrunning();
-	bool core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless);
+	bool core_load(bool contentless, clibretro_startoptions * options);
 	void core_unload();
 	bool core_saveram(const char *filename, bool save);
 	bool core_savestateslot(bool save);
@@ -221,6 +230,7 @@ public:
 	std::filesystem::path rom_path;
 	std::string coreexts;
 	std::string exe_path;
+	std::string load_savestate;
 	int save_slot;
 	struct retro_perf_counter *perf_counter_last;
 	retro_frame_time_callback_t frametime_cb;
@@ -229,7 +239,7 @@ public:
 	uint64_t perfc;
 };
 
-bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame);
+bool loadfile(CLibretro *instance, clibretro_startoptions *options);
 void sdlggerat_menu(CLibretro *instance, std::string *window_str);
 void add_log(enum retro_log_level level, const char *fmt);
 

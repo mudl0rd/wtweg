@@ -29,6 +29,7 @@ const char *true_vals[] = {"enabled", "true", "on"};
 
 static bool coreselect = false;
 bool pergame_ = false;
+bool cap_fps = true;
 static std::string filenamepath;
 
 static auto vector_getter = [](void *data, int n, const char **out_text)
@@ -168,17 +169,18 @@ static void HelpMarker(const char *desc)
   }
 }
 
-bool loadfile(CLibretro *instance, const char *file, const char *core_file, bool pergame)
+bool loadfile(CLibretro *instance, clibretro_startoptions *options)
 {
-  if (core_file != NULL)
+  if (options->core != "")
   {
-    instance->core_load((char *)file, pergame, (char *)core_file, false);
+
+    instance->core_load(false, options);
     return false;
   }
   else
   {
-    pergame_ = pergame;
-    filenamepath = file;
+    pergame_ = options->game_specific_settings;
+    filenamepath = options->rom;
     coreselect = true;
     return true;
   }
@@ -210,6 +212,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static bool aboutbox = false;
   static bool load_core = false;
   static bool no_cores = false;
+  static bool profile = true;
 
   static bool open_log = false;
   ImGuiIO &io = ImGui::GetIO();
@@ -285,6 +288,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
             inputsettings = true;
         }
 
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Cap FPS to core limit"))
+          cap_fps = true;
+
+        if (ImGui::MenuItem("Developer Window"))
+          profile = true;
+
         if (ImGui::MenuItem("Core log", nullptr,
                             open_log == true))
           open_log = !open_log;
@@ -339,8 +350,16 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       ImGuiFileDialog::Instance()->Close();
-      coreselect = loadfile(instance, (char *)filePathName.c_str(), NULL, false);
+
       filenamepath = filePathName;
+      clibretro_startoptions options;
+      options.rom = filenamepath;
+      options.framelimit = cap_fps;
+      options.game_specific_settings = pergame_;
+      options.savestate = "";
+      options.core = "";
+
+      coreselect = loadfile(instance,&options);
     }
     else
       ImGuiFileDialog::Instance()->Close();
@@ -379,7 +398,13 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     }
     if (hits == 1 && found)
     {
-      instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(0).core_path.c_str(), false);
+      clibretro_startoptions options;
+      options.rom = filenamepath;
+      options.framelimit = cap_fps;
+      options.game_specific_settings = pergame_;
+      options.savestate = "";
+      options.core = cores_info.at(0).core_path;
+      instance->core_load(false, &options);
       coreselect = false;
       return;
     }
@@ -402,8 +427,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load((char *)filenamepath.c_str(), pergame_, (char *)cores_info.at(listbox_item_current).core_path.c_str(),
-                            false);
+        clibretro_startoptions options;
+        options.rom = filenamepath;
+        options.framelimit = cap_fps;
+        options.game_specific_settings = pergame_;
+        options.savestate = "";
+        options.core = cores_info.at(listbox_item_current).core_path;
+
+        instance->core_load(false, &options);
         coreselect = false;
       }
       ImGui::Bullet();
@@ -470,8 +501,13 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        instance->core_load(NULL, false, (char *)cores_info.at(listbox_item_current).core_path.c_str(),
-                            true);
+        clibretro_startoptions options;
+        options.rom = "";
+        options.framelimit = cap_fps;
+        options.game_specific_settings = pergame_;
+        options.savestate = "";
+        options.core = cores_info.at(listbox_item_current).core_path;
+        instance->core_load(false, &options);
         load_core = false;
       }
       ImGui::Bullet();

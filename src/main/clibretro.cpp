@@ -336,6 +336,7 @@ void CLibretro::reset()
   use_retropad = true;
   fps = 60.0;
   perfc = SDL_GetPerformanceFrequency();
+  load_savestate = "";
 
   reset_retropad();
 
@@ -393,7 +394,7 @@ static bool no_roms(unsigned cmd, void *data)
   return false;
 }
 
-bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath, bool contentless)
+bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
 {
   if (lr_isrunning)
     core_unload();
@@ -401,17 +402,17 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   reset();
   lr_isrunning = false;
 
-  rom_path = (ROM == NULL) ? "" : ROM;
-  std::filesystem::path path_core(corepath);
+  rom_path = options->rom;
+  std::filesystem::path path_core(options->core);
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path = save_path_ /
-                                    (std::filesystem::path(corepath).stem().string() + ".sram");
+                                    (std::filesystem::path(options->core).stem().string() + ".sram");
   if (!contentless)
     save_path = save_path_ / (rom_path.stem().string() + ".sram");
 
   romsavesstatespath = std::filesystem::absolute(save_path).string();
 
-  if (game_specific_settings)
+  if (options->game_specific_settings)
   {
     save_path = std::filesystem::absolute(save_path_).string();
     save_path.replace_filename(rom_path.stem().string() + ".corecfg");
@@ -419,7 +420,7 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   }
 
   void *hDLL = NULL;
-  hDLL = MudUtil::openlib((const char *)corepath);
+  hDLL = MudUtil::openlib((const char *)options->core.c_str());
   if (!hDLL)
   {
     const char *err = SDL_GetError();
@@ -454,21 +455,21 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   retro.retro_init();
   load_envsymb(retro.handle, false);
 
-  struct retro_game_info info = {ROM, 0};
+  struct retro_game_info info = {options->rom.c_str(), 0};
   struct retro_system_info system = {0};
   retro.retro_get_system_info(&system);
   retro_system_av_info av = {0};
 
   if (!contentless)
   {
-    info.path = ROM;
+    info.path = options->rom.c_str();
     info.data = NULL;
     info.size = 0;
     info.meta = "";
     if (!system.need_fullpath)
     {
-      info.size = MudUtil::get_filesize(ROM);
-      std::ifstream ifs(ROM, ios::binary);
+      info.size = MudUtil::get_filesize(options->rom.c_str());
+      std::ifstream ifs(options->rom, ios::binary);
       if (!ifs.good())
       {
       fail:
@@ -504,6 +505,8 @@ bool CLibretro::core_load(char *ROM, bool game_specific_settings, char *corepath
   for (int i = 0; i < core_inpbinds.size(); i++)
     core_changinpt(core_inpbinds[i].controller_type, i);
   core_saveram(romsavesstatespath.c_str(), false);
+
+  load_savestate=options->savestate;
 
   return true;
 }
@@ -549,6 +552,14 @@ void CLibretro::core_run()
     frametime_cb(frametime_ref);
 
   retro.retro_run();
+
+  if(load_savestate != "")
+  {
+    static bool loaded=false;
+    if(!loaded)
+    core_savestate(load_savestate.c_str(),false);
+    loaded=true;
+  }
 }
 
 void CLibretro::core_unload()

@@ -45,7 +45,7 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
   instance->framelimit();
 }
 
-int main2(const char *rom, const char *core, bool pergame)
+int main2(clibretro_startoptions *options)
 {
 
   if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
@@ -141,8 +141,12 @@ int main2(const char *rom, const char *core, bool pergame)
   bool show_menu = true;
   SDL_Rect window_rect = {0};
 
-  if (rom && core)
-    loadfile(instance, rom, core, pergame);
+  if (options)
+  {
+    if(options->rom != "" && options->core != "")
+     loadfile(instance, options);
+  }
+   
 
   while (!done)
   {
@@ -164,16 +168,16 @@ int main2(const char *rom, const char *core, bool pergame)
       {
         static bool window_fs = false;
         window_fs = !window_fs;
-        if(window_fs)
+        if (window_fs)
         {
-          SDL_GetWindowSize(window,&window_rect.w,&window_rect.h);
-          SDL_SetWindowSize(window,fullscreen_bounds.w,fullscreen_bounds.h);
-          SDL_SetWindowFullscreen(window,SDL_WINDOW_FULLSCREEN);
+          SDL_GetWindowSize(window, &window_rect.w, &window_rect.h);
+          SDL_SetWindowSize(window, fullscreen_bounds.w, fullscreen_bounds.h);
+          SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
         }
         else
         {
-          SDL_SetWindowFullscreen(window,0);
-          SDL_SetWindowSize(window,window_rect.w,window_rect.h);
+          SDL_SetWindowFullscreen(window, 0);
+          SDL_SetWindowSize(window, window_rect.w, window_rect.h);
         }
       }
 
@@ -203,12 +207,17 @@ int main2(const char *rom, const char *core, bool pergame)
       if (event.type == SDL_DROPFILE)
       {
         char *filez = (char *)event.drop.file;
-        loadfile(instance, event.drop.file, NULL, false);
+        clibretro_startoptions options;
+        options.rom = event.drop.file;
+        options.framelimit = true;
+        options.game_specific_settings = false;
+        options.savestate = "";
+        loadfile(instance, &options);
         SDL_free(filez);
       }
     }
 
-    SDL_GetWindowSizeInPixels(window,&w, &h);
+    SDL_GetWindowSizeInPixels(window, &w, &h);
 
     if (instance->core_isrunning())
       instance->core_run();
@@ -218,7 +227,7 @@ int main2(const char *rom, const char *core, bool pergame)
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (instance->core_isrunning())
-      video_render(w,h);
+      video_render(w, h);
     rendermenu(instance, window, show_menu);
   }
 
@@ -265,17 +274,28 @@ int main(int argc, char *argv[])
     cmdline::parser a;
     a.add<std::string>("core_name", 'c', "core filename", true, "");
     a.add<std::string>("rom_name", 'r', "rom filename", true, "");
+    a.add<std::string>("savestate", 's', "run from savestate", false, "");
+    a.add("benchmark", 'b', "benchmark + run core uncapped");
     a.add("pergame", 'g', "per-game configuration");
     a.parse_check(argc, argv);
     std::string rom = a.get<std::string>("rom_name");
+    std::string savestate = a.get<std::string>("savestate");
     std::string core = a.get<std::string>("core_name");
     bool pergame = a.exist("pergame");
+    bool benchmark = a.exist("benchmark");
+
+    clibretro_startoptions options;
+    options.rom = rom;
+    options.core = core;
+    options.framelimit = benchmark;
+    options.game_specific_settings = pergame;
+    options.savestate = savestate;
 
     if (!rom.empty() && !core.empty())
-      return main2(rom.c_str(), core.c_str(), pergame);
+      return main2(&options);
     else
       printf("\nPress any key to continue....\n");
     return 0;
   }
-  return main2(NULL, NULL, false);
+  return main2(NULL);
 }
