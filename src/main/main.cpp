@@ -110,8 +110,6 @@ int main2(const char *rom, const char *core, bool pergame)
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   io.IniFilename = NULL;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-  io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
 
   ImFontConfig font_cfg;
   font_cfg.FontDataOwnedByAtlas = false;

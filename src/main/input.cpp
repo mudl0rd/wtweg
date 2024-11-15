@@ -876,7 +876,7 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
 {
     auto lib = CLibretro::get_classinstance();
 
-    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_MOUSE || (device & RETRO_DEVICE_MASK) == RETRO_DEVICE_LIGHTGUN)
+    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_MOUSE)
     {
         switch (id)
         {
@@ -891,17 +891,15 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         case RETRO_DEVICE_ID_MOUSE_MIDDLE:
             return mousiez.m;
         case RETRO_DEVICE_ID_MOUSE_BUTTON_4:
-        case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
             return mousiez.b4;
         case RETRO_DEVICE_ID_MOUSE_BUTTON_5:
-        case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
             return mousiez.b5;
         default:
             return 0;
         }
     }
 
-    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_POINTER)
+    if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_POINTER || (device & RETRO_DEVICE_MASK) == RETRO_DEVICE_LIGHTGUN)
     {
         vp widthheight = resize_cb();
 
@@ -920,13 +918,19 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
         switch (id)
         {
         case RETRO_DEVICE_ID_POINTER_X:
+        case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
             return scaled_x;
         case RETRO_DEVICE_ID_POINTER_Y:
+        case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
             return scaled_y;
         case RETRO_DEVICE_ID_POINTER_PRESSED:
             return (SDL_BUTTON(SDL_BUTTON_LEFT) & mousiez.l);
         case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
             return !inside;
+        case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:
+            return mousiez.b4;
+        case RETRO_DEVICE_ID_LIGHTGUN_START:
+            return mousiez.b5;
         }
     }
 
@@ -949,9 +953,8 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
                     }
                     else
                     {
-                        if (bind.isanalog == true)
-                            if (bind.retro_id == axistocheck(id, index))
-                                return bind.val;
+                        if (bind.isanalog == true && bind.retro_id == axistocheck(id, index))
+                            return bind.val;
                     }
                 }
             }
