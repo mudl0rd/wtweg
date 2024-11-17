@@ -495,9 +495,12 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   }
 
   retro.retro_get_system_av_info(&av);
-  fps = perfc * 1000/uint64_t(1000.0 * std::abs(av.timing.fps));
+  fps = perfc * 1000 / uint64_t(1000.0 * std::abs(av.timing.fps));
   audio_init(av.timing.sample_rate);
-  audio_framelimit(options->framelimit);
+
+  core_fps=av.timing.fps;
+  core_samplerate = av.timing.sample_rate;
+
   video_init(&av.geometry, sdl_window);
 
   loadcontconfig(false);
@@ -507,42 +510,51 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
     core_changinpt(core_inpbinds[i].controller_type, i);
   core_saveram(romsavesstatespath.c_str(), false);
 
-  load_savestate=options->savestate;
-  capfps = options->framelimit;
+  load_savestate = options->savestate;
+  framecap(options->framelimit);
+  frameno = 0;
+  
+  min_deltime=1000./core_fps;
+  max_deltatime=min_deltime;
 
   return true;
 }
 
 void CLibretro::framelimit()
 {
-  if(capfps)
+  if (capfps)
   {
-  auto supersleep = [](uint64_t target, uint64_t perf)
-  {
-    uint64_t time = SDL_GetPerformanceCounter();
-    if (time >= target)
+    auto supersleep = [](uint64_t target, uint64_t perf)
     {
-      return;
-    }
-    // Because OS sleep is not accurate,
-    // we actually sleep until a maximum of 2 milliseconds are left.
-    while (int64_t(target - time) * 1000 > 2 * int64_t(perf))
-    {
-      SDL_Delay(1);
-      time = SDL_GetPerformanceCounter();
-    }
-    int64_t remain;
-    do
-    {
+      uint64_t time = SDL_GetPerformanceCounter();
+      if (time >= target)
+      {
+        return;
+      }
+      // Because OS sleep is not accurate,
+      // we actually sleep until a maximum of 2 milliseconds are left.
+      while (int64_t(target - time) * 1000 > 2 * int64_t(perf))
+      {
+        SDL_Delay(1);
+        time = SDL_GetPerformanceCounter();
+      }
+      int64_t remain;
+      do
+      {
 #ifdef SDL_CPUPauseInstruction
-      SDL_CPUPauseInstruction();
+        SDL_CPUPauseInstruction();
 #endif
-      remain = target - SDL_GetPerformanceCounter();
-    } while (remain > 0);
-  };
-  static uint64_t time = 0;
-  supersleep(time,perfc);
-  time = SDL_GetPerformanceCounter() + fps;
+        remain = target - SDL_GetPerformanceCounter();
+      } while (remain > 0);
+    };
+    static uint64_t last = 0;
+    static uint64_t time = 0;
+    supersleep(time, perfc);
+    uint64_t now = SDL_GetPerformanceCounter();
+    deltatime = (double)((now - last) * 1000 / (double)perfc);
+    time = SDL_GetPerformanceCounter() + fps;
+    last = SDL_GetPerformanceCounter();
+    frameno++;
   }
 }
 
@@ -556,14 +568,43 @@ void CLibretro::core_run()
   if (frametime_cb != NULL)
     frametime_cb(frametime_ref);
 
+  static uint64_t last = 0;
+  uint64_t now = SDL_GetPerformanceCounter();
   retro.retro_run();
+  deltatime = (double)((now - last) * 1000 / (double)perfc);
+  last = SDL_GetPerformanceCounter();
+ 
 
-  if(load_savestate != "")
+
+  if (frames.size() > 200) //Max seconds to show
+	{
+		for (size_t i = 1; i < frames.size(); i++)
+		{
+			frames[i-1] = frames[i];
+		}
+		frames[frames.size() - 1] = deltatime;
+	}
+	else
+	{
+		frames.push_back(deltatime);
+	}
+	
+   frameno++;
+
+
+  
+
+  if(deltatime>max_deltatime)
+  max_deltatime=deltatime;
+  if(deltatime<min_deltime)
+  min_deltime=deltatime;
+
+  if (load_savestate != "")
   {
-    static bool loaded=false;
-    if(!loaded)
-    core_savestate(load_savestate.c_str(),false);
-    loaded=true;
+    static bool loaded = false;
+    if (!loaded)
+      core_savestate(load_savestate.c_str(), false);
+    loaded = true;
   }
 }
 

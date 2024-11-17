@@ -202,7 +202,11 @@ public:
 	void set_inputdevice(int device);
 	void get_cores();
 	void framelimit();
-	void framecap(bool cap){capfps=cap;};
+	void framecap(bool cap){
+	capfps=cap;
+	void audio_framelimit(bool cap);
+	audio_framelimit(cap);
+	};
 
 	bool init_configvars(retro_variable *var);
 	bool init_configvars_coreoptions(void *var, int version);
@@ -239,6 +243,15 @@ public:
 	uint64_t fps;
 	uint64_t perfc;
 	bool capfps;
+
+	float deltatime;
+	uint64_t frameno;
+	float core_samplerate;
+	float core_fps;
+	float max_deltatime;
+	float min_deltime;
+	std::vector<float> frames;
+
 };
 
 bool loadfile(CLibretro *instance, clibretro_startoptions *options);

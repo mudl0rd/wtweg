@@ -2,7 +2,7 @@
 #include "imgui.h"
 #include "ImGuiFileDialog.h"
 #include "ImGuiFileDialogConfig.h"
-
+#include <numeric>
 #include <sstream>
 #include "mudutils/utils.h"
 #include "inout.h"
@@ -85,6 +85,7 @@ struct ExampleAppLog
     ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
                                         ImVec2(io.DisplaySize.x * 0.6f, io.DisplaySize.y * 0.6f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.2f, io.DisplaySize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowBgAlpha(0.5);
 
     if (!ImGui::Begin(title, p_open, ImGuiWindowFlags_NoCollapse))
     {
@@ -92,70 +93,64 @@ struct ExampleAppLog
       return;
     }
 
-    if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_None))
+    CLibretro *core = CLibretro::get_classinstance();
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+    ImGui::Text("%i core frame/s ran", core->frameno);
+    ImGui::Text("Core FPS limit: %.2f", core->core_fps);
+    ImGui::Text("Core samplerate (Hz): %.2f", core->core_samplerate);
+    ImGui::Text("Core %.3f ms/frame (%.2f FPS)", core->deltatime, 1000. / core->deltatime);
+    ImVec2 sz = ImGui::GetWindowSize();
+    ImGui::PlotHistogram("Frametimes", &core->frames[0], core->frames.size(), 0, NULL, 0.0f, 50.0f, ImVec2(sz.x, 100));
+    ImGui::Separator();
+    bool clear = ImGui::Button("Clear");
+    ImGui::SameLine();
+    bool copy = ImGui::Button("Copy");
+    ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+    if (clear)
+      Clear();
+    if (copy)
+      ImGui::LogToClipboard();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    const char *buf = Buf.begin();
+    const char *buf_end = Buf.end();
     {
-      if (ImGui::BeginTabItem("Core metrics"))
+      // The simplest and easy way to display the entire buffer:
+      //   ImGui::TextUnformatted(buf_begin, buf_end);
+      // And it'll just work. TextUnformatted() has specialization for large blob of text and will fast-forward
+      // to skip non-visible lines. Here we instead demonstrate using the clipper to only process lines that are
+      // within the visible area.
+      // If you have tens of thousands of items and their processing cost is non-negligible, coarse clipping them
+      // on your side is recommended. Using ImGuiListClipper requires
+      // - A) random access into your data
+      // - B) items all being the  same height,
+      // both of which we can handle since we an array pointing to the beginning of each line of text.
+      // When using the filter (in the block of code above) we don't have random access into the data to display
+      // anymore, which is why we don't use the clipper. Storing or skimming through the search result would make
+      // it possible (and would be recommended if you want to search through tens of thousands of entries).
+      ImGuiListClipper clipper;
+      clipper.Begin(LineOffsets.Size);
+      while (clipper.Step())
       {
-        ImGui::Text("This is the Avocado tab!\nblah blah blah blah blah");
-        ImGui::EndTabItem();
-      }
-      if (ImGui::BeginTabItem("Core console"))
-      {
-        // Main window
-        bool clear = ImGui::Button("Clear");
-        ImGui::SameLine();
-        bool copy = ImGui::Button("Copy");
-        ImGui::Separator();
-        ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-        if (clear)
-          Clear();
-        if (copy)
-          ImGui::LogToClipboard();
-
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-        const char *buf = Buf.begin();
-        const char *buf_end = Buf.end();
+        for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
         {
-          // The simplest and easy way to display the entire buffer:
-          //   ImGui::TextUnformatted(buf_begin, buf_end);
-          // And it'll just work. TextUnformatted() has specialization for large blob of text and will fast-forward
-          // to skip non-visible lines. Here we instead demonstrate using the clipper to only process lines that are
-          // within the visible area.
-          // If you have tens of thousands of items and their processing cost is non-negligible, coarse clipping them
-          // on your side is recommended. Using ImGuiListClipper requires
-          // - A) random access into your data
-          // - B) items all being the  same height,
-          // both of which we can handle since we an array pointing to the beginning of each line of text.
-          // When using the filter (in the block of code above) we don't have random access into the data to display
-          // anymore, which is why we don't use the clipper. Storing or skimming through the search result would make
-          // it possible (and would be recommended if you want to search through tens of thousands of entries).
-          ImGuiListClipper clipper;
-          clipper.Begin(LineOffsets.Size);
-          while (clipper.Step())
-          {
-            for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
-            {
-              const char *line_start = buf + LineOffsets[line_no];
-              const char *line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
-              ImGui::PushStyleColor(ImGuiCol_Text, LineCol[line_no]);
-              ImGui::TextUnformatted(line_start, line_end);
-              ImGui::PopStyleColor();
-            }
-          }
-          clipper.End();
+          const char *line_start = buf + LineOffsets[line_no];
+          const char *line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+          ImGui::PushStyleColor(ImGuiCol_Text, LineCol[line_no]);
+          ImGui::TextUnformatted(line_start, line_end);
+          ImGui::PopStyleColor();
         }
-        ImGui::PopStyleVar();
-
-        if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-          ImGui::SetScrollHereY(1.0f);
-
-        ImGui::EndChild();
-
-        ImGui::EndTabItem();
       }
-      ImGui::EndTabBar();
+      clipper.End();
     }
+    ImGui::PopStyleVar();
+
+    if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+      ImGui::SetScrollHereY(1.0f);
+
+    ImGui::EndChild();
+
     ImGui::End();
   }
 };
@@ -306,7 +301,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         {
           cap_fps = !cap_fps;
           instance->framecap(cap_fps);
-          audio_framelimit(cap_fps);
         }
 
         if (ImGui::MenuItem("Developer Window", nullptr,
