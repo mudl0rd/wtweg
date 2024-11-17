@@ -79,11 +79,22 @@ struct ExampleAppLog
     LineOffsets.push_back(old_size);
   }
 
+  float average(std::vector<float> const &v)
+  {
+    if (v.empty())
+    {
+      return 0;
+    }
+
+    auto const count = static_cast<float>(v.size());
+    return std::reduce(v.begin(), v.end()) / count;
+  }
+
   void Draw(const char *title, bool *p_open = NULL)
   {
     ImGuiIO &io = ImGui::GetIO();
-    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
-                                        ImVec2(io.DisplaySize.x * 0.6f, io.DisplaySize.y * 0.6f));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.5f),
+                                        ImVec2(io.DisplaySize.x * 0.6f, io.DisplaySize.y * 0.7f));
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.2f, io.DisplaySize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowBgAlpha(0.5);
 
@@ -97,10 +108,15 @@ struct ExampleAppLog
 
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
     ImGui::Text("WTFweg average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-    ImGui::Text("%i core frame/s ran", core->frameno);
-    ImGui::Text("Core FPS limit: %.2f", core->core_fps);
+    static float low =0;
+    if ( 1000.0f /io.Framerate > low)
+      low = 1000.0f /io.Framerate;
+    ImGui::Text("WTFweg highest frametime %.3f ms/frame",low);
     ImGui::Text("Core samplerate (Hz): %.2f", core->core_samplerate);
+    ImGui::Text("Core FPS limit: %.2f", core->core_fps);
     ImGui::Text("Core %.3f ms/frame (%.2f FPS)", core->deltatime, 1000. / core->deltatime);
+    float avg = average(core->frames);
+    ImGui::Text("Average libretro core runtime: %.3f ms/frame (%i frames)", avg, core->frameno);
     ImGui::Text("libretro core frametime graph:");
     ImGui::PopStyleColor();
     ImVec2 sz = ImGui::GetWindowSize();

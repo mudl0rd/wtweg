@@ -498,7 +498,7 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   fps = perfc * 1000 / uint64_t(1000.0 * std::abs(av.timing.fps));
   audio_init(av.timing.sample_rate);
 
-  core_fps=av.timing.fps;
+  core_fps = av.timing.fps;
   core_samplerate = av.timing.sample_rate;
 
   video_init(&av.geometry, sdl_window);
@@ -513,9 +513,9 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   load_savestate = options->savestate;
   framecap(options->framelimit);
   frameno = 0;
-  
-  min_deltime=1000./core_fps;
-  max_deltatime=min_deltime;
+
+  min_deltime = 1000. / core_fps;
+  max_deltatime = min_deltime;
 
   return true;
 }
@@ -547,14 +547,11 @@ void CLibretro::framelimit()
         remain = target - SDL_GetPerformanceCounter();
       } while (remain > 0);
     };
-    static uint64_t last = 0;
+
     static uint64_t time = 0;
     supersleep(time, perfc);
-    uint64_t now = SDL_GetPerformanceCounter();
-    deltatime = (double)((now - last) * 1000 / (double)perfc);
+
     time = SDL_GetPerformanceCounter() + fps;
-    last = SDL_GetPerformanceCounter();
-    frameno++;
   }
 }
 
@@ -567,37 +564,27 @@ void CLibretro::core_run()
 {
   if (frametime_cb != NULL)
     frametime_cb(frametime_ref);
-
   static uint64_t last = 0;
   uint64_t now = SDL_GetPerformanceCounter();
   retro.retro_run();
+
   deltatime = (double)((now - last) * 1000 / (double)perfc);
+
+  if (frames.size() > 200) // Max seconds to show
+  {
+    for (size_t i = 1; i < frames.size(); i++)
+    {
+      frames[i - 1] = frames[i];
+    }
+    frames[frames.size() - 1] = deltatime;
+  }
+  else
+  {
+    frames.push_back(deltatime);
+  }
+
   last = SDL_GetPerformanceCounter();
- 
-
-
-  if (frames.size() > 200) //Max seconds to show
-	{
-		for (size_t i = 1; i < frames.size(); i++)
-		{
-			frames[i-1] = frames[i];
-		}
-		frames[frames.size() - 1] = deltatime;
-	}
-	else
-	{
-		frames.push_back(deltatime);
-	}
-	
-   frameno++;
-
-
-  
-
-  if(deltatime>max_deltatime)
-  max_deltatime=deltatime;
-  if(deltatime<min_deltime)
-  min_deltime=deltatime;
+  frameno++;
 
   if (load_savestate != "")
   {
