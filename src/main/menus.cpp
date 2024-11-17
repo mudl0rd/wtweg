@@ -94,11 +94,15 @@ struct ExampleAppLog
     }
 
     CLibretro *core = CLibretro::get_classinstance();
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+    ImGui::Text("WTFweg average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
     ImGui::Text("%i core frame/s ran", core->frameno);
     ImGui::Text("Core FPS limit: %.2f", core->core_fps);
     ImGui::Text("Core samplerate (Hz): %.2f", core->core_samplerate);
     ImGui::Text("Core %.3f ms/frame (%.2f FPS)", core->deltatime, 1000. / core->deltatime);
+    ImGui::Text("libretro core frametime graph:");
+    ImGui::PopStyleColor();
     ImVec2 sz = ImGui::GetWindowSize();
     ImGui::PlotHistogram("Frametimes", &core->frames[0], core->frames.size(), 0, NULL, 0.0f, 50.0f, ImVec2(sz.x, 100));
     ImGui::Separator();
