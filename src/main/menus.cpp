@@ -1,5 +1,6 @@
 #define IMGUI_DISABLE_DEMO_WINDOWS
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "ImGuiFileDialog.h"
 #include "ImGuiFileDialogConfig.h"
 #include <numeric>
@@ -7,6 +8,8 @@
 #include "mudutils/utils.h"
 #include "inout.h"
 #include "clibretro.h"
+#include "IconsForkAwesome.h"
+#include "windows.h"
 
 #ifndef _WIN32
 #define stricmp strcasecmp
@@ -30,6 +33,7 @@ const char *true_vals[] = {"enabled", "true", "on"};
 static bool coreselect = false;
 bool pergame_ = false;
 bool cap_fps = true;
+bool rombrowser = false;
 static std::string filenamepath;
 
 static auto vector_getter = [](void *data, int n, const char **out_text)
@@ -45,7 +49,7 @@ struct offsets
 };
 offsets colors[4] = {IM_COL32(0, 255, 0, 255), IM_COL32(0, 255, 0, 255), IM_COL32(255, 255, 0, 255),
                      IM_COL32(255, 0, 0, 255)};
-
+/*
 struct ExampleAppLog
 {
   ImGuiTextBuffer Buf;
@@ -108,13 +112,12 @@ struct ExampleAppLog
 
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
     ImGui::Text("WTFweg average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-    static float low =0;
-    if ( 1000.0f /io.Framerate > low)
-      low = 1000.0f /io.Framerate;
-    ImGui::Text("WTFweg highest frametime %.3f ms/frame",low);
+    static float low = 0;
+    if (1000.0f / io.Framerate > low)
+      low = 1000.0f / io.Framerate;
+    ImGui::Text("WTFweg highest frametime %.3f ms/frame", low);
     ImGui::Text("Core samplerate (Hz): %.2f", core->core_samplerate);
     ImGui::Text("Core FPS limit: %.2f", core->core_fps);
-    ImGui::Text("Core %.3f ms/frame (%.2f FPS)", core->deltatime, 1000. / core->deltatime);
     float avg = average(core->frames);
     ImGui::Text("Average libretro core runtime: %.3f ms/frame (%i frames)", avg, core->frameno);
     ImGui::Text("libretro core frametime graph:");
@@ -173,16 +176,16 @@ struct ExampleAppLog
 
     ImGui::End();
   }
-};
-static ExampleAppLog my_log;
-// Usage:
-//  static ExampleAppLog my_log;
-//  my_log.AddLog("Hello %d world\n", 123);
-//  my_log.Draw("title");
+};*/
+// static ExampleAppLog my_log;
+//  Usage:
+//   static ExampleAppLog my_log;
+//   my_log.AddLog("Hello %d world\n", 123);
+//   my_log.Draw("title");
 
 void add_log(enum retro_log_level level, const char *fmt)
 {
-  my_log.AddLog(level, fmt);
+  //  my_log.AddLog(level, fmt);
 }
 
 static void HelpMarker(const char *desc)
@@ -233,6 +236,289 @@ void popup_widget(bool *flag, const char *title, const char *msg)
   }
 }
 
+struct FileRecord
+{
+  bool isDir = false;
+  std::filesystem::path name;
+  std::string showName;
+  std::filesystem::path extension;
+};
+std::vector<FileRecord> fileRecords_;
+std::filesystem::path pwd_;
+std::string selected_fname;
+
+inline std::uint32_t GetDrivesBitMask()
+{
+  const DWORD mask = GetLogicalDrives();
+  std::uint32_t ret = 0;
+  for (int i = 0; i < 26; ++i)
+  {
+    if (!(mask & (1 << i)))
+    {
+      continue;
+    }
+    const char rootName[4] = {static_cast<char>('A' + i), ':', '\\', '\0'};
+    const UINT type = GetDriveTypeA(rootName);
+    if (type == DRIVE_REMOVABLE || type == DRIVE_FIXED || type == DRIVE_REMOTE)
+    {
+      ret |= (1 << i);
+    }
+  }
+  return ret;
+}
+
+static uint32_t drives_ = GetDrivesBitMask();
+
+template <class Functor>
+struct ScopeGuard
+{
+  ScopeGuard(Functor &&t) : func(std::move(t)) {}
+
+  ~ScopeGuard() { func(); }
+
+private:
+  Functor func;
+};
+
+bool HyperLink(const char *label, bool underlineWhenHoveredOnly = false)
+{
+  const ImU32 linkColor = ImGui::ColorConvertFloat4ToU32({0.2, 0.3, 0.8, 1});
+  const ImU32 linkHoverColor = ImGui::ColorConvertFloat4ToU32({0.4, 0.6, 0.8, 1});
+  const ImU32 linkFocusColor = ImGui::ColorConvertFloat4ToU32({0.6, 0.4, 0.8, 1});
+
+  const ImGuiID id = ImGui::GetID(label);
+
+  ImGuiWindow *const window = ImGui::GetCurrentWindow();
+  ImDrawList *const draw = ImGui::GetWindowDrawList();
+
+  const ImVec2 pos(window->DC.CursorPos.x, window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset);
+  const ImVec2 size = ImGui::CalcTextSize(label);
+  ImRect bb(pos, {pos.x + size.x, pos.y + size.y});
+
+  ImGui::ItemSize(bb, 0.0f);
+  if (!ImGui::ItemAdd(bb, id))
+    return false;
+
+  bool isHovered = false;
+  const bool isClicked = ImGui::ButtonBehavior(bb, id, &isHovered, nullptr);
+  const bool isFocused = ImGui::IsItemFocused();
+
+  const ImU32 color = isHovered ? linkHoverColor : isFocused ? linkFocusColor
+                                                             : linkColor;
+
+  draw->AddText(bb.Min, color, label);
+
+  if (isFocused)
+    draw->AddRect(bb.Min, bb.Max, color);
+  else if (!underlineWhenHoveredOnly || isHovered)
+    draw->AddLine({bb.Min.x, bb.Max.y}, bb.Max, color);
+
+  return isClicked;
+}
+
+void updrecords()
+{
+  auto retro = CLibretro::get_classinstance();
+  fileRecords_ = {FileRecord{true, "..", ICON_FK_FOLDER " ..", ""}};
+
+  for (auto &p : std::filesystem::directory_iterator(pwd_))
+  {
+    FileRecord rcd = {FileRecord{false, "", "", ""}};
+
+    if (p.is_regular_file())
+    {
+      rcd.isDir = false;
+    }
+    else if (p.is_directory())
+    {
+      rcd.isDir = true;
+    }
+    else
+    {
+      continue;
+    }
+
+    rcd.name = p.path().filename();
+    if (rcd.name.empty())
+      continue;
+    std::string str;
+    if (!rcd.isDir)
+    {
+      rcd.extension = p.path().filename().extension();
+      if (rcd.extension.empty())
+        continue;
+      std::string str2 = rcd.extension.string();
+      str2.erase(str2.begin());
+      bool ismusicfile = (retro->coreexts.find(str2) != std::string::npos);
+      if (!ismusicfile)
+        continue;
+      else
+        str = ICON_FK_GAMEPAD " ";
+    }
+    else
+      str = ICON_FK_FOLDER " ";
+    rcd.showName = str + p.path().filename().string();
+    fileRecords_.push_back(rcd);
+  }
+  std::sort(fileRecords_.begin(), fileRecords_.end(),
+            [](const FileRecord &L, const FileRecord &R)
+            {
+              return (L.isDir ^ R.isDir) ? L.isDir : (L.name < R.name);
+            });
+}
+
+void rombrowse_setdir(std::string dir)
+{
+  pwd_ = dir;
+  updrecords();
+}
+
+void rombrowse_run(int width, int height)
+{
+  if (rombrowser)
+  {
+    auto retro = CLibretro::get_classinstance();
+    bool updrecs = false;
+    ImGuiIO &io = ImGui::GetIO();
+
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - height));
+    ImGui::SetNextWindowPos(ImVec2(0,height));
+    ImGui::Begin("ROM browse", NULL, ImGuiWindowFlags_AlwaysAutoResize| ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_HorizontalScrollbar);
+    float reserveHeight = io.DisplaySize.y - height;
+    const char currentDrive = static_cast<char>(pwd_.c_str()[0]);
+    const char driveStr[] = {currentDrive, ':', '\0'};
+
+    ImGui::PushItemWidth(4 * ImGui::GetFontSize());
+    if (ImGui::BeginCombo("##select_drive", driveStr))
+    {
+      ScopeGuard guard([&]
+                       { ImGui::EndCombo(); });
+
+      for (int i = 0; i < 26; ++i)
+      {
+        if (!(drives_ & (1 << i)))
+        {
+          continue;
+        }
+
+        const char driveCh = static_cast<char>('A' + i);
+        const char selectableStr[] = {driveCh, ':', '\0'};
+        const bool selected = currentDrive == driveCh;
+
+        if (ImGui::Selectable(selectableStr, selected) && !selected)
+        {
+          char newPwd[] = {driveCh, ':', '\\', '\0'};
+          std::filesystem::path pah(newPwd);
+          rombrowse_setdir(pah.string());
+        }
+      }
+    }
+    ImGui::PopItemWidth();
+
+    int secIdx = 0, newDirLastSecIdx = -1;
+    for (const auto &sec : pwd_)
+    {
+#ifdef _WIN32
+      if (secIdx == 1)
+      {
+        ++secIdx;
+        continue;
+      }
+#endif
+
+      ImGui::PushID(secIdx);
+      if (secIdx > 0)
+      {
+        ImGui::SameLine();
+      }
+      if (HyperLink(sec.u8string().c_str()))
+      {
+        newDirLastSecIdx = secIdx;
+      }
+      ImGui::PopID();
+
+      ++secIdx;
+    }
+
+    if (newDirLastSecIdx >= 0)
+    {
+      int i = 0;
+      std::filesystem::path dstDir;
+      for (const auto &sec : pwd_)
+      {
+        if (i++ > newDirLastSecIdx)
+        {
+          break;
+        }
+        dstDir /= sec;
+      }
+
+#ifdef _WIN32
+      if (newDirLastSecIdx == 0)
+      {
+        dstDir /= "\\";
+      }
+#endif
+      pwd_ = dstDir;
+      updrecs = true;
+    }
+
+    float panelHeight = ImGui::GetContentRegionAvail().y;
+    float cellSize = ImGui::GetTextLineHeight();
+    int items_sz = fileRecords_.size() * cellSize;
+    int columns = (int)(items_sz / (int)panelHeight) + 1;
+    if (columns <= 0)
+      columns = 1;
+    float items = 0;
+    ImGui::Columns(columns, 0, false);
+
+    for (auto &rsc : fileRecords_)
+    {
+
+      if (!rsc.name.empty() && rsc.name.c_str()[0] == '$')
+        continue;
+      bool selected = rsc.showName == selected_fname;
+      ImGui::Selectable(rsc.showName.c_str(), selected,
+                        ImGuiSelectableFlags_DontClosePopups);
+      if (ImGui::IsItemClicked(0) && ImGui::IsMouseDoubleClicked(0))
+      {
+        if (rsc.isDir)
+        {
+          pwd_ = (rsc.name != "..") ? (pwd_ / rsc.name) : pwd_.parent_path();
+          updrecs = true;
+        }
+        else
+        {
+          std::string path2 = std::filesystem::path(std::filesystem::canonical(pwd_) / rsc.name).string();
+          selected_fname = rsc.showName;
+          rombrowser = false;
+          clibretro_startoptions options;
+          options.rom = path2;
+          options.framelimit = cap_fps;
+          options.game_specific_settings = pergame_;
+          options.savestate = "";
+          options.core = "";
+          coreselect = loadfile(retro, &options);
+        }
+      }
+      items += cellSize;
+      if (items <= panelHeight)
+      {
+        items = 0;
+        ImGui::NextColumn();
+      }
+    }
+    ImGui::End();
+
+    // Rendering
+    if (updrecs)
+    {
+      updrecords();
+      updrecs = false;
+    }
+  }
+}
+
 void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 {
 
@@ -242,13 +528,15 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static bool load_core = false;
   static bool no_cores = false;
   static bool open_log = false;
+  ImVec2 winsize = ImVec2(0, 0);
+
   ImGuiIO &io = ImGui::GetIO();
 
   if (ImGui::BeginMainMenuBar())
   {
     if (ImGui::BeginMenu("File"))
     {
-      if (ImGui::MenuItem("Load ROM/ISO"))
+      if (ImGui::MenuItem("Load content (ROM/ISO/etc)"))
       {
         if (instance->coreexts == "")
         {
@@ -258,6 +546,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
           ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
       }
+
+      if (ImGui::MenuItem("Content browser (ROM/ISO/etc)", nullptr,
+                          rombrowser == true))
+        rombrowser = !rombrowser;
 
       if (ImGui::MenuItem("Load contentless libretro core"))
         load_core = true;
@@ -358,14 +650,19 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
             }
           }
         }
+        
         ImGui::EndMenu();
       }
     }
+     winsize = ImGui::GetWindowSize();
     ImGui::EndMainMenuBar();
   }
 
-  if (open_log)
-    my_log.Draw("Developer Window");
+  if (rombrowser)
+    rombrowse_run(winsize.x, winsize.y);
+
+  // if (open_log)
+  // my_log.Draw("Developer Window");
 
   ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
   ImVec2 minSizedlg = ImVec2((float)io.DisplaySize.x * 0.4f, (float)io.DisplaySize.y * 0.4f);

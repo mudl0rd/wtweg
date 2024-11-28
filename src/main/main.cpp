@@ -14,6 +14,8 @@
 #include "cmdline.h"
 #include "mudutils/utils.h"
 #include "imgui_font.h"
+#include "forkawesome.h"
+#include "IconsForkAwesome.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -113,7 +115,12 @@ int main2(clibretro_startoptions *options)
 
   ImFontConfig font_cfg;
   font_cfg.FontDataOwnedByAtlas = false;
+  static const ImWchar icons_ranges[] = {ICON_MIN_FK, ICON_MAX_FK, 0};
   io.Fonts->AddFontFromMemoryTTF((unsigned char *)Roboto_Regular, sizeof(Roboto_Regular), dpi_scaling * 12.0f, &font_cfg, io.Fonts->GetGlyphRangesJapanese());
+  font_cfg.MergeMode = true;
+  font_cfg.GlyphMinAdvanceX = 13.0f;                                                                                                                                 // Use if you want to make the icon monospaced
+  io.Fonts->AddFontFromMemoryCompressedTTF((unsigned char *)forkawesome_compressed_data, forkawesome_compressed_size, dpi_scaling * 12.0f, &font_cfg, icons_ranges); // Merge into first font
+  io.Fonts->Build();
   ImGuiStyle *style = &ImGui::GetStyle();
   style->TabRounding = 4;
   style->ScrollbarRounding = 9;
@@ -131,6 +138,7 @@ int main2(clibretro_startoptions *options)
   std::filesystem::path p(MudUtil::get_wtfwegname());
   std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
   std::filesystem::path path2 = p.parent_path() / "mudmaps.txt";
+  rombrowse_setdir(p.parent_path().string());
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
 
@@ -143,10 +151,9 @@ int main2(clibretro_startoptions *options)
 
   if (options)
   {
-    if(options->rom != "" && options->core != "")
-     loadfile(instance, options);
+    if (options->rom != "" && options->core != "")
+      loadfile(instance, options);
   }
-   
 
   while (!done)
   {

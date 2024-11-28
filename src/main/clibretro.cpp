@@ -564,11 +564,10 @@ void CLibretro::core_run()
 {
   if (frametime_cb != NULL)
     frametime_cb(frametime_ref);
-  static uint64_t last = 0;
   uint64_t now = SDL_GetPerformanceCounter();
   retro.retro_run();
-
-  deltatime = (double)((now - last) * 1000 / (double)perfc);
+  uint64_t last = SDL_GetPerformanceCounter();
+  deltatime = (double)((last - now) * 1000 / (double)perfc);
 
   if (frames.size() > 200) // Max seconds to show
   {
@@ -583,7 +582,7 @@ void CLibretro::core_run()
     frames.push_back(deltatime);
   }
 
-  last = SDL_GetPerformanceCounter();
+
   frameno++;
 
   if (load_savestate != "")

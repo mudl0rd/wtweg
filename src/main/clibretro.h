@@ -257,5 +257,6 @@ public:
 bool loadfile(CLibretro *instance, clibretro_startoptions *options);
 void sdlggerat_menu(CLibretro *instance, std::string *window_str);
 void add_log(enum retro_log_level level, const char *fmt);
+void rombrowse_setdir(std::string dir);
 
 #endif

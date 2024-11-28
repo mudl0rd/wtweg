@@ -174,7 +174,6 @@ void func_callback(void *userdata, Uint8 *stream, int len)
         int amount = fifo_read_avail(context->_fifo);
         amount = (len > amount) ? amount : len;
         fifo_write(context->_fifo, (uint8_t *)stream, amount, true);
-        context->drc_ratio = resample_ratio(context->_fifo);
         memset(stream + amount, 0, len - amount);
     }
     else
@@ -193,9 +192,8 @@ void audio_mix(int16_t *samples, size_t size)
         while (in_len--)
             audio_ctx_s.input_float[in_len] = (float)samples[in_len] * 0.000030517578125f;
         src_data.data_in = audio_ctx_s.input_float;
-
         src_data.input_frames = size;
-        src_data.ratio = audio_ctx_s.drc_ratio;
+        src_data.ratio = resample_ratio(audio_ctx_s._fifo);
         src_data.data_out = audio_ctx_s.output_float;
         resampler_sinc_process(audio_ctx_s.resample, &src_data);
         size_t out_bytes = src_data.output_frames * 2 * sizeof(float);
@@ -208,7 +206,7 @@ void audio_mix(int16_t *samples, size_t size)
                        (char *)audio_ctx_s.output_float + written, write_amt, false);
 
             written += write_amt;
-            audio_ctx_s.drc_ratio = resample_ratio(audio_ctx_s._fifo);
+
         }
     }
 }
@@ -241,7 +239,6 @@ bool audio_init(float input_srate)
     memset(audio_ctx_s.input_float, 0, sampsize);
     memset(audio_ctx_s.output_float, 0, sampsize);
     audio_ctx_s._fifo = fifo_new(sampsize); // number of bytes
-    audio_ctx_s.drc_ratio = resample_ratio(audio_ctx_s._fifo);
     SDL_PauseAudioDevice(audio_ctx_s.dev, 0);
     return true;
 }
