@@ -395,29 +395,32 @@ static bool no_roms(unsigned cmd, void *data)
   if (cmd == RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO)
   {
     retro_subsystem_info *subs = (retro_subsystem_info *)data;
-    while (subs != NULL)
+    while (subs->ident != NULL)
     {
       subsystems sub = {};
       sub.subsystem_id = subs->id;
       sub.subsystem_name = subs->desc;
 
-      while (subs->roms != NULL)
+      retro_subsystem_rom_info *roms = (retro_subsystem_rom_info *)subs->roms;
+      for (int i = 0; i < subs->num_roms; i++)
       {
         subsystem_rominfo rominfo = {};
-        if (subs->roms->memory != NULL)
+        if (roms->memory != NULL)
         {
-          rominfo.memory_ext = subs->roms->memory->extension;
-          rominfo.memory_id = subs->roms->memory->type;
+          rominfo.memory_ext = roms->memory->extension;
+          rominfo.memory_id = roms->memory->type;
         }
 
-        rominfo.block_extract = subs->roms->block_extract;
-        rominfo.need_fullpath = subs->roms->need_fullpath;
-        rominfo.romexts = subs->roms->valid_extensions;
-        rominfo.required = subs->roms->required;
-        rominfo.romtype = subs->roms->desc;
+        rominfo.block_extract = roms->block_extract;
+        rominfo.need_fullpath = roms->need_fullpath;
+        rominfo.romexts = roms->valid_extensions;
+        rominfo.required = roms->required;
+        rominfo.romtype = roms->desc;
         sub.rominfo.push_back(rominfo);
+        roms++;
       }
       subsys.push_back(sub);
+      subs++;
     }
 
     return true;
