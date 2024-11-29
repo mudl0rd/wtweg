@@ -32,18 +32,6 @@ struct loadedcore_configvars
 	bool config_visible;
 };
 
-struct core_info
-{
-	std::string core_extensions;
-	std::string core_ext_filter;
-	std::string core_name;
-	std::string core_path;
-	float aspect_ratio;
-	float samplerate;
-	float fps;
-	bool no_roms;
-};
-
 struct retro_core
 {
 	void *handle;
@@ -159,7 +147,7 @@ struct retro_disk
 	std::string path;
 };
 
-std::vector<core_info> get_cores();
+
 
 struct controller_port
 {
@@ -167,6 +155,40 @@ struct controller_port
 	std::vector<coreinput_controlinfo> controlinfo;
 	int controller_type;
 };
+
+struct subsystem_rominfo
+{
+	std::string memory_ext;
+	unsigned memory_type;
+	unsigned memory_id;
+	std::string romtype;
+	bool required;
+	std::string romexts;
+	bool need_fullpath;
+	bool block_extract;
+};
+
+struct subsystems
+{
+	std::vector<subsystem_rominfo> rominfo;
+	std::string subsystem_name;
+	unsigned subsystem_id;
+};
+
+struct core_info
+{
+	std::string core_extensions;
+	std::string core_ext_filter;
+	std::string core_name;
+	std::string core_path;
+	std::vector<subsystems>subsystems;
+	float aspect_ratio;
+	float samplerate;
+	float fps;
+	bool no_roms;
+};
+
+std::vector<core_info> get_cores();
 
 class CLibretro
 {
@@ -193,7 +215,7 @@ public:
 	void reset();
 	void core_changinpt(int dev, int port);
 	bool core_isrunning();
-	bool core_load(bool contentless, clibretro_startoptions * options);
+	bool core_load(bool contentless, clibretro_startoptions *options);
 	void core_unload();
 	bool core_saveram(const char *filename, bool save);
 	bool core_savestateslot(bool save);
@@ -202,10 +224,11 @@ public:
 	void set_inputdevice(int device);
 	void get_cores();
 	void framelimit();
-	void framecap(bool cap){
-	capfps=cap;
-	void audio_framelimit(bool cap);
-	audio_framelimit(cap);
+	void framecap(bool cap)
+	{
+		capfps = cap;
+		void audio_framelimit(bool cap);
+		audio_framelimit(cap);
 	};
 
 	bool init_configvars(retro_variable *var);
@@ -251,7 +274,7 @@ public:
 	float max_deltatime;
 	float min_deltime;
 	std::vector<float> frames;
-
+	int subsystem_type;
 };
 
 bool loadfile(CLibretro *instance, clibretro_startoptions *options);

@@ -383,12 +383,43 @@ void CLibretro::core_changinpt(int dev, int port)
 }
 
 bool no_roms2 = false;
+std::vector<subsystems> subsys;
 static bool no_roms(unsigned cmd, void *data)
 {
   if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
   {
     bool *bval = reinterpret_cast<bool *>(data);
     no_roms2 = bval;
+    return true;
+  }
+  if (cmd == RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO)
+  {
+    retro_subsystem_info *subs = (retro_subsystem_info *)data;
+    while (subs != NULL)
+    {
+      subsystems sub = {};
+      sub.subsystem_id = subs->id;
+      sub.subsystem_name = subs->desc;
+
+      while (subs->roms != NULL)
+      {
+        subsystem_rominfo rominfo = {};
+        if (subs->roms->memory != NULL)
+        {
+          rominfo.memory_ext = subs->roms->memory->extension;
+          rominfo.memory_id = subs->roms->memory->type;
+        }
+
+        rominfo.block_extract = subs->roms->block_extract;
+        rominfo.need_fullpath = subs->roms->need_fullpath;
+        rominfo.romexts = subs->roms->valid_extensions;
+        rominfo.required = subs->roms->required;
+        rominfo.romtype = subs->roms->desc;
+        sub.rominfo.push_back(rominfo);
+      }
+      subsys.push_back(sub);
+    }
+
     return true;
   }
   return false;
@@ -582,7 +613,6 @@ void CLibretro::core_run()
     frames.push_back(deltatime);
   }
 
-
   frameno++;
 
   if (load_savestate != "")
@@ -645,12 +675,14 @@ void CLibretro::get_cores()
       auto *set_environment =
           (void (*)(retro_environment_t))MudUtil::getfunc(hDLL, "retro_set_environment");
       no_roms2 = false;
+      subsys.clear();
       set_environment(no_roms);
       if (getinfo)
       {
         getinfo(&system);
         core_info entry_;
         entry_.fps = 60;
+        entry_.subsystems = subsys;
         entry_.samplerate = 44100;
         entry_.aspect_ratio = 4 / 3;
         entry_.core_name = system.library_name;
