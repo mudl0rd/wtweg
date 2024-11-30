@@ -381,9 +381,9 @@ void rombrowse_run(int width, int height)
     bool updrecs = false;
     ImGuiIO &io = ImGui::GetIO();
 
-    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x,io.DisplaySize.y - height));
-    ImGui::SetNextWindowPos(ImVec2(0,height));
-    ImGui::Begin("ROM browse", NULL, ImGuiWindowFlags_AlwaysAutoResize| ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - height));
+    ImGui::SetNextWindowPos(ImVec2(0, height));
+    ImGui::Begin("ROM browse", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
     float reserveHeight = io.DisplaySize.y - height;
     const char currentDrive = static_cast<char>(pwd_.c_str()[0]);
     const char driveStr[] = {currentDrive, ':', '\0'};
@@ -547,6 +547,27 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", " Choose a ROM/ISO", instance->coreexts.c_str(), ".", "", 1, nullptr, flags);
       }
 
+      bool cont = false;
+
+      for (auto &core : instance->cores)
+        if (core.subsystems.size())
+          cont = true;
+
+      if (cont)
+      {
+        if (ImGui::BeginMenu("Load addon content for"))
+        {
+          for (auto &core : instance->cores)
+            if (!core.subsystems.empty())
+            {
+              if (ImGui::MenuItem(core.core_name.c_str()))
+              {
+              }
+            }
+          ImGui::EndMenu();
+        }
+      }
+
       if (ImGui::MenuItem("Content browser (ROM/ISO/etc)", nullptr,
                           rombrowser == true))
         rombrowser = !rombrowser;
@@ -650,11 +671,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
             }
           }
         }
-        
+
         ImGui::EndMenu();
       }
     }
-     winsize = ImGui::GetWindowSize();
+    winsize = ImGui::GetWindowSize();
     ImGui::EndMainMenuBar();
   }
 
