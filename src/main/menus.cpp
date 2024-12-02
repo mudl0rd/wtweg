@@ -282,9 +282,10 @@ private:
 
 bool HyperLink(const char *label, bool underlineWhenHoveredOnly = false)
 {
-  const ImU32 linkColor = ImGui::ColorConvertFloat4ToU32({0.2, 0.3, 0.8, 1});
-  const ImU32 linkHoverColor = ImGui::ColorConvertFloat4ToU32({0.4, 0.6, 0.8, 1});
-  const ImU32 linkFocusColor = ImGui::ColorConvertFloat4ToU32({0.6, 0.4, 0.8, 1});
+  ImGuiStyle& style = ImGui::GetStyle();
+  const ImU32 linkColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_TextDisabled] );
+  const ImU32 linkHoverColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
+  const ImU32 linkFocusColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
 
   const ImGuiID id = ImGui::GetID(label);
 
@@ -429,6 +430,8 @@ void rombrowse_run(int width, int height)
       ImGui::PushID(secIdx);
       if (secIdx > 0)
       {
+        ImGui::SameLine();
+        ImGui::Text("/");
         ImGui::SameLine();
       }
       if (HyperLink(sec.u8string().c_str()))
