@@ -35,6 +35,16 @@ bool pergame_ = false;
 bool cap_fps = true;
 bool rombrowser = false;
 static std::string filenamepath;
+struct FileRecord
+{
+  bool isDir = false;
+  std::filesystem::path name;
+  std::string showName;
+  std::filesystem::path extension;
+};
+std::vector<FileRecord> fileRecords_;
+std::filesystem::path pwd_;
+std::string selected_fname;
 
 static auto vector_getter = [](void *data, int n, const char **out_text)
 {
@@ -49,7 +59,7 @@ struct offsets
 };
 offsets colors[4] = {IM_COL32(0, 255, 0, 255), IM_COL32(0, 255, 0, 255), IM_COL32(255, 255, 0, 255),
                      IM_COL32(255, 0, 0, 255)};
-/*
+
 struct ExampleAppLog
 {
   ImGuiTextBuffer Buf;
@@ -176,8 +186,8 @@ struct ExampleAppLog
 
     ImGui::End();
   }
-};*/
-// static ExampleAppLog my_log;
+};
+static ExampleAppLog my_log;
 //  Usage:
 //   static ExampleAppLog my_log;
 //   my_log.AddLog("Hello %d world\n", 123);
@@ -185,7 +195,7 @@ struct ExampleAppLog
 
 void add_log(enum retro_log_level level, const char *fmt)
 {
-  //  my_log.AddLog(level, fmt);
+  my_log.AddLog(level, fmt);
 }
 
 static void HelpMarker(const char *desc)
@@ -236,17 +246,6 @@ void popup_widget(bool *flag, const char *title, const char *msg)
   }
 }
 
-struct FileRecord
-{
-  bool isDir = false;
-  std::filesystem::path name;
-  std::string showName;
-  std::filesystem::path extension;
-};
-std::vector<FileRecord> fileRecords_;
-std::filesystem::path pwd_;
-std::string selected_fname;
-
 inline std::uint32_t GetDrivesBitMask()
 {
   const DWORD mask = GetLogicalDrives();
@@ -282,8 +281,8 @@ private:
 
 bool HyperLink(const char *label, bool underlineWhenHoveredOnly = false)
 {
-  ImGuiStyle& style = ImGui::GetStyle();
-  const ImU32 linkColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_TextDisabled] );
+  ImGuiStyle &style = ImGui::GetStyle();
+  const ImU32 linkColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_TextDisabled]);
   const ImU32 linkHoverColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
   const ImU32 linkFocusColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
 
@@ -317,68 +316,127 @@ bool HyperLink(const char *label, bool underlineWhenHoveredOnly = false)
   return isClicked;
 }
 
-void updrecords()
-{
-  auto retro = CLibretro::get_classinstance();
-  fileRecords_ = {FileRecord{true, "..", ICON_FK_FOLDER " ..", ""}};
-
-  for (auto &p : std::filesystem::directory_iterator(pwd_))
-  {
-    FileRecord rcd = {FileRecord{false, "", "", ""}};
-
-    if (p.is_regular_file())
-    {
-      rcd.isDir = false;
-    }
-    else if (p.is_directory())
-    {
-      rcd.isDir = true;
-    }
-    else
-    {
-      continue;
-    }
-
-    rcd.name = p.path().filename();
-    if (rcd.name.empty())
-      continue;
-    std::string str;
-    if (!rcd.isDir)
-    {
-      rcd.extension = p.path().filename().extension();
-      if (rcd.extension.empty())
-        continue;
-      std::string str2 = rcd.extension.string();
-      str2.erase(str2.begin());
-      bool ismusicfile = (retro->coreexts.find(str2) != std::string::npos);
-      if (!ismusicfile)
-        continue;
-      else
-        str = ICON_FK_GAMEPAD " ";
-    }
-    else
-      str = ICON_FK_FOLDER " ";
-    rcd.showName = str + p.path().filename().string();
-    fileRecords_.push_back(rcd);
-  }
-  std::sort(fileRecords_.begin(), fileRecords_.end(),
-            [](const FileRecord &L, const FileRecord &R)
-            {
-              return (L.isDir ^ R.isDir) ? L.isDir : (L.name < R.name);
-            });
-}
-
-void rombrowse_setdir(std::string dir)
+void rombrowse_setdir(std::string dir, CLibretro* instance)
 {
   pwd_ = dir;
-  updrecords();
+    auto rombrowse_update= [=]()
+  {
+
+    fileRecords_ = {FileRecord{true, "..", ICON_FK_FOLDER " ..", ""}};
+
+    for (auto &p : std::filesystem::directory_iterator(pwd_))
+    {
+      FileRecord rcd = {FileRecord{false, "", "", ""}};
+
+      if (p.is_regular_file())
+      {
+        rcd.isDir = false;
+      }
+      else if (p.is_directory())
+      {
+        rcd.isDir = true;
+      }
+      else
+      {
+        continue;
+      }
+
+      rcd.name = p.path().filename();
+      if (rcd.name.empty())
+        continue;
+      std::string str;
+      if (!rcd.isDir)
+      {
+        rcd.extension = p.path().filename().extension();
+        if (rcd.extension.empty())
+          continue;
+        std::string str2 = rcd.extension.string();
+        str2.erase(str2.begin());
+        bool ismusicfile = (instance->coreexts.find(str2) != std::string::npos);
+        if (!ismusicfile)
+          continue;
+        else
+          str = ICON_FK_GAMEPAD " ";
+      }
+      else
+        str = ICON_FK_FOLDER " ";
+      rcd.showName = str + p.path().filename().string();
+      fileRecords_.push_back(rcd);
+    }
+    std::sort(fileRecords_.begin(), fileRecords_.end(),
+              [](const FileRecord &L, const FileRecord &R)
+              {
+                return (L.isDir ^ R.isDir) ? L.isDir : (L.name < R.name);
+              });
+  };
+  rombrowse_update();
 }
 
-void rombrowse_run(int width, int height)
+
+void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 {
-  if (rombrowser)
+
+  static bool inputsettings = false;
+  static bool coresettings = false;
+  static bool aboutbox = false;
+  static bool load_core = false;
+  static bool no_cores = false;
+  static bool open_log = false;
+  ImVec2 winsize = ImVec2(0, 0);
+
+  auto rombrowse_update= [=]()
   {
-    auto retro = CLibretro::get_classinstance();
+
+    fileRecords_ = {FileRecord{true, "..", ICON_FK_FOLDER " ..", ""}};
+
+    for (auto &p : std::filesystem::directory_iterator(pwd_))
+    {
+      FileRecord rcd = {FileRecord{false, "", "", ""}};
+
+      if (p.is_regular_file())
+      {
+        rcd.isDir = false;
+      }
+      else if (p.is_directory())
+      {
+        rcd.isDir = true;
+      }
+      else
+      {
+        continue;
+      }
+
+      rcd.name = p.path().filename();
+      if (rcd.name.empty())
+        continue;
+      std::string str;
+      if (!rcd.isDir)
+      {
+        rcd.extension = p.path().filename().extension();
+        if (rcd.extension.empty())
+          continue;
+        std::string str2 = rcd.extension.string();
+        str2.erase(str2.begin());
+        bool ismusicfile = (instance->coreexts.find(str2) != std::string::npos);
+        if (!ismusicfile)
+          continue;
+        else
+          str = ICON_FK_GAMEPAD " ";
+      }
+      else
+        str = ICON_FK_FOLDER " ";
+      rcd.showName = str + p.path().filename().string();
+      fileRecords_.push_back(rcd);
+    }
+    std::sort(fileRecords_.begin(), fileRecords_.end(),
+              [](const FileRecord &L, const FileRecord &R)
+              {
+                return (L.isDir ^ R.isDir) ? L.isDir : (L.name < R.name);
+              });
+  };
+
+  auto rombrowse_browse = [=](int width, int height)
+  {
     bool updrecs = false;
     ImGuiIO &io = ImGui::GetIO();
 
@@ -410,7 +468,7 @@ void rombrowse_run(int width, int height)
         {
           char newPwd[] = {driveCh, ':', '\\', '\0'};
           std::filesystem::path pah(newPwd);
-          rombrowse_setdir(pah.string());
+          rombrowse_setdir(pah.string(),instance);
         }
       }
     }
@@ -501,7 +559,7 @@ void rombrowse_run(int width, int height)
           options.game_specific_settings = pergame_;
           options.savestate = "";
           options.core = "";
-          coreselect = loadfile(retro, &options);
+          coreselect = loadfile(instance, &options);
         }
       }
       items += cellSize;
@@ -516,22 +574,10 @@ void rombrowse_run(int width, int height)
     // Rendering
     if (updrecs)
     {
-      updrecords();
+      rombrowse_update();
       updrecs = false;
     }
-  }
-}
-
-void sdlggerat_menu(CLibretro *instance, std::string *window_str)
-{
-
-  static bool inputsettings = false;
-  static bool coresettings = false;
-  static bool aboutbox = false;
-  static bool load_core = false;
-  static bool no_cores = false;
-  static bool open_log = false;
-  ImVec2 winsize = ImVec2(0, 0);
+  };
 
   ImGuiIO &io = ImGui::GetIO();
 
@@ -683,10 +729,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   }
 
   if (rombrowser)
-    rombrowse_run(winsize.x, winsize.y);
+    rombrowse_browse(winsize.x, winsize.y);
 
-  // if (open_log)
-  // my_log.Draw("Developer Window");
+  if (open_log)
+    my_log.Draw("Developer Window");
 
   ImVec2 maxSizedlg = ImVec2((float)io.DisplaySize.x * 0.7f, (float)io.DisplaySize.y * 0.7f);
   ImVec2 minSizedlg = ImVec2((float)io.DisplaySize.x * 0.4f, (float)io.DisplaySize.y * 0.4f);

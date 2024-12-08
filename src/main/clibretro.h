@@ -6,6 +6,7 @@
 #include <vector>
 #include "inout.h"
 #include <thread>
+#include "out_aud.h"
 
 struct loadedcore_configcat
 {
@@ -147,8 +148,6 @@ struct retro_disk
 	std::string path;
 };
 
-
-
 struct controller_port
 {
 	std::vector<coreinput_bind> inputbinds;
@@ -181,7 +180,7 @@ struct core_info
 	std::string core_ext_filter;
 	std::string core_name;
 	std::string core_path;
-	std::vector<subsystems>subsystems;
+	std::vector<subsystems> subsystems;
 	float aspect_ratio;
 	float samplerate;
 	float fps;
@@ -199,6 +198,7 @@ private:
 	bool lr_isrunning;
 
 public:
+	out_aud audio;
 	CLibretro() = default;
 	~CLibretro() = default;
 	CLibretro(const CLibretro &) = delete;
@@ -220,6 +220,7 @@ public:
 	bool core_saveram(const char *filename, bool save);
 	bool core_savestateslot(bool save);
 	bool core_savestate(const char *filename, bool save);
+	bool core_environment(unsigned cmd, void *data);
 	void core_run();
 	void set_inputdevice(int device);
 	void get_cores();
@@ -227,8 +228,7 @@ public:
 	void framecap(bool cap)
 	{
 		capfps = cap;
-		void audio_framelimit(bool cap);
-		audio_framelimit(cap);
+		audio.framelimit(cap);
 	};
 
 	bool init_configvars(retro_variable *var);
@@ -280,6 +280,6 @@ public:
 bool loadfile(CLibretro *instance, clibretro_startoptions *options);
 void sdlggerat_menu(CLibretro *instance, std::string *window_str);
 void add_log(enum retro_log_level level, const char *fmt);
-void rombrowse_setdir(std::string dir);
+void rombrowse_setdir(std::string dir, CLibretro *instrance);
 
 #endif

@@ -138,11 +138,12 @@ int main2(clibretro_startoptions *options)
   std::filesystem::path p(MudUtil::get_wtfwegname());
   std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
   std::filesystem::path path2 = p.parent_path() / "mudmaps.txt";
-  rombrowse_setdir(p.parent_path().string());
+  
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
 
   auto instance = CLibretro::get_classinstance(window);
+  rombrowse_setdir(p.parent_path().string(),instance);
 
   // Main loop
   bool done = false;

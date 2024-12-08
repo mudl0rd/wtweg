@@ -382,52 +382,6 @@ void CLibretro::core_changinpt(int dev, int port)
   }
 }
 
-bool no_roms2 = false;
-std::vector<subsystems> subsys;
-static bool no_roms(unsigned cmd, void *data)
-{
-  if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
-  {
-    bool *bval = reinterpret_cast<bool *>(data);
-    no_roms2 = bval;
-    return true;
-  }
-  if (cmd == RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO)
-  {
-    retro_subsystem_info *subs = (retro_subsystem_info *)data;
-    while (subs->ident != NULL)
-    {
-      subsystems sub = {};
-      sub.subsystem_id = subs->id;
-      sub.subsystem_name = subs->desc;
-
-      retro_subsystem_rom_info *roms = (retro_subsystem_rom_info *)subs->roms;
-      for (int i = 0; i < subs->num_roms; i++)
-      {
-        subsystem_rominfo rominfo = {};
-        if (roms->memory != NULL)
-        {
-          rominfo.memory_ext = roms->memory->extension;
-          rominfo.memory_id = roms->memory->type;
-        }
-
-        rominfo.block_extract = roms->block_extract;
-        rominfo.need_fullpath = roms->need_fullpath;
-        rominfo.romexts = roms->valid_extensions;
-        rominfo.required = roms->required;
-        rominfo.romtype = roms->desc;
-        sub.rominfo.push_back(rominfo);
-        roms++;
-      }
-      subsys.push_back(sub);
-      subs++;
-    }
-
-    return true;
-  }
-  return false;
-}
-
 bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
 {
   if (lr_isrunning)
@@ -530,7 +484,8 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
 
   retro.retro_get_system_av_info(&av);
   fps = perfc * 1000 / uint64_t(1000.0 * std::abs(av.timing.fps));
-  audio_init(av.timing.sample_rate);
+  audio.init(av.timing.sample_rate);
+  audio.framelimit(options->framelimit);
 
   core_fps = av.timing.fps;
   core_samplerate = av.timing.sample_rate;
@@ -634,7 +589,7 @@ void CLibretro::core_unload()
     core_saveram(romsavesstatespath.c_str(), true);
     if (retro.handle != NULL)
     {
-      audio_destroy();
+      audio.destroy();
       video_deinit();
       retro.retro_unload_game();
       retro.retro_deinit();
@@ -674,11 +629,57 @@ void CLibretro::get_cores()
       {
         continue;
       }
+      static bool no_roms2;
+      static std::vector<subsystems> subsys;
+      static auto no_roms = +[](unsigned cmd, void *data) -> bool
+      {
+        no_roms2 = false;
+        subsys.clear();
+        if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
+        {
+          bool *bval = reinterpret_cast<bool *>(data);
+          no_roms2 = bval;
+          return true;
+        }
+        if (cmd == RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO)
+        {
+          retro_subsystem_info *subs = (retro_subsystem_info *)data;
+          while (subs->ident != NULL)
+          {
+            subsystems sub = {};
+            sub.subsystem_id = subs->id;
+            sub.subsystem_name = subs->desc;
+
+            retro_subsystem_rom_info *roms = (retro_subsystem_rom_info *)subs->roms;
+            for (int i = 0; i < subs->num_roms; i++)
+            {
+              subsystem_rominfo rominfo = {};
+              if (roms->memory != NULL)
+              {
+                rominfo.memory_ext = roms->memory->extension;
+                rominfo.memory_id = roms->memory->type;
+              }
+
+              rominfo.block_extract = roms->block_extract;
+              rominfo.need_fullpath = roms->need_fullpath;
+              rominfo.romexts = roms->valid_extensions;
+              rominfo.required = roms->required;
+              rominfo.romtype = roms->desc;
+              sub.rominfo.push_back(rominfo);
+              roms++;
+            }
+            subsys.push_back(sub);
+            subs++;
+          }
+
+          return true;
+        }
+        return false;
+      };
+
       auto *getinfo = (void (*)(retro_system_info *))MudUtil::getfunc(hDLL, "retro_get_system_info");
       auto *set_environment =
           (void (*)(retro_environment_t))MudUtil::getfunc(hDLL, "retro_set_environment");
-      no_roms2 = false;
-      subsys.clear();
       set_environment(no_roms);
       if (getinfo)
       {

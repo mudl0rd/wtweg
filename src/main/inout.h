@@ -8,7 +8,6 @@
 #include <iostream>
 #include <filesystem>
 #include "clibretro.h"
-#include "out_aud.h"
 
 struct vp
 {

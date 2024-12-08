@@ -65,14 +65,16 @@ static bool core_replace_image_index(unsigned int index, const retro_game_info *
 
 void core_audio_sample(int16_t left, int16_t right)
 {
+   auto lib = CLibretro::get_classinstance();
   int16_t buf[2] = {left, right};
-  audio_mix(buf, 1);
+  lib->audio.mix(buf, 1);
 }
 static size_t core_audio_sample_batch(const int16_t *data, size_t frames)
 {
+   auto lib = CLibretro::get_classinstance();
   if (!frames && data == NULL)
     return 0;
-  audio_mix((int16_t*)data, frames);
+  lib->audio.mix((int16_t*)data, frames);
   return frames;
 }
 
@@ -176,10 +178,9 @@ static void core_perf_stop(struct retro_perf_counter *counter)
   counter->total = core_get_perf_counter() - counter->start;
 }
 
-static bool core_environment(unsigned cmd, void *data)
+bool CLibretro::core_environment(unsigned cmd, void *data)
 {
   bool *bval;
-  auto retro = CLibretro::get_classinstance();
   std::filesystem::path p(MudUtil::get_wtfwegname());
   std::filesystem::path p_save = p;
   p = p.parent_path() / "system";
@@ -286,8 +287,8 @@ static bool core_environment(unsigned cmd, void *data)
     auto info = reinterpret_cast<struct retro_system_av_info *>(data);
     auto *geo = (struct retro_game_geometry *)&info->geometry;
     video_changegeom(geo);
-    retro->fps = retro->perfc * 1000 / uint64_t(1000.0 * std::abs(info->timing.fps));
-    audio_changerate(info->timing.sample_rate);
+    fps = perfc * 1000 / uint64_t(1000.0 * std::abs(info->timing.fps));
+    audio.changerate(info->timing.sample_rate);
     return true;
   }
 
@@ -309,14 +310,14 @@ static bool core_environment(unsigned cmd, void *data)
   {
     auto *cb = reinterpret_cast<struct retro_core_option_display *>(data);
 
-    for (auto &var : retro->core_variables)
+    for (auto &var : core_variables)
     {
 
       if (strcmp(var.name.c_str(), cb->key) == 0)
       {
         if (var.category_name != "")
         {
-          for (auto &var2 : retro->core_categories)
+          for (auto &var2 : core_categories)
             if (var2.key == var.category_name)
             {
               var.config_visible = cb->visible;
@@ -373,8 +374,8 @@ static bool core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK:
   {
     auto *ftcb = reinterpret_cast<const struct retro_frame_time_callback *>(data);
-    retro->frametime_cb = ftcb->callback;
-    retro->frametime_ref = ftcb->reference;
+    frametime_cb = ftcb->callback;
+    frametime_ref = ftcb->reference;
     return true;
   }
 
@@ -406,40 +407,40 @@ static bool core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS:
   {
-    return retro->init_configvars_coreoptions(data, 1);
+    return init_configvars_coreoptions(data, 1);
   }
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
   {
     auto *lang = reinterpret_cast<struct retro_core_options_intl *>(data);
-    return retro->init_configvars_coreoptions(lang->us, 1);
+    return init_configvars_coreoptions(lang->us, 1);
   }
 
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
   {
     auto *lang = reinterpret_cast<struct retro_core_options_v2_intl *>(data);
-    return retro->init_configvars_coreoptions(lang->us, 2);
+    return init_configvars_coreoptions(lang->us, 2);
   }
   case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
   {
-    return retro->init_configvars_coreoptions(data, 2);
+    return init_configvars_coreoptions(data, 2);
   }
 
   case RETRO_ENVIRONMENT_SET_VARIABLES:
   {
-    return retro->init_configvars(reinterpret_cast<struct retro_variable *>(data));
+    return init_configvars(reinterpret_cast<struct retro_variable *>(data));
   }
 
   case RETRO_ENVIRONMENT_GET_VARIABLE:
   {
     auto *var = reinterpret_cast<struct retro_variable *>(data);
-    return var->value = retro->load_corevars(var);
+    return var->value = load_corevars(var);
   }
   case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
   {
     bool *vars = reinterpret_cast<bool *>(data);
-    *vars = retro->variables_changed;
-    retro->variables_changed = false;
+    *vars = variables_changed;
+    variables_changed = false;
     return true;
   }
   case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION:
@@ -474,11 +475,18 @@ void CLibretro::load_envsymb(void *handle, bool first)
 #define libload(name) MudUtil::getfunc(handle, name)
 #define load_sym(V, name) if (!(*(void **)(&V) = (void *)libload(#name)))
 
+
+
+static auto core_env = +[](unsigned cmd, void *data)->bool {
+  CLibretro *instance = CLibretro::get_classinstance();
+  return instance->core_environment(cmd,data);
+  };
+
   if (first)
   {
     void (*set_environment)(retro_environment_t) = NULL;
     load_sym(set_environment, retro_set_environment);
-    set_environment(core_environment);
+    set_environment(core_env);
   }
   else
   {

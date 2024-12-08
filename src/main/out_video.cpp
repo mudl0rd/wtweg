@@ -31,7 +31,6 @@ struct
 	} pixformat;
 
 	struct retro_hw_render_callback hw;
-	SDL_Window *sdl_context;
 } g_video = {0};
 
 void reinit_fbo(int width, int height)
@@ -214,10 +213,9 @@ vp resize_cb()
 	return vp_;
 }
 
-bool video_init(struct retro_game_geometry *geom, SDL_Window *context)
+bool video_init(struct retro_game_geometry *geom)
 {
 	g_video.software_rast = !g_video.hw.context_reset;
-	g_video.sdl_context = context;
 
 	if (g_video.tex_id)
 		glDeleteTextures(1, &g_video.tex_id);
