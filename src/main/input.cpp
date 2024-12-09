@@ -14,29 +14,8 @@
 #include "cJSON.h"
 #include "cJSON_Utils.h"
 
-struct key_map
-{
-    SDL_Keycode sym;
-    enum retro_key rk;
-};
 
-struct mousiebind
-{
-    int rel_x;
-    int rel_y;
-    int abs_x;
-    int abs_y;
-    int l;
-    int r;
-    int m;
-    int b4;
-    int b5;
-    int wu;
-    int wd;
-};
-mousiebind mousiez = {0};
-const Uint8 *lr_keymap;
-retro_keyboard_event_t inp_keys = NULL;
+
 
 const struct key_map key_map_[] = {
     {SDLK_BACKSPACE, RETROK_BACKSPACE},
@@ -176,7 +155,6 @@ const struct key_map key_map_[] = {
 
     {0, RETROK_UNKNOWN},
 };
-std::vector<SDL_GameController *> Joystick = {};
 
 struct default_retro
 {
@@ -209,14 +187,12 @@ struct default_retro
     {joypad_analog_r3, -1},
 };
 
-void reset_retropad()
+void CLibretro::reset_retropad()
 {
 
-    auto lib = CLibretro::get_classinstance();
-
-    lib->core_inpbinds.clear();
-    lib->core_inpbinds.resize(2);
-    lib->core_inputttypes.clear();
+    core_inpbinds.clear();
+    core_inpbinds.resize(2);
+    core_inputttypes.clear();
 
     inp_keys = NULL;
 
@@ -244,12 +220,12 @@ void reset_retropad()
             bind.joykey_desc = (i == 0 && j < 15) ? SDL_GetScancodeName((SDL_Scancode)libretro_dmap[j].keeb) : "None";
             bind2.push_back(bind);
         }
-        lib->core_inpbinds[i].inputbinds = bind2;
-        lib->core_inpbinds[i].controller_type = RETRO_DEVICE_JOYPAD;
+        core_inpbinds[i].inputbinds = bind2;
+        core_inpbinds[i].controller_type = RETRO_DEVICE_JOYPAD;
     }
 }
 
-int axistocheck(int id, int index)
+int  CLibretro::axistocheck(int id, int index)
 {
     switch (index)
     {
@@ -279,7 +255,7 @@ int axistocheck(int id, int index)
     }
 }
 
-bool checkjs(int port)
+bool CLibretro::checkjs(int port)
 {
     for (auto &i : Joystick)
     {
@@ -292,18 +268,17 @@ bool checkjs(int port)
     return false;
 }
 
-bool loadcontconfig(bool save_f)
+bool CLibretro::loadcontconfig(bool save_f)
 {
-    auto lib = CLibretro::get_classinstance();
 
     if (!save_f)
     {
-        for (auto &i : lib->core_inpbinds)
+        for (auto &i : core_inpbinds)
         {
-            size_t k = &i - &lib->core_inpbinds.front();
-            for (auto &inp_cfg : lib->core_inputttypes)
+            size_t k = &i - &core_inpbinds.front();
+            for (auto &inp_cfg : core_inputttypes)
             {
-                size_t l = &inp_cfg - &lib->core_inputttypes.front();
+                size_t l = &inp_cfg - &core_inputttypes.front();
                 if (k == l)
                 {
                     i.controlinfo = inp_cfg;
@@ -320,7 +295,6 @@ bool loadcontconfig(bool save_f)
         }
     }
 
-    std::string core_config = lib->core_config;
     unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
     std::vector<uint8_t> data;
     int portage = 0;
@@ -335,21 +309,21 @@ bool loadcontconfig(bool save_f)
 
     cJSON *config = NULL;
     cJSON *config_entries = NULL;
-    if (cJSON_HasObjectItem(ini, std::to_string(lib->config_crc).c_str()))
+    if (cJSON_HasObjectItem(ini, std::to_string(config_crc).c_str()))
     {
-        config = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(lib->config_crc).c_str());
+        config = cJSON_GetObjectItemCaseSensitive(ini, std::to_string(config_crc).c_str());
         config_entries = cJSON_GetArrayItem(config, 0);
     }
 
     else
     {
         save_f = true;
-        config = cJSON_AddArrayToObject(ini, std::to_string(lib->config_crc).c_str());
+        config = cJSON_AddArrayToObject(ini, std::to_string(config_crc).c_str());
         config_entries = cJSON_CreateObject();
         cJSON_AddItemToArray(config, config_entries);
     }
 
-    for (auto &controller : lib->core_inpbinds)
+    for (auto &controller : core_inpbinds)
     {
         std::string play = std::to_string(portage) + "_controllerport";
         if (cJSON_HasObjectItem(config_entries, play.c_str()))
@@ -376,11 +350,10 @@ bool loadcontconfig(bool save_f)
     return true;
 }
 
-bool loadinpconf(uint32_t checksum, bool save_f)
+bool CLibretro::loadinpconf(uint32_t checksum, bool save_f)
 {
-    auto lib = CLibretro::get_classinstance();
-    unsigned sz_coreconfig = MudUtil::get_filesize(lib->core_config.c_str());
-    std::vector<uint8_t> data = MudUtil::load_data((const char *)lib->core_config.c_str());
+    unsigned sz_coreconfig = MudUtil::get_filesize(core_config.c_str());
+    std::vector<uint8_t> data = MudUtil::load_data((const char *)core_config.c_str());
     int portage = 0;
 
     cJSON *inputbinds = NULL;
@@ -408,9 +381,9 @@ bool loadinpconf(uint32_t checksum, bool save_f)
         }
     }
 
-    for (auto &controller : lib->core_inpbinds)
+    for (auto &controller : core_inpbinds)
     {
-        size_t i = &controller - &lib->core_inpbinds.front();
+        size_t i = &controller - &core_inpbinds.front();
         std::string play = std::to_string(i) + "_binds";
         cJSON *binds_entries = NULL;
         cJSON *binds = NULL;
@@ -476,17 +449,16 @@ bool loadinpconf(uint32_t checksum, bool save_f)
     if (save_f)
     {
         std::string json = cJSON_Print(ini);
-        MudUtil::save_data((unsigned char *)json.c_str(), json.length(), lib->core_config.c_str());
+        MudUtil::save_data((unsigned char *)json.c_str(), json.length(), core_config.c_str());
     }
     cJSON_Delete(ini);
 
     return true;
 }
 
-bool load_inpcfg(retro_input_descriptor *var)
+bool CLibretro::load_inpcfg(retro_input_descriptor *var)
 {
-    auto lib = CLibretro::get_classinstance();
-    lib->use_retropad = false;
+    use_retropad = false;
 
     retro_input_descriptor *var2 = var;
     int ports = 0;
@@ -497,8 +469,8 @@ bool load_inpcfg(retro_input_descriptor *var)
         var2++;
     }
     ports++;
-    lib->core_inpbinds.resize(ports);
-    for (auto &controller : lib->core_inpbinds)
+    core_inpbinds.resize(ports);
+    for (auto &controller : core_inpbinds)
         controller.inputbinds.clear();
 
     while (var->description != NULL)
@@ -520,20 +492,20 @@ bool load_inpcfg(retro_input_descriptor *var)
             settings.bits.joytype = (uint8_t)joytype_::keyboard;
             bind.val = 0;
             bind.joykey_desc = "None";
-            lib->core_inpbinds[var->port].inputbinds.push_back(bind);
+            core_inpbinds[var->port].inputbinds.push_back(bind);
         }
         var++;
     }
 
-    lib->input_confcrc = lib->config_crc;
-    for (auto &controller : lib->core_inpbinds)
+    input_confcrc = config_crc;
+    for (auto &controller : core_inpbinds)
         for (auto &bind : controller.inputbinds)
-            lib->input_confcrc = MudUtil::crc32(lib->input_confcrc, bind.description.c_str(), bind.description.length());
+            input_confcrc = MudUtil::crc32(input_confcrc, bind.description.c_str(), bind.description.length());
 
-    return loadinpconf(lib->input_confcrc, false);
+    return loadinpconf(input_confcrc, false);
 }
 
-void close_inpt()
+void CLibretro::close_inpt()
 {
     for (auto &bind : Joystick)
     {
@@ -543,7 +515,7 @@ void close_inpt()
     Joystick.clear();
 }
 
-void close_inp(int num)
+void CLibretro::close_inp(int num)
 {
     for (auto &i : Joystick)
     {
@@ -558,7 +530,7 @@ void close_inp(int num)
     }
 }
 
-void init_inpt()
+void CLibretro::init_inpt()
 {
     Joystick.clear();
     int num = SDL_NumJoysticks();
@@ -569,7 +541,7 @@ void init_inpt()
     }
 }
 
-void reset_inpt()
+void CLibretro::reset_inpt()
 {
     for (auto &bind : Joystick)
     {
@@ -588,7 +560,7 @@ void reset_inpt()
     }
 }
 
-void init_inp(int num)
+void CLibretro::init_inp(int num)
 {
     for (auto &i : Joystick)
     {
@@ -623,7 +595,7 @@ axisarrdig arr_dig[] = {
     {"rsup", SDL_CONTROLLER_AXIS_RIGHTY},
 };
 
-void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
+void CLibretro::checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
 {
     if (!*isselected_inp)
         return;
@@ -633,9 +605,8 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
         framesload++;
     else
     {
-        auto lib = CLibretro::get_classinstance();
         std::string name;
-        auto &bind = lib->core_inpbinds[port].inputbinds[selected_inp];
+        auto &bind = core_inpbinds[port].inputbinds[selected_inp];
         const int JOYSTICK_DEAD_ZONE = 0x4000;
         int numkeys = 0;
         const Uint8 *keyboard = SDL_GetKeyboardState(&numkeys);
@@ -755,7 +726,7 @@ void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port)
     }
 }
 
-static int key_pressed(int key)
+int CLibretro::key_pressed(int key)
 {
     struct key_map *map = (key_map *)key_map_;
     for (; map->rk != RETROK_LAST; map++)
@@ -767,12 +738,8 @@ static int key_pressed(int key)
     return false;
 }
 
-void core_kb_callback(retro_keyboard_event_t e)
-{
-    inp_keys = e;
-}
 
-void keys()
+void CLibretro::keys()
 {
     lr_keymap = SDL_GetKeyboardState(NULL);
     if (inp_keys != NULL)
@@ -801,10 +768,8 @@ void keys()
     }
 }
 
-void poll_lr()
+void CLibretro::poll_lr()
 {
-    auto lib = CLibretro::get_classinstance();
-
     SDL_GameControllerUpdate();
 
     keys();
@@ -819,7 +784,7 @@ void poll_lr()
     mousiez.b4 = (SDL_BUTTON(SDL_BUTTON_X1) & btn) ? 1 : 0;
     mousiez.b5 = (SDL_BUTTON(SDL_BUTTON_X2) & btn) ? 1 : 0;
 
-    for (auto &control : lib->core_inpbinds)
+    for (auto &control : core_inpbinds)
     {
         for (auto &bind : control.inputbinds)
         {
@@ -871,11 +836,9 @@ void poll_lr()
     }
 }
 
-int16_t input_state(unsigned port, unsigned device, unsigned index,
+int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
                     unsigned id)
 {
-    auto lib = CLibretro::get_classinstance();
-
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_MOUSE)
     {
         switch (id)
@@ -939,9 +902,9 @@ int16_t input_state(unsigned port, unsigned device, unsigned index,
 
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_ANALOG || RETRO_DEVICE_JOYPAD)
     {
-        for (auto &binds : lib->core_inpbinds)
+        for (auto &binds : core_inpbinds)
         {
-            size_t k = &binds - &lib->core_inpbinds.front();
+            size_t k = &binds - &core_inpbinds.front();
             if (k == port)
             {
                 for (auto &bind : binds.inputbinds)

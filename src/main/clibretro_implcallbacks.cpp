@@ -63,21 +63,6 @@ static bool core_replace_image_index(unsigned int index, const retro_game_info *
   return false;
 }
 
-void core_audio_sample(int16_t left, int16_t right)
-{
-   auto lib = CLibretro::get_classinstance();
-  int16_t buf[2] = {left, right};
-  lib->audio.mix(buf, 1);
-}
-static size_t core_audio_sample_batch(const int16_t *data, size_t frames)
-{
-   auto lib = CLibretro::get_classinstance();
-  if (!frames && data == NULL)
-    return 0;
-  lib->audio.mix((int16_t*)data, frames);
-  return frames;
-}
-
 static void core_log(enum retro_log_level level, const char *fmt, ...)
 {
   char buffer[4096] = {0};
@@ -185,6 +170,7 @@ bool CLibretro::core_environment(unsigned cmd, void *data)
   std::filesystem::path p_save = p;
   p = p.parent_path() / "system";
   p_save = p_save.parent_path() / "saves";
+
   switch (cmd)
   {
 
@@ -389,13 +375,19 @@ bool CLibretro::core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
   {
     auto *callback = reinterpret_cast<const struct retro_keyboard_callback *>(data);
+
+    auto core_kb_callback = [this](retro_keyboard_event_t e) -> void
+    {
+      inp_keys = e;
+    };
+
     core_kb_callback(callback->callback);
     return true;
   }
 
   case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 31
   {
-    return ::load_inpcfg((retro_input_descriptor *)data);
+    return load_inpcfg((retro_input_descriptor *)data);
   }
 
   case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
@@ -475,11 +467,39 @@ void CLibretro::load_envsymb(void *handle, bool first)
 #define libload(name) MudUtil::getfunc(handle, name)
 #define load_sym(V, name) if (!(*(void **)(&V) = (void *)libload(#name)))
 
+  static auto core_env = +[](unsigned cmd, void *data) -> bool
+  {
+    CLibretro *instance = CLibretro::get_classinstance();
+    return instance->core_environment(cmd, data);
+  };
 
+  static auto core_audsamp = +[](int16_t left, int16_t right) -> void
+  {
+    CLibretro *instance = CLibretro::get_classinstance();
+    int16_t buf[2] = {left, right};
+    instance->audio.mix(buf, 1);
+  };
 
-static auto core_env = +[](unsigned cmd, void *data)->bool {
-  CLibretro *instance = CLibretro::get_classinstance();
-  return instance->core_environment(cmd,data);
+  static auto core_audsampbatch = +[](const int16_t *data, size_t frames) -> size_t
+  {
+    CLibretro *instance = CLibretro::get_classinstance();
+    if (!frames && data == NULL)
+      return 0;
+    instance->audio.mix((int16_t *)data, frames);
+    return frames;
+  };
+
+  static auto core_inputstate = +[](unsigned port, unsigned device, unsigned index,
+                                    unsigned id) -> int16_t
+  {
+    CLibretro *instance = CLibretro::get_classinstance();
+    return instance->input_state(port, device, index, id);
+  };
+
+  static auto core_poll = +[]() -> void
+  {
+    CLibretro *instance = CLibretro::get_classinstance();
+    instance->poll_lr();
   };
 
   if (first)
@@ -501,9 +521,9 @@ static auto core_env = +[](unsigned cmd, void *data)->bool {
     load_sym(set_audio_sample, retro_set_audio_sample);
     load_sym(set_audio_sample_batch, retro_set_audio_sample_batch);
     set_video_refresh(video_refresh);
-    set_input_poll(poll_lr);
-    set_input_state(input_state);
-    set_audio_sample(core_audio_sample);
-    set_audio_sample_batch(core_audio_sample_batch);
+    set_input_poll(core_poll);
+    set_input_state(core_inputstate);
+    set_audio_sample(core_audsamp);
+    set_audio_sample_batch(core_audsampbatch);
   }
 }

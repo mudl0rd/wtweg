@@ -202,13 +202,13 @@ int main2(clibretro_startoptions *options)
 
       if (event.type == SDL_CONTROLLERDEVICEREMOVED)
       {
-        close_inp(event.cdevice.which);
+        instance->close_inp(event.cdevice.which);
         SDL_GameControllerUpdate();
       }
 
       if (event.type == SDL_CONTROLLERDEVICEADDED)
       {
-        init_inp(event.cdevice.which);
+         instance->init_inp(event.cdevice.which);
         SDL_GameControllerUpdate();
       }
 
@@ -240,7 +240,7 @@ int main2(clibretro_startoptions *options)
   }
 
   instance->core_unload();
-  close_inpt();
+   instance->close_inpt();
 
 #ifdef _WIN32
   timeEndPeriod(1);

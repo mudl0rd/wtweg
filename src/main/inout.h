@@ -55,24 +55,8 @@ void video_deinit();
 void video_changegeom(struct retro_game_geometry *geom);
 void audio_changeratefps(double refreshra, float input_srate, double fps);
 uintptr_t video_get_fb();
-
 bool video_set_pixelformat(retro_pixel_format fmt);
-void reset_retropad();
-void init_inpt();
-void init_inp(int num);
-void close_inp(int num);
-void reset_inpt();
-void close_inpt();
 
-void core_kb_callback(retro_keyboard_event_t e);
-void input_keys(uint16_t mod, uint16_t keycode, bool down);
-void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port);
-int16_t input_state(unsigned port, unsigned device, unsigned index,
-                    unsigned id);
-void poll_lr();
 
-bool load_inpcfg(retro_input_descriptor *var);
-bool loadinpconf(uint32_t checksum,bool save_f);
-bool loadcontconfig(bool save_f);
 
 #endif

@@ -712,7 +712,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                                       i.controller_type == inp2.id))
                   {
                     instance->core_changinpt(inp2.id, k);
-                    loadcontconfig(true);
+                    instance->loadcontconfig(true);
                   }
                 }
                 ImGui::EndMenu();
@@ -919,7 +919,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     static int selected_inp = 0;
     static bool isselected_inp = false;
     static int selected_port = 0;
-    checkbuttons_forui(selected_inp, &isselected_inp, selected_port);
+    instance->checkbuttons_forui(selected_inp, &isselected_inp, selected_port);
     if (!instance->core_inpbinds.at(0).inputbinds.size())
     {
       popup_widget(&inputsettings, "No input settings", "There is no input settings for this particular core.");
@@ -977,7 +977,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       {
         inputsettings = false;
         isselected_inp = false;
-        loadinpconf(instance->input_confcrc, true);
+        instance->loadinpconf(instance->input_confcrc, true);
       }
       ImGui::EndPopup();
     }

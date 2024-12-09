@@ -187,6 +187,27 @@ struct core_info
 	bool no_roms;
 };
 
+struct key_map
+{
+	SDL_Keycode sym;
+	enum retro_key rk;
+};
+
+struct mousiebind
+{
+	int rel_x;
+	int rel_y;
+	int abs_x;
+	int abs_y;
+	int l;
+	int r;
+	int m;
+	int b4;
+	int b5;
+	int wu;
+	int wd;
+};
+
 std::vector<core_info> get_cores();
 
 class CLibretro
@@ -196,7 +217,21 @@ private:
 	void load_envsymb(void *handle, bool first);
 	SDL_Window *sdl_window;
 	bool lr_isrunning;
+	std::string core_config;
+	mousiebind mousiez;
+	const Uint8 *lr_keymap;
+	std::string load_savestate;
+	std::vector<SDL_GameController *> Joystick;
 
+	bool init_configvars(retro_variable *var);
+	bool init_configvars_coreoptions(void *var, int version);
+	bool init_inputvars(retro_input_descriptor *var);
+	bool checkjs(int port);
+	const char *load_corevars(retro_variable *var);
+	int axistocheck(int id, int index);
+	void reset();
+	int key_pressed(int key);
+	void keys();
 public:
 	out_aud audio;
 	CLibretro() = default;
@@ -211,32 +246,24 @@ public:
 			instance.init_lr(window);
 		return &instance;
 	}
-	void poll();
-	void reset();
+	bool load_coresettings(bool save_f);
 	void core_changinpt(int dev, int port);
 	bool core_isrunning();
 	bool core_load(bool contentless, clibretro_startoptions *options);
 	void core_unload();
-	bool core_saveram(const char *filename, bool save);
-	bool core_savestateslot(bool save);
-	bool core_savestate(const char *filename, bool save);
 	bool core_environment(unsigned cmd, void *data);
 	void core_run();
-	void set_inputdevice(int device);
-	void get_cores();
-	void framelimit();
 	void framecap(bool cap)
 	{
 		capfps = cap;
 		audio.framelimit(cap);
 	};
-
-	bool init_configvars(retro_variable *var);
-	bool init_configvars_coreoptions(void *var, int version);
-	bool init_inputvars(retro_input_descriptor *var);
-	bool load_coresettings(bool save_f);
-
-	const char *load_corevars(retro_variable *var);
+	bool core_saveram(const char *filename, bool save);
+	bool core_savestateslot(bool save);
+	bool core_savestate(const char *filename, bool save);
+	void set_inputdevice(int device);
+	void get_cores();
+	void framelimit();
 
 	std::vector<std::vector<coreinput_controlinfo>> core_inputttypes;
 	std::vector<controller_port> core_inpbinds;
@@ -244,29 +271,47 @@ public:
 	std::vector<loadedcore_configcat> core_categories;
 	std::vector<retro_disk> disk_intf;
 
+	// inputs
+
+	void reset_retropad();
+	void init_inpt();
+	void init_inp(int num);
+	void close_inp(int num);
+	void reset_inpt();
+	void close_inpt();
+	void input_keys(uint16_t mod, uint16_t keycode, bool down);
+	void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port);
+	int16_t input_state(unsigned port, unsigned device, unsigned index,
+						unsigned id);
+
+	void poll_lr();
+	bool load_inpcfg(retro_input_descriptor *var);
+	bool loadinpconf(uint32_t checksum, bool save_f);
+	bool loadcontconfig(bool save_f);
+	
+
+	retro_keyboard_event_t inp_keys;
+
 	bool v2_vars;
 	bool use_retropad;
 	bool variables_changed;
-	const char *rom_name;
 	uint32_t config_crc;
 	uint32_t input_confcrc;
-	uint32_t inputcont_crc;
 	std::vector<core_info> cores;
 	std::string romsavesstatespath;
-	std::string core_config;
-	std::string core_path;
+
 	std::filesystem::path rom_path;
 	std::string coreexts;
 	std::string exe_path;
-	std::string load_savestate;
+
 	int save_slot;
 	struct retro_perf_counter *perf_counter_last;
 	retro_frame_time_callback_t frametime_cb;
 	retro_usec_t frametime_ref;
+
 	uint64_t fps;
 	uint64_t perfc;
 	bool capfps;
-
 	float deltatime;
 	uint64_t frameno;
 	float core_samplerate;

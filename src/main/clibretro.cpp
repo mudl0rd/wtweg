@@ -154,7 +154,7 @@ bool CLibretro::load_coresettings(bool save_f)
 
 bool CLibretro::init_inputvars(retro_input_descriptor *var)
 {
-  ::load_inpcfg(var);
+  load_inpcfg(var);
   return true;
 }
 
@@ -326,7 +326,7 @@ rest are purely digital except for sticks
 void CLibretro::reset()
 {
   core_config = (std::filesystem::path(exe_path) / "wtfweg.json").string();
-
+  inp_keys = NULL;
   lr_isrunning = false;
   save_slot = 0;
   variables_changed = false;
