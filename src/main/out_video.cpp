@@ -283,8 +283,6 @@ bool out_video::setpixfmt(retro_pixel_format fmt)
 	pixfmt = fmt;
 	return true;
 }
-
-uintptr_t out_video::getfb() { return fbo_id; }
 bool out_video::sethwcb(struct retro_hw_render_callback *hw)
 {
 #ifndef USE_RPI
@@ -294,10 +292,11 @@ bool out_video::sethwcb(struct retro_hw_render_callback *hw)
 	if (hw->context_type == RETRO_HW_CONTEXT_OPENGLES3 || hw->context_type == RETRO_HW_CONTEXT_OPENGLES2)
 	{
 #endif
-		static auto core_fb_callback = +[]() -> uintptr_t
+
+		auto core_fb_callback = +[]() -> uintptr_t
 		{
 			CLibretro *inst = CLibretro::get_classinstance();
-			return inst->video.getfb();
+			return inst->video.fbo_id;
 		};
 
 		hw->get_current_framebuffer = core_fb_callback;

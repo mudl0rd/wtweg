@@ -467,20 +467,20 @@ void CLibretro::load_envsymb(void *handle, bool first)
 #define libload(name) MudUtil::getfunc(handle, name)
 #define load_sym(V, name) if (!(*(void **)(&V) = (void *)libload(#name)))
 
-  static auto core_env = +[](unsigned cmd, void *data) -> bool
+  auto core_env = +[](unsigned cmd, void *data) -> bool
   {
     CLibretro *instance = CLibretro::get_classinstance();
     return instance->core_environment(cmd, data);
   };
 
-  static auto core_audsamp = +[](int16_t left, int16_t right) -> void
+  auto core_audsamp = +[](int16_t left, int16_t right) -> void
   {
     CLibretro *instance = CLibretro::get_classinstance();
     int16_t buf[2] = {left, right};
     instance->audio.mix(buf, 1);
   };
 
-  static auto core_audsampbatch = +[](const int16_t *data, size_t frames) -> size_t
+  auto core_audsampbatch = +[](const int16_t *data, size_t frames) -> size_t
   {
     CLibretro *instance = CLibretro::get_classinstance();
     if (!frames && data == NULL)
@@ -489,20 +489,20 @@ void CLibretro::load_envsymb(void *handle, bool first)
     return frames;
   };
 
-  static auto core_inputstate = +[](unsigned port, unsigned device, unsigned index,
+  auto core_inputstate = +[](unsigned port, unsigned device, unsigned index,
                                     unsigned id) -> int16_t
   {
     CLibretro *instance = CLibretro::get_classinstance();
     return instance->input_state(port, device, index, id);
   };
 
-  static auto core_poll = +[]() -> void
+  auto core_poll = +[]() -> void
   {
     CLibretro *instance = CLibretro::get_classinstance();
     instance->poll_lr();
   };
 
-   static auto core_vidrefresh = +[](const void *data, unsigned width, unsigned height, size_t pitch) -> void
+  auto core_vidrefresh = +[](const void *data, unsigned width, unsigned height, size_t pitch) -> void
   {
     CLibretro *instance = CLibretro::get_classinstance();
     instance->video.refresh(data,width,height,pitch);

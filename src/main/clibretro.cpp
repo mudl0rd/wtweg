@@ -631,7 +631,7 @@ void CLibretro::get_cores()
       }
       static bool no_roms2;
       static std::vector<subsystems> subsys;
-      static auto no_roms = +[](unsigned cmd, void *data) -> bool
+      auto no_roms = +[](unsigned cmd, void *data) -> bool
       {
         no_roms2 = false;
         subsys.clear();
