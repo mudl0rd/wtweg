@@ -630,11 +630,11 @@ void CLibretro::get_cores()
         continue;
       }
       static bool no_roms2;
+      no_roms2 = false;
       static std::vector<subsystems> subsys;
+      subsys.clear();
       auto no_roms = +[](unsigned cmd, void *data) -> bool
       {
-        no_roms2 = false;
-        subsys.clear();
         if (cmd == RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME)
         {
           bool *bval = reinterpret_cast<bool *>(data);
