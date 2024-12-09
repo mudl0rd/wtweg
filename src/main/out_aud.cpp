@@ -3,7 +3,7 @@
 #include <SDL2/SDL_audio.h>
 #include "resampler.h"
 #include "libretro.h"
-#include "inout.h"
+#include "clibretro.h"
 #include "mudutils/utils.h"
 #include <thread>
 #include <mutex>

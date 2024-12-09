@@ -272,7 +272,7 @@ bool CLibretro::core_environment(unsigned cmd, void *data)
   {
     auto info = reinterpret_cast<struct retro_system_av_info *>(data);
     auto *geo = (struct retro_game_geometry *)&info->geometry;
-    video_changegeom(geo);
+    video.changegeom(geo);
     fps = perfc * 1000 / uint64_t(1000.0 * std::abs(info->timing.fps));
     audio.changerate(info->timing.sample_rate);
     return true;
@@ -288,7 +288,7 @@ bool CLibretro::core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_GEOMETRY:
   {
     auto *geom = reinterpret_cast<struct retro_game_geometry *>(data);
-    video_changegeom(geom);
+    video.changegeom(geom);
     return true;
   }
 
@@ -329,7 +329,7 @@ bool CLibretro::core_environment(unsigned cmd, void *data)
   {
     auto *hw =
         reinterpret_cast<struct retro_hw_render_callback *>(data);
-    return video_sethw(hw);
+    return video.sethwcb(hw);
   }
 
   case RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT:
@@ -452,7 +452,7 @@ bool CLibretro::core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
   {
     auto *fmt = (enum retro_pixel_format *)data;
-    return video_set_pixelformat(*fmt);
+    return video.setpixfmt(*fmt);
   }
 
   default:
@@ -502,6 +502,12 @@ void CLibretro::load_envsymb(void *handle, bool first)
     instance->poll_lr();
   };
 
+   static auto core_vidrefresh = +[](const void *data, unsigned width, unsigned height, size_t pitch) -> void
+  {
+    CLibretro *instance = CLibretro::get_classinstance();
+    instance->video.refresh(data,width,height,pitch);
+  };
+
   if (first)
   {
     void (*set_environment)(retro_environment_t) = NULL;
@@ -520,7 +526,7 @@ void CLibretro::load_envsymb(void *handle, bool first)
     load_sym(set_input_state, retro_set_input_state);
     load_sym(set_audio_sample, retro_set_audio_sample);
     load_sym(set_audio_sample_batch, retro_set_audio_sample_batch);
-    set_video_refresh(video_refresh);
+    set_video_refresh(core_vidrefresh);
     set_input_poll(core_poll);
     set_input_state(core_inputstate);
     set_audio_sample(core_audsamp);

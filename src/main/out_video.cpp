@@ -1,6 +1,6 @@
 #include <SDL2/SDL.h>
+#include "clibretro.h"
 #include "libretro.h"
-#include "inout.h"
 #ifdef USE_RPI
 #include "glad_es.h"
 #else
@@ -8,275 +8,6 @@
 #endif
 #include <vector>
 #include <numeric>
-struct
-{
-	GLuint tex_id;
-	GLuint rbo_id;
-	GLuint fbo_id;
-	bool software_rast;
-	bool integer_scale;
-	GLuint pitch;
-	GLint tex_w, tex_h;
-	GLuint base_w, base_h;
-	GLuint current_w, current_h;
-	unsigned rend_width, rend_height;
-	retro_pixel_format pixfmt;
-	uint8_t *temp_pixbuf;
-	float aspect;
-	struct
-	{
-		GLuint pixfmt;
-		GLuint pixtype;
-		GLuint bpp;
-	} pixformat;
-
-	struct retro_hw_render_callback hw;
-} g_video = {0};
-
-void reinit_fbo(int width, int height)
-{
-	if (g_video.tex_id)
-		glDeleteTextures(1, &g_video.tex_id);
-	if (g_video.temp_pixbuf)
-	{
-		free(g_video.temp_pixbuf);
-		g_video.temp_pixbuf = NULL;
-	}
-	g_video.temp_pixbuf = (uint8_t *)malloc(width * height * sizeof(uint32_t));
-
-#ifndef USE_RPI
-	glCreateTextures(GL_TEXTURE_2D, 1, &g_video.tex_id);
-	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureStorage2D(g_video.tex_id, 1, GL_RGBA8, width, height);
-#else
-	glGenTextures(1, &g_video.tex_id);
-	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, (g_video.pixfmt == RETRO_PIXEL_FORMAT_XRGB8888) ? GL_RGBA : GL_RGB, width, height, 0,
-				 g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
-
-#endif
-	void init_framebuffer(int width, int height);
-	init_framebuffer(width, height);
-}
-
-void video_changegeom(struct retro_game_geometry *geom)
-{
-	if (g_video.tex_w > geom->max_width || g_video.tex_h > geom->max_height)
-	{
-		reinit_fbo(geom->max_width, geom->max_height);
-		g_video.tex_w = geom->max_width;
-		g_video.tex_h = geom->max_height;
-	}
-	g_video.base_w = geom->base_width;
-	g_video.base_h = geom->base_height;
-	if (geom->aspect_ratio <= 0.0)
-		g_video.aspect = (float)geom->base_width / (float)geom->base_height;
-	else
-		g_video.aspect = geom->aspect_ratio;
-}
-
-bool video_set_pixelformat(retro_pixel_format fmt)
-{
-	switch (fmt)
-	{
-	case RETRO_PIXEL_FORMAT_XRGB8888:
-		g_video.pixformat.pixfmt = GL_UNSIGNED_BYTE;
-		g_video.pixformat.pixtype = GL_RGBA;
-		g_video.pixformat.bpp = sizeof(uint32_t);
-		break;
-	case RETRO_PIXEL_FORMAT_0RGB1555:
-	case RETRO_PIXEL_FORMAT_RGB565:
-		g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_5_6_5;
-		g_video.pixformat.pixtype = GL_RGB;
-		g_video.pixformat.bpp = sizeof(uint16_t);
-		break;
-	default:
-		break;
-	}
-	g_video.pixfmt = fmt;
-	return true;
-}
-
-uintptr_t video_get_fb()
-{
-	return g_video.fbo_id;
-}
-
-bool video_sethw(struct retro_hw_render_callback *hw)
-{
-#ifndef USE_RPI
-	if (hw->context_type == RETRO_HW_CONTEXT_OPENGL || hw->context_type == RETRO_HW_CONTEXT_OPENGL_CORE)
-	{
-#else
-	if (hw->context_type == RETRO_HW_CONTEXT_OPENGLES3 || hw->context_type == RETRO_HW_CONTEXT_OPENGLES2)
-	{
-#endif
-		hw->get_current_framebuffer = video_get_fb;
-		hw->get_proc_address = (retro_hw_get_proc_address_t)SDL_GL_GetProcAddress;
-		g_video.hw = *hw;
-		return true;
-	}
-	return false;
-}
-
-void init_framebuffer(int width, int height)
-{
-	if (g_video.fbo_id)
-		glDeleteFramebuffers(1, &g_video.fbo_id);
-	if (g_video.rbo_id)
-		glDeleteRenderbuffers(1, &g_video.rbo_id);
-
-#ifdef USE_RPI
-	glGenFramebuffers(1, &g_video.fbo_id);
-	glBindFramebuffer(GL_FRAMEBUFFER, g_video.fbo_id);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-						   g_video.tex_id, 0);
-
-	if (g_video.hw.depth)
-	{
-		glGenRenderbuffers(1, &g_video.rbo_id);
-		glBindRenderbuffer(GL_RENDERBUFFER, g_video.rbo_id);
-		glRenderbufferStorage(GL_RENDERBUFFER,
-							  g_video.hw.stencil ? GL_DEPTH24_STENCIL8
-												 : GL_DEPTH_COMPONENT24,
-							  width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER,
-								  g_video.hw.stencil ? GL_DEPTH_STENCIL_ATTACHMENT
-													 : GL_DEPTH_ATTACHMENT,
-								  GL_RENDERBUFFER, g_video.rbo_id);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	}
-	glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#else
-	glCreateFramebuffers(1, &g_video.fbo_id);
-	glNamedFramebufferTexture(g_video.fbo_id, GL_COLOR_ATTACHMENT0, g_video.tex_id, 0);
-	if (g_video.hw.depth)
-	{
-		glCreateRenderbuffers(1, &g_video.rbo_id);
-		glNamedRenderbufferStorage(g_video.rbo_id, g_video.hw.stencil ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT24,
-								   width, height);
-		glNamedFramebufferRenderbuffer(g_video.fbo_id, g_video.hw.stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, g_video.rbo_id);
-	}
-	glCheckFramebufferStatus(GL_FRAMEBUFFER);
-#endif
-}
-
-vp resize_cb()
-{
-	vp vp_ = {0};
-	unsigned x = 0;
-	unsigned y = 0;
-	unsigned height = g_video.current_h;
-	unsigned width = height * g_video.aspect;
-	if (width > g_video.current_w)
-	{
-		height = g_video.current_w / g_video.aspect;
-		width = g_video.current_w;
-	}
-	if (!height || !width)
-		return vp_;
-
-	unsigned max_scale = (unsigned)std::min(g_video.rend_width / width,
-											g_video.rend_height / height);
-
-	if (!max_scale)
-	{
-		if (g_video.base_h < height)
-		{
-			height = g_video.base_h;
-			width = height * g_video.aspect;
-			max_scale = (unsigned)std::min(g_video.rend_width / width,
-										   g_video.rend_height / height);
-		}
-		else
-		{
-			height = g_video.rend_height;
-			width = height * g_video.aspect;
-			if (width > g_video.rend_width)
-			{
-				height = g_video.rend_width / g_video.aspect;
-				width = g_video.rend_width;
-			}
-		}
-	}
-	width *= (!max_scale) ? 1 : max_scale;
-	height *= (!max_scale) ? 1 : max_scale;
-
-	x = SDL_floor(g_video.rend_width - width) / 2;
-	y = SDL_floor(g_video.rend_height - height) / 2;
-	vp_ = {x, y, width, height};
-	return vp_;
-}
-
-bool video_init(struct retro_game_geometry *geom)
-{
-	g_video.software_rast = !g_video.hw.context_reset;
-
-	if (g_video.tex_id)
-		glDeleteTextures(1, &g_video.tex_id);
-
-	g_video.tex_id = 0;
-	g_video.integer_scale = true;
-
-	if (g_video.software_rast)
-	{
-		if (!g_video.pixformat.pixfmt)
-		{
-			g_video.pixformat.pixfmt = GL_UNSIGNED_SHORT_5_6_5;
-			g_video.pixformat.pixtype = GL_RGB;
-			g_video.pixformat.bpp = sizeof(uint16_t);
-		}
-	}
-	else
-	{
-		g_video.pixformat.pixfmt = GL_UNSIGNED_BYTE;
-		g_video.pixformat.pixtype = GL_RGBA;
-		g_video.pixformat.bpp = sizeof(uint32_t);
-	}
-
-	if (g_video.temp_pixbuf)
-	{
-		free(g_video.temp_pixbuf);
-		g_video.temp_pixbuf = NULL;
-	}
-	g_video.temp_pixbuf = (uint8_t *)malloc(geom->max_width * geom->max_height * sizeof(uint32_t));
-
-#ifndef USE_RPI
-	glCreateTextures(GL_TEXTURE_2D, 1, &g_video.tex_id);
-	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTextureParameteri(g_video.tex_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureStorage2D(g_video.tex_id, 1, GL_RGBA8, geom->max_width, geom->max_height);
-#else
-	glGenTextures(1, &g_video.tex_id);
-	glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, (g_video.pixfmt == RETRO_PIXEL_FORMAT_XRGB8888) ? GL_RGBA : GL_RGB,
-				 geom->max_width, geom->max_height, 0, g_video.pixformat.pixtype, g_video.pixformat.pixfmt, NULL);
-
-#endif
-
-	init_framebuffer(geom->max_width, geom->max_height);
-
-	g_video.tex_w = geom->max_width;
-	g_video.tex_h = geom->max_height;
-	g_video.base_w = geom->base_width;
-	g_video.base_h = geom->base_height;
-	if (geom->aspect_ratio <= 0.0)
-		g_video.aspect = (float)geom->base_width / (float)geom->base_height;
-	else
-		g_video.aspect = geom->aspect_ratio;
-
-	if (g_video.hw.context_reset)
-		g_video.hw.context_reset();
-
-	return true;
-}
 
 static inline unsigned get_alignment(unsigned pitch)
 {
@@ -287,28 +18,6 @@ static inline unsigned get_alignment(unsigned pitch)
 	if (pitch & 4)
 		return 4;
 	return 8;
-}
-
-void video_render(int width, int height)
-{
-	g_video.rend_width = width;
-	g_video.rend_height = height;
-	vp vpx = resize_cb();
-	GLint dst_x0 = vpx.x;
-	GLint dst_x1 = dst_x0 + vpx.width;
-	GLint dst_y0 = (g_video.software_rast) ? (vpx.y + vpx.height) : vpx.y;
-	GLint dst_y1 = (g_video.software_rast) ? vpx.y : (vpx.y + vpx.height);
-#ifndef USE_RPI
-	glBlitNamedFramebuffer(g_video.fbo_id, 0, 0, 0, g_video.current_w, g_video.current_h,
-						   dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-#else
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_video.fbo_id);
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, g_video.current_w, g_video.current_h,
-					  dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-#endif
 }
 
 static inline void conv_0rgb1555_rgb565(void *output_, const void *input_,
@@ -350,93 +59,332 @@ static inline void conv_argb8888_rgba8888(void *output_, const void *input_,
 	}
 }
 
-void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch)
+void out_video::init_fb(int width, int height)
+{
+	if (tex_id)
+		glDeleteTextures(1, &tex_id);
+	if (temp_pixbuf)
+	{
+		free(temp_pixbuf);
+		temp_pixbuf = NULL;
+	}
+	temp_pixbuf = (uint8_t *)malloc(width * height * sizeof(uint32_t));
+
+#ifndef USE_RPI
+	glCreateTextures(GL_TEXTURE_2D, 1, &tex_id);
+	glTextureParameteri(tex_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTextureParameteri(tex_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTextureStorage2D(tex_id, 1, GL_RGBA8, width, height);
+#else
+	glGenTextures(1, &tex_id);
+	glBindTexture(GL_TEXTURE_2D, tex_id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, (pixfmt == RETRO_PIXEL_FORMAT_XRGB8888) ? GL_RGBA : GL_RGB, width, height, 0,
+				 pixformat.pixtype, pixformat.pixfmt, NULL);
+
+#endif
+
+	if (fbo_id)
+		glDeleteFramebuffers(1, &fbo_id);
+	if (rbo_id)
+		glDeleteRenderbuffers(1, &rbo_id);
+
+#ifdef USE_RPI
+	glGenFramebuffers(1, &fbo_id);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_id);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+						   tex_id, 0);
+
+	if (hw.depth)
+	{
+		glGenRenderbuffers(1, &rbo_id);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo_id);
+		glRenderbufferStorage(GL_RENDERBUFFER,
+							  hw.stencil ? GL_DEPTH24_STENCIL8
+										 : GL_DEPTH_COMPONENT24,
+							  width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+								  hw.stencil ? GL_DEPTH_STENCIL_ATTACHMENT
+											 : GL_DEPTH_ATTACHMENT,
+								  GL_RENDERBUFFER, rbo_id);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	}
+	glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
+	glCreateFramebuffers(1, &fbo_id);
+	glNamedFramebufferTexture(fbo_id, GL_COLOR_ATTACHMENT0, tex_id, 0);
+	if (hw.depth)
+	{
+		glCreateRenderbuffers(1, &rbo_id);
+		glNamedRenderbufferStorage(rbo_id, hw.stencil ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT24,
+								   width, height);
+		glNamedFramebufferRenderbuffer(fbo_id, hw.stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_id);
+	}
+	glCheckFramebufferStatus(GL_FRAMEBUFFER);
+#endif
+}
+
+vp out_video::resize_cb()
+{
+	vp vp_ = {0};
+	unsigned x = 0;
+	unsigned y = 0;
+	unsigned height = current_h;
+	unsigned width = height * aspect;
+	if (width > current_w)
+	{
+		height = current_w / aspect;
+		width = current_w;
+	}
+	if (!height || !width)
+		return vp_;
+
+	unsigned max_scale = (unsigned)std::min(rend_width / width,
+											rend_height / height);
+
+	if (!max_scale)
+	{
+		if (base_h < height)
+		{
+			height = base_h;
+			width = height * aspect;
+			max_scale = (unsigned)std::min(rend_width / width,
+										   rend_height / height);
+		}
+		else
+		{
+			height = rend_height;
+			width = height * aspect;
+			if (width > rend_width)
+			{
+				height = rend_width / aspect;
+				width = rend_width;
+			}
+		}
+	}
+	width *= (!max_scale) ? 1 : max_scale;
+	height *= (!max_scale) ? 1 : max_scale;
+
+	x = SDL_floor(rend_width - width) / 2;
+	y = SDL_floor(rend_height - height) / 2;
+	vp_ = {x, y, width, height};
+	return vp_;
+}
+
+bool out_video::init(struct retro_game_geometry *geom)
+{
+	software_rast = !hw.context_reset;
+
+	if (tex_id)
+		glDeleteTextures(1, &tex_id);
+
+	tex_id = 0;
+	integer_scale = true;
+
+	if (software_rast)
+	{
+		if (!pixformat.pixfmt)
+		{
+			pixformat.pixfmt = GL_UNSIGNED_SHORT_5_6_5;
+			pixformat.pixtype = GL_RGB;
+			pixformat.bpp = sizeof(uint16_t);
+		}
+	}
+	else
+	{
+		pixformat.pixfmt = GL_UNSIGNED_BYTE;
+		pixformat.pixtype = GL_RGBA;
+		pixformat.bpp = sizeof(uint32_t);
+	}
+
+	init_fb(geom->max_width, geom->max_height);
+
+	tex_w = geom->max_width;
+	tex_h = geom->max_height;
+	base_w = geom->base_width;
+	base_h = geom->base_height;
+	if (geom->aspect_ratio <= 0.0)
+		aspect = (float)geom->base_width / (float)geom->base_height;
+	else
+		aspect = geom->aspect_ratio;
+
+	if (hw.context_reset)
+		hw.context_reset();
+
+	return true;
+}
+void out_video::destroy()
+{
+	if (hw.context_destroy)
+	{
+		hw.context_destroy();
+	}
+	memset(&hw, 0, sizeof(struct retro_hw_render_callback));
+
+	if (tex_id)
+	{
+		glDeleteTextures(1, &tex_id);
+		tex_id = 0;
+	}
+	if (fbo_id)
+	{
+		glDeleteFramebuffers(1, &fbo_id);
+		fbo_id = 0;
+	}
+
+	if (rbo_id)
+	{
+		glDeleteRenderbuffers(1, &rbo_id);
+		rbo_id = 0;
+	}
+	if (temp_pixbuf)
+	{
+		free(temp_pixbuf);
+		temp_pixbuf = NULL;
+	}
+}
+void out_video::changegeom(struct retro_game_geometry *geom)
+{
+	if (tex_w > geom->max_width || tex_h > geom->max_height)
+	{
+		init_fb(geom->max_width, geom->max_height);
+		tex_w = geom->max_width;
+		tex_h = geom->max_height;
+	}
+	base_w = geom->base_width;
+	base_h = geom->base_height;
+	if (geom->aspect_ratio <= 0.0)
+		aspect = (float)geom->base_width / (float)geom->base_height;
+	else
+		aspect = geom->aspect_ratio;
+}
+
+bool out_video::setpixfmt(retro_pixel_format fmt)
+{
+	switch (fmt)
+	{
+	case RETRO_PIXEL_FORMAT_XRGB8888:
+		pixformat.pixfmt = GL_UNSIGNED_BYTE;
+		pixformat.pixtype = GL_RGBA;
+		pixformat.bpp = sizeof(uint32_t);
+		break;
+	case RETRO_PIXEL_FORMAT_0RGB1555:
+	case RETRO_PIXEL_FORMAT_RGB565:
+		pixformat.pixfmt = GL_UNSIGNED_SHORT_5_6_5;
+		pixformat.pixtype = GL_RGB;
+		pixformat.bpp = sizeof(uint16_t);
+		break;
+	default:
+		break;
+	}
+	pixfmt = fmt;
+	return true;
+}
+
+uintptr_t out_video::getfb() { return fbo_id; }
+bool out_video::sethwcb(struct retro_hw_render_callback *hw)
+{
+#ifndef USE_RPI
+	if (hw->context_type == RETRO_HW_CONTEXT_OPENGL || hw->context_type == RETRO_HW_CONTEXT_OPENGL_CORE)
+	{
+#else
+	if (hw->context_type == RETRO_HW_CONTEXT_OPENGLES3 || hw->context_type == RETRO_HW_CONTEXT_OPENGLES2)
+	{
+#endif
+		static auto core_fb_callback = +[]() -> uintptr_t
+		{
+			CLibretro *inst = CLibretro::get_classinstance();
+			return inst->video.getfb();
+		};
+
+		hw->get_current_framebuffer = core_fb_callback;
+		hw->get_proc_address = (retro_hw_get_proc_address_t)SDL_GL_GetProcAddress;
+		this->hw = *hw;
+		return true;
+	}
+	return false;
+}
+
+void out_video::render(int width, int height)
+{
+	rend_width = width;
+	rend_height = height;
+	vp vpx = resize_cb();
+	GLint dst_x0 = vpx.x;
+	GLint dst_x1 = dst_x0 + vpx.width;
+	GLint dst_y0 = (software_rast) ? (vpx.y + vpx.height) : vpx.y;
+	GLint dst_y1 = (software_rast) ? vpx.y : (vpx.y + vpx.height);
+#ifndef USE_RPI
+	glBlitNamedFramebuffer(fbo_id, 0, 0, 0, current_w, current_h,
+						   dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+#else
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_id);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, current_w, current_h,
+					  dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+#endif
+}
+void out_video::refresh(const void *data, unsigned width, unsigned height, size_t pitch)
 {
 	if (data == NULL)
 		return;
-	if (g_video.current_w != width || g_video.current_h != height)
+	if (current_w != width || current_h != height)
 	{
-		g_video.current_h = height;
-		g_video.current_w = width;
+		current_h = height;
+		current_w = width;
 	}
 
 	if (data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
 #ifndef USE_RPI
-		glBindTextureUnit(0, g_video.tex_id);
+		glBindTextureUnit(0, tex_id);
 #else
-		glBindTexture(GL_TEXTURE_2D, g_video.tex_id);
+		glBindTexture(GL_TEXTURE_2D, tex_id);
 #endif
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(pitch));
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / g_video.pixformat.bpp);
-		switch (g_video.pixfmt)
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / pixformat.bpp);
+		switch (pixfmt)
 		{
 		case RETRO_PIXEL_FORMAT_0RGB1555:
-			memset(g_video.temp_pixbuf, 0, width * height * sizeof(uint16_t));
-			conv_0rgb1555_rgb565(g_video.temp_pixbuf, data, width, height,
+			memset(temp_pixbuf, 0, width * height * sizeof(uint16_t));
+			conv_0rgb1555_rgb565(temp_pixbuf, data, width, height,
 								 pitch, pitch);
 #ifndef USE_RPI
-			glTextureSubImage2D(g_video.tex_id, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-								g_video.pixformat.pixfmt, g_video.temp_pixbuf);
+			glTextureSubImage2D(tex_id, 0, 0, 0, width, height, pixformat.pixtype,
+								pixformat.pixfmt, temp_pixbuf);
 #else
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-							g_video.pixformat.pixfmt, g_video.temp_pixbuf);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, pixformat.pixtype,
+							pixformat.pixfmt, temp_pixbuf);
 #endif
 			break;
 		case RETRO_PIXEL_FORMAT_XRGB8888:
-			memset(g_video.temp_pixbuf, 0, width * height * sizeof(uint32_t));
-			conv_argb8888_rgba8888(g_video.temp_pixbuf, data, width, height);
+			memset(temp_pixbuf, 0, width * height * sizeof(uint32_t));
+			conv_argb8888_rgba8888(temp_pixbuf, data, width, height);
 #ifndef USE_RPI
-			glTextureSubImage2D(g_video.tex_id, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-								g_video.pixformat.pixfmt, g_video.temp_pixbuf);
+			glTextureSubImage2D(tex_id, 0, 0, 0, width, height, pixformat.pixtype,
+								pixformat.pixfmt, temp_pixbuf);
 #else
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-							g_video.pixformat.pixfmt, g_video.temp_pixbuf);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, pixformat.pixtype,
+							pixformat.pixfmt, temp_pixbuf);
 #endif
 			break;
 		case RETRO_PIXEL_FORMAT_RGB565:
 #ifndef USE_RPI
-			glTextureSubImage2D(g_video.tex_id, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-								g_video.pixformat.pixfmt, data);
+			glTextureSubImage2D(tex_id, 0, 0, 0, width, height, pixformat.pixtype,
+								pixformat.pixfmt, data);
 #else
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, g_video.pixformat.pixtype,
-							g_video.pixformat.pixfmt, data);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, pixformat.pixtype,
+							pixformat.pixfmt, data);
 #endif
 
 			break;
 		}
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	}
-}
-
-void video_deinit()
-{
-	if (g_video.hw.context_destroy)
-	{
-		g_video.hw.context_destroy();
-	}
-	memset(&g_video.hw, 0, sizeof(struct retro_hw_render_callback));
-
-	if (g_video.tex_id)
-	{
-		glDeleteTextures(1, &g_video.tex_id);
-		g_video.tex_id = 0;
-	}
-	if (g_video.fbo_id)
-	{
-		glDeleteFramebuffers(1, &g_video.fbo_id);
-		g_video.fbo_id = 0;
-	}
-
-	if (g_video.rbo_id)
-	{
-		glDeleteRenderbuffers(1, &g_video.rbo_id);
-		g_video.rbo_id = 0;
-	}
-	if (g_video.temp_pixbuf)
-	{
-		free(g_video.temp_pixbuf);
-		g_video.temp_pixbuf = NULL;
 	}
 }

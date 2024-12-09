@@ -187,6 +187,34 @@ struct default_retro
     {joypad_analog_r3, -1},
 };
 
+static std::array <std::string,24>retro_descripts=
+{
+     "\"RetroPad\" B",
+    "\"RetroPad\" Y",
+    "\"RetroPad\" Select",
+    "\"RetroPad\" Start",
+    "\"RetroPad\" Up",
+    "\"RetroPad\" Down",
+    "\"RetroPad\" Left",
+    "\"RetroPad\" Right",
+    "\"RetroPad\" A",
+    "\"RetroPad\" X",
+    "\"RetroPad\" L",
+    "\"RetroPad\" R",
+    "\"RetroPad\" L2",
+    "\"RetroPad\" R2",
+    "\"RetroPad\" L3",
+    "\"RetroPad\" R3",
+    "\"RetroPad\" Left Stick X Axis",
+    "\"RetroPad\" Left Stick Y Axis",
+    "\"RetroPad\" Right Stick X Axis",
+    "\"RetroPad\" Right Stick Y Axis",
+    "\"RetroPad\" Analog L2",
+    "\"RetroPad\" Analog R2",
+    "\"RetroPad\" Analog L3",
+    "\"RetroPad\" Analog R3"
+};
+
 void CLibretro::reset_retropad()
 {
 
@@ -541,25 +569,6 @@ void CLibretro::init_inpt()
     }
 }
 
-void CLibretro::reset_inpt()
-{
-    for (auto &bind : Joystick)
-    {
-        if (bind != NULL)
-        {
-            SDL_GameControllerClose(bind);
-            bind = NULL;
-        }
-    }
-    Joystick.clear();
-    int num = SDL_NumJoysticks();
-    if (num)
-    {
-        for (izrange(i, num))
-            Joystick.push_back(SDL_GameControllerOpen(i));
-    }
-}
-
 void CLibretro::init_inp(int num)
 {
     for (auto &i : Joystick)
@@ -864,7 +873,7 @@ int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
 
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_POINTER || (device & RETRO_DEVICE_MASK) == RETRO_DEVICE_LIGHTGUN)
     {
-        vp widthheight = resize_cb();
+        vp widthheight = video.resize_cb();
 
         const int edge_detect = 32700;
         int scaled_x = -0x8000; /* OOB */

@@ -4,9 +4,9 @@
 #include <list>
 #include <mutex>
 #include <vector>
-#include "inout.h"
 #include <thread>
 #include "out_aud.h"
+#include "out_video.h"
 
 struct loadedcore_configcat
 {
@@ -232,8 +232,11 @@ private:
 	void reset();
 	int key_pressed(int key);
 	void keys();
+	void reset_retropad();
+	void init_inpt();
 public:
 	out_aud audio;
+	out_video video;
 	CLibretro() = default;
 	~CLibretro() = default;
 	CLibretro(const CLibretro &) = delete;
@@ -261,9 +264,8 @@ public:
 	bool core_saveram(const char *filename, bool save);
 	bool core_savestateslot(bool save);
 	bool core_savestate(const char *filename, bool save);
-	void set_inputdevice(int device);
 	void get_cores();
-	void framelimit();
+	void core_framelimit();
 
 	std::vector<std::vector<coreinput_controlinfo>> core_inputttypes;
 	std::vector<controller_port> core_inpbinds;
@@ -272,14 +274,9 @@ public:
 	std::vector<retro_disk> disk_intf;
 
 	// inputs
-
-	void reset_retropad();
-	void init_inpt();
 	void init_inp(int num);
 	void close_inp(int num);
-	void reset_inpt();
 	void close_inpt();
-	void input_keys(uint16_t mod, uint16_t keycode, bool down);
 	void checkbuttons_forui(int selected_inp, bool *isselected_inp, int port);
 	int16_t input_state(unsigned port, unsigned device, unsigned index,
 						unsigned id);

@@ -2,6 +2,7 @@
 #define outaud_h_
 
 #include <stdint.h>
+#include <SDL2/SDL.h>
 
 struct fifo_buffer
 {

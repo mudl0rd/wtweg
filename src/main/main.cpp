@@ -44,7 +44,7 @@ void rendermenu(CLibretro *instance, SDL_Window *window, bool show_menu)
 
   SDL_GL_SwapWindow(window);
 
-  instance->framelimit();
+  instance->core_framelimit();
 }
 
 int main2(clibretro_startoptions *options)
@@ -235,7 +235,7 @@ int main2(clibretro_startoptions *options)
     glClearColor(0., 0., 0., 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (instance->core_isrunning())
-      video_render(w, h);
+      instance->video.render(w, h);
     rendermenu(instance, window, show_menu);
   }
 

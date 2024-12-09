@@ -490,7 +490,7 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   core_fps = av.timing.fps;
   core_samplerate = av.timing.sample_rate;
 
-  video_init(&av.geometry, sdl_window);
+  video.init(&av.geometry);
 
   loadcontconfig(false);
 
@@ -509,7 +509,7 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   return true;
 }
 
-void CLibretro::framelimit()
+void CLibretro::core_framelimit()
 {
   if (capfps)
   {
@@ -590,7 +590,7 @@ void CLibretro::core_unload()
     if (retro.handle != NULL)
     {
       audio.destroy();
-      video_deinit();
+      video.destroy();
       retro.retro_unload_game();
       retro.retro_deinit();
       MudUtil::freelib(retro.handle);
