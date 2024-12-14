@@ -283,6 +283,8 @@ bool out_video::setpixfmt(retro_pixel_format fmt)
 	pixfmt = fmt;
 	return true;
 }
+
+
 bool out_video::sethwcb(struct retro_hw_render_callback *hw)
 {
 #ifndef USE_RPI

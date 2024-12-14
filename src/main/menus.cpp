@@ -316,12 +316,11 @@ bool HyperLink(const char *label, bool underlineWhenHoveredOnly = false)
   return isClicked;
 }
 
-void rombrowse_setdir(std::string dir, CLibretro* instance)
+void rombrowse_setdir(std::string dir, CLibretro *instance)
 {
   pwd_ = dir;
-    auto rombrowse_update= [=]()
+  auto rombrowse_update = [=]()
   {
-
     fileRecords_ = {FileRecord{true, "..", ICON_FK_FOLDER " ..", ""}};
 
     for (auto &p : std::filesystem::directory_iterator(pwd_))
@@ -372,7 +371,6 @@ void rombrowse_setdir(std::string dir, CLibretro* instance)
   rombrowse_update();
 }
 
-
 void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 {
 
@@ -382,11 +380,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static bool load_core = false;
   static bool no_cores = false;
   static bool open_log = false;
+  static bool subsys_box = false;
   ImVec2 winsize = ImVec2(0, 0);
 
-  auto rombrowse_update= [=]()
+  auto rombrowse_update = [=]()
   {
-
     fileRecords_ = {FileRecord{true, "..", ICON_FK_FOLDER " ..", ""}};
 
     for (auto &p : std::filesystem::directory_iterator(pwd_))
@@ -468,7 +466,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         {
           char newPwd[] = {driveCh, ':', '\\', '\0'};
           std::filesystem::path pah(newPwd);
-          rombrowse_setdir(pah.string(),instance);
+          rombrowse_setdir(pah.string(), instance);
         }
       }
     }
@@ -597,24 +595,13 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       }
 
       bool cont = false;
-
       for (auto &core : instance->cores)
         if (core.subsystems.size())
           cont = true;
-
       if (cont)
       {
-        if (ImGui::BeginMenu("Load addon content for"))
-        {
-          for (auto &core : instance->cores)
-            if (!core.subsystems.empty())
-            {
-              if (ImGui::MenuItem(core.core_name.c_str()))
-              {
-              }
-            }
-          ImGui::EndMenu();
-        }
+        if (ImGui::BeginMenu("Load addon content (ROMs/ISOs/etc)"))
+          subsys_box = true;
       }
 
       if (ImGui::MenuItem("Content browser (ROM/ISO/etc)", nullptr,
@@ -763,6 +750,35 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   {
     popup_widget(&no_cores, "No libretro cores", "There is no ROM/ISO loading cores detected.");
     return;
+  }
+
+  if (ImGui::BeginPopupModal("Select addon content to load", &subsys_box, ImGuiWindowFlags_AlwaysAutoResize))
+  {
+    static int listbox_item_current = 0;
+
+    auto vector_getter = [](void *data, int n, const char **out_text)
+    {
+      const std::vector<core_info> *v = (std::vector<core_info> *)data;
+      *out_text = v->at(n).core_name.c_str();
+      return true;
+    };
+
+    for (auto &core : instance->cores)
+      if (core.subsystems.size())
+      {
+      }
+
+    if (ImGui::Button("OK"))
+    {
+      subsys_box = false;
+    }
+    ImGui::Bullet();
+    ImGui::SameLine();
+    ImGui::TextWrapped("WTFweg couldn't determine the core to use.");
+    ImGui::Bullet();
+    ImGui::SameLine();
+    ImGui::TextWrapped("Choose the specific core to load the ROM/ISO.");
+    ImGui::EndPopup();
   }
 
   if (coreselect)
