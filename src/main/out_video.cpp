@@ -69,13 +69,6 @@ void out_video::init_fb(int width, int height)
 		temp_pixbuf = NULL;
 	}
 	temp_pixbuf = (uint8_t *)malloc(width * height * sizeof(uint32_t));
-
-#ifndef USE_RPI
-	glCreateTextures(GL_TEXTURE_2D, 1, &tex_id);
-	glTextureParameteri(tex_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTextureParameteri(tex_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureStorage2D(tex_id, 1, GL_RGBA8, width, height);
-#else
 	glGenTextures(1, &tex_id);
 	glBindTexture(GL_TEXTURE_2D, tex_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -83,14 +76,11 @@ void out_video::init_fb(int width, int height)
 	glTexImage2D(GL_TEXTURE_2D, 0, (pixfmt == RETRO_PIXEL_FORMAT_XRGB8888) ? GL_RGBA : GL_RGB, width, height, 0,
 				 pixformat.pixtype, pixformat.pixfmt, NULL);
 
-#endif
-
 	if (fbo_id)
 		glDeleteFramebuffers(1, &fbo_id);
 	if (rbo_id)
 		glDeleteRenderbuffers(1, &rbo_id);
 
-#ifdef USE_RPI
 	glGenFramebuffers(1, &fbo_id);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
@@ -113,18 +103,6 @@ void out_video::init_fb(int width, int height)
 	glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#else
-	glCreateFramebuffers(1, &fbo_id);
-	glNamedFramebufferTexture(fbo_id, GL_COLOR_ATTACHMENT0, tex_id, 0);
-	if (hw.depth)
-	{
-		glCreateRenderbuffers(1, &rbo_id);
-		glNamedRenderbufferStorage(rbo_id, hw.stencil ? GL_DEPTH24_STENCIL8 : GL_DEPTH_COMPONENT24,
-								   width, height);
-		glNamedFramebufferRenderbuffer(fbo_id, hw.stencil ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_id);
-	}
-	glCheckFramebufferStatus(GL_FRAMEBUFFER);
-#endif
 }
 
 vp out_video::resize_cb()
@@ -318,17 +296,11 @@ void out_video::render(int width, int height)
 	GLint dst_x1 = dst_x0 + vpx.width;
 	GLint dst_y0 = (software_rast) ? (vpx.y + vpx.height) : vpx.y;
 	GLint dst_y1 = (software_rast) ? vpx.y : (vpx.y + vpx.height);
-#ifndef USE_RPI
-	glBlitNamedFramebuffer(fbo_id, 0, 0, 0, current_w, current_h,
-						   dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-#else
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_id);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, current_w, current_h,
 					  dst_x0, dst_y0, dst_x1, dst_y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-#endif
 }
 void out_video::refresh(const void *data, unsigned width, unsigned height, size_t pitch)
 {
@@ -342,11 +314,7 @@ void out_video::refresh(const void *data, unsigned width, unsigned height, size_
 
 	if (data != RETRO_HW_FRAME_BUFFER_VALID)
 	{
-#ifndef USE_RPI
-		glBindTextureUnit(0, tex_id);
-#else
 		glBindTexture(GL_TEXTURE_2D, tex_id);
-#endif
 		glPixelStorei(GL_UNPACK_ALIGNMENT, get_alignment(pitch));
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / pixformat.bpp);
 		switch (pixfmt)
@@ -355,34 +323,18 @@ void out_video::refresh(const void *data, unsigned width, unsigned height, size_
 			memset(temp_pixbuf, 0, width * height * sizeof(uint16_t));
 			conv_0rgb1555_rgb565(temp_pixbuf, data, width, height,
 								 pitch, pitch);
-#ifndef USE_RPI
-			glTextureSubImage2D(tex_id, 0, 0, 0, width, height, pixformat.pixtype,
-								pixformat.pixfmt, temp_pixbuf);
-#else
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, pixformat.pixtype,
 							pixformat.pixfmt, temp_pixbuf);
-#endif
 			break;
 		case RETRO_PIXEL_FORMAT_XRGB8888:
 			memset(temp_pixbuf, 0, width * height * sizeof(uint32_t));
 			conv_argb8888_rgba8888(temp_pixbuf, data, width, height);
-#ifndef USE_RPI
-			glTextureSubImage2D(tex_id, 0, 0, 0, width, height, pixformat.pixtype,
-								pixformat.pixfmt, temp_pixbuf);
-#else
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, pixformat.pixtype,
 							pixformat.pixfmt, temp_pixbuf);
-#endif
 			break;
 		case RETRO_PIXEL_FORMAT_RGB565:
-#ifndef USE_RPI
-			glTextureSubImage2D(tex_id, 0, 0, 0, width, height, pixformat.pixtype,
-								pixformat.pixfmt, data);
-#else
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, pixformat.pixtype,
 							pixformat.pixfmt, data);
-#endif
-
 			break;
 		}
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
