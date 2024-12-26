@@ -381,6 +381,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static bool no_cores = false;
   static bool open_log = false;
   static bool subsys_box = false;
+  static int subsys_coreindex = 0;
   ImVec2 winsize = ImVec2(0, 0);
 
   auto rombrowse_update = [=]()
@@ -601,7 +602,21 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       if (cont)
       {
         if (ImGui::BeginMenu("Load addon content (ROMs/ISOs/etc)"))
-          subsys_box = true;
+        {
+          for (auto &core : instance->cores)
+          {
+            size_t j = &core - &instance->cores.front();
+            if (core.subsystems.size())
+            {
+              if (ImGui::MenuItem(core.core_name.c_str()))
+              {
+                subsys_box = true;
+                subsys_coreindex = j;
+              }
+            }
+          }
+          ImGui::EndMenu();
+        }
       }
 
       if (ImGui::MenuItem("Content browser (ROM/ISO/etc)", nullptr,
@@ -752,6 +767,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     return;
   }
 
+  if(subsys_box)
+  ImGui::OpenPopup("Select addon content to load");
+
+
+  
+    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
+                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   if (ImGui::BeginPopupModal("Select addon content to load", &subsys_box, ImGuiWindowFlags_AlwaysAutoResize))
   {
     static int listbox_item_current = 0;
@@ -762,11 +785,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       *out_text = v->at(n).core_name.c_str();
       return true;
     };
-
+    
     for (auto &core : instance->cores)
-      if (core.subsystems.size())
+    {
+      size_t k = &core - &instance->cores.front();
+      if (k == subsys_coreindex)
       {
       }
+    }
 
     if (ImGui::Button("OK"))
     {
@@ -774,10 +800,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     }
     ImGui::Bullet();
     ImGui::SameLine();
-    ImGui::TextWrapped("WTFweg couldn't determine the core to use.");
-    ImGui::Bullet();
-    ImGui::SameLine();
-    ImGui::TextWrapped("Choose the specific core to load the ROM/ISO.");
+    ImGui::TextWrapped("Pick the addon content you want to load.");
     ImGui::EndPopup();
   }
 

@@ -12,10 +12,6 @@
 #endif
 using namespace std;
 
-static void core_set_led_state(int led, int state)
-{
-}
-
 static bool core_set_eject_state(bool ejected)
 {
   auto lib = CLibretro::get_classinstance();
@@ -190,8 +186,10 @@ bool CLibretro::core_environment(unsigned cmd, void *data)
   case RETRO_ENVIRONMENT_GET_LED_INTERFACE:
   {
     auto *var = reinterpret_cast<struct retro_led_interface *>(data);
-    ;
-    var->set_led_state = core_set_led_state;
+    auto core_led_callback = [](int led, int state) -> void
+    {
+    };
+    var->set_led_state = core_led_callback;
     return true;
   }
 
@@ -208,8 +206,7 @@ bool CLibretro::core_environment(unsigned cmd, void *data)
 
   case RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO:
   {
-    // the more and more I read example code using this, the less it makes sense to
-    // implement it.
+    //implemented elsewhere on core load
     return false;
   }
 
