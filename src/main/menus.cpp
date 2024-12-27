@@ -383,6 +383,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static bool subsys_box = false;
   static int subsys_coreindex = 0;
   ImVec2 winsize = ImVec2(0, 0);
+  static std::vector<std::string> rompaths(10, std::string("None"));
+  static std::string addonloader = "LoadAddon";
+  static bool addonloader_pick = false;
 
   auto rombrowse_update = [=]()
   {
@@ -767,14 +770,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     return;
   }
 
-  if(subsys_box)
-  ImGui::OpenPopup("Select addon content to load");
+  if (subsys_box)
+    ImGui::OpenPopup("Select addon content to load");
 
-
-  
-    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
-                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
+                                      ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
+  ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   if (ImGui::BeginPopupModal("Select addon content to load", &subsys_box, ImGuiWindowFlags_AlwaysAutoResize))
   {
     static int listbox_item_current = 0;
@@ -785,12 +786,55 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       *out_text = v->at(n).core_name.c_str();
       return true;
     };
-    
+
     for (auto &core : instance->cores)
     {
       size_t k = &core - &instance->cores.front();
+      static size_t sel_indx = 0;
+      static bool is_selected = false;
+
       if (k == subsys_coreindex)
       {
+        if (ImGui::BeginCombo("Subsystem", core.subsystems[sel_indx].subsystem_name.c_str())) // The second parameter is the label previewed before opening the combo.
+        {
+          for (auto &config_val : core.subsystems)
+          {
+            size_t n = &config_val - &core.subsystems.front();
+            is_selected = (sel_indx == n); // You can store your selection however you want, outside or inside your objects
+            if (ImGui::Selectable(config_val.subsystem_name.c_str(), is_selected))
+            {
+              rompaths.clear();
+              rompaths.resize(10);
+              std::fill(rompaths.begin(), rompaths.end(), "None");
+              sel_indx = n;
+            }
+          }
+          ImGui::EndCombo();
+        }
+
+        for (auto &j : core.subsystems[sel_indx].rominfo)
+        {
+          size_t n = &j - &core.subsystems[sel_indx].rominfo.front();
+          char rompath[255] = {0};
+          strcpy(rompath, rompaths[n].c_str());
+          std::string str = j.romtype;
+          if(j.required)
+          str += " (required)";
+          ImGui::Text(str.c_str());
+          std::string idtype = "##load"+std::to_string(n);
+          ImGui::InputText(idtype.c_str(), rompath, 255, ImGuiInputTextFlags_ReadOnly);
+          ImGui::SameLine();
+          std::string load = "Load##" + std::to_string(n);
+          if (ImGui::Button(load.c_str()))
+          {
+            std::string coreexts = j.romtype + " {."+ 
+            MudUtil::replace_all(j.romexts, "|", ",.") + "}";
+            addonloader = std::to_string(n);
+            subsys_box = false;
+            ImGuiFileDialog::Instance()->OpenDialog(addonloader.c_str(), "Load a addon file", coreexts.c_str(), ".", 1, nullptr,
+                                                    ImGuiFileDialogFlags_Modal);
+          }
+        }
       }
     }
 
@@ -802,6 +846,22 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     ImGui::SameLine();
     ImGui::TextWrapped("Pick the addon content you want to load.");
     ImGui::EndPopup();
+  }
+
+  if (ImGuiFileDialog::Instance()->Display(addonloader.c_str(), 32, minSizedlg, maxSizedlg))
+  {
+    // action if OK
+    if (ImGuiFileDialog::Instance()->IsOk())
+    {
+      int romid = std::stoi(addonloader);
+      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+      ImGuiFileDialog::Instance()->Close();
+      rompaths.at(romid) = filePathName;
+    }
+    else
+      ImGuiFileDialog::Instance()->Close();
+    subsys_box = true;
   }
 
   if (coreselect)
