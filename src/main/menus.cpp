@@ -222,7 +222,7 @@ bool loadfile(CLibretro *instance, clibretro_startoptions *options)
   else
   {
     pergame_ = options->game_specific_settings;
-    filenamepath = options->rom;
+    filenamepath = options->rompaths[0];
     coreselect = true;
     return true;
   }
@@ -556,7 +556,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           selected_fname = rsc.showName;
           rombrowser = false;
           clibretro_startoptions options;
-          options.rom = path2;
+
+          options.rompaths.clear();
+          options.rompaths.resize(1);
+          options.rompaths.push_back(path2);
+          options.usesubsys = false;
           options.framelimit = cap_fps;
           options.game_specific_settings = pergame_;
           options.savestate = "";
@@ -752,12 +756,16 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
       filenamepath = filePathName;
       clibretro_startoptions options;
-      options.rom = filenamepath;
+
+      rompaths.clear();
+      rompaths.resize(1);
+      rompaths.push_back(filenamepath);
+      options.rompaths = rompaths;
+      options.usesubsys = false;
       options.framelimit = cap_fps;
       options.game_specific_settings = pergame_;
       options.savestate = "";
       options.core = "";
-
       coreselect = loadfile(instance, &options);
     }
     else
@@ -778,19 +786,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   if (ImGui::BeginPopupModal("Select addon content to load", &subsys_box, ImGuiWindowFlags_AlwaysAutoResize))
   {
-    static int listbox_item_current = 0;
-
-    auto vector_getter = [](void *data, int n, const char **out_text)
-    {
-      const std::vector<core_info> *v = (std::vector<core_info> *)data;
-      *out_text = v->at(n).core_name.c_str();
-      return true;
-    };
+    static size_t sel_indx = 0;
 
     for (auto &core : instance->cores)
     {
       size_t k = &core - &instance->cores.front();
-      static size_t sel_indx = 0;
       static bool is_selected = false;
 
       if (k == subsys_coreindex)
@@ -804,7 +804,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
             if (ImGui::Selectable(config_val.subsystem_name.c_str(), is_selected))
             {
               rompaths.clear();
-              rompaths.resize(10);
+              rompaths.resize(core.subsystems[n].rominfo.size());
               std::fill(rompaths.begin(), rompaths.end(), "None");
               sel_indx = n;
             }
@@ -818,17 +818,17 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           char rompath[255] = {0};
           strcpy(rompath, rompaths[n].c_str());
           std::string str = j.romtype;
-          if(j.required)
-          str += " (required)";
+          if (j.required)
+            str += " (required)";
           ImGui::Text(str.c_str());
-          std::string idtype = "##load"+std::to_string(n);
+          std::string idtype = "##load" + std::to_string(n);
           ImGui::InputText(idtype.c_str(), rompath, 255, ImGuiInputTextFlags_ReadOnly);
           ImGui::SameLine();
           std::string load = "Load##" + std::to_string(n);
           if (ImGui::Button(load.c_str()))
           {
-            std::string coreexts = j.romtype + " {."+ 
-            MudUtil::replace_all(j.romexts, "|", ",.") + "}";
+            std::string coreexts = j.romtype + " {." +
+                                   MudUtil::replace_all(j.romexts, "|", ",.") + "}";
             addonloader = std::to_string(n);
             subsys_box = false;
             ImGuiFileDialog::Instance()->OpenDialog(addonloader.c_str(), "Load a addon file", coreexts.c_str(), ".", 1, nullptr,
@@ -840,7 +840,28 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
     if (ImGui::Button("OK"))
     {
-      subsys_box = false;
+      for (auto &core : instance->cores)
+      {
+        size_t k = &core - &instance->cores.front();
+        if (k == subsys_coreindex)
+        {
+          clibretro_startoptions options;
+          options.rompaths = rompaths;
+          options.usesubsys = true;
+          options.subsys_num = core.subsystems[sel_indx].subsystem_id;
+          options.framelimit = cap_fps;
+          options.game_specific_settings = pergame_;
+          options.core_subsysindx = subsys_coreindex;
+          options.core_subsysselindx = sel_indx;
+          options.savestate = "";
+          options.core = core.core_path;
+          instance->core_load(false, &options);
+          return;
+        }
+      }
+
+      int subtype =
+          subsys_box = false;
     }
     ImGui::Bullet();
     ImGui::SameLine();
@@ -892,7 +913,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     if (hits == 1 && found)
     {
       clibretro_startoptions options;
-      options.rom = filenamepath;
+      rompaths.clear();
+      rompaths.resize(1);
+      rompaths.push_back(filenamepath);
+      options.rompaths = rompaths;
+      options.usesubsys = false;
       options.framelimit = cap_fps;
       options.game_specific_settings = pergame_;
       options.savestate = "";
@@ -921,7 +946,10 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       if (ImGui::Button("OK"))
       {
         clibretro_startoptions options;
-        options.rom = filenamepath;
+        options.rompaths.clear();
+        options.rompaths.resize(1);
+        options.rompaths.push_back(filenamepath);
+        options.usesubsys = false;
         options.framelimit = cap_fps;
         options.game_specific_settings = pergame_;
         options.savestate = "";
@@ -995,7 +1023,9 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       if (ImGui::Button("OK"))
       {
         clibretro_startoptions options;
-        options.rom = "";
+        options.rompaths.clear();
+        options.rompaths.resize(1);
+        options.rompaths.push_back("");
         options.framelimit = cap_fps;
         options.game_specific_settings = pergame_;
         options.savestate = "";

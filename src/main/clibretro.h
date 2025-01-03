@@ -49,6 +49,8 @@ struct retro_core
 	bool (*retro_serialize)(void *data, size_t size);
 	bool (*retro_unserialize)(const void *data, size_t size);
 	bool (*retro_load_game)(const struct retro_game_info *game);
+	bool (*retro_load_game_special)(unsigned game_type,
+									const struct retro_game_info *info, size_t num_info);
 	void *(*retro_get_memory_data)(unsigned id);
 	size_t (*retro_get_memory_size)(unsigned id);
 	void (*retro_unload_game)(void);
@@ -93,11 +95,15 @@ struct coreinput_bind
 
 struct clibretro_startoptions
 {
-	std::string rom;
 	std::string savestate;
 	std::string core;
 	bool game_specific_settings;
 	bool framelimit;
+	bool usesubsys;
+	int subsys_num;
+	std::vector<std::string> rompaths;
+	int core_subsysindx;
+	int core_subsysselindx;
 };
 
 enum libretro_binds
@@ -234,6 +240,7 @@ private:
 	void keys();
 	void reset_retropad();
 	void init_inpt();
+
 public:
 	out_aud audio;
 	out_video video;
@@ -285,7 +292,6 @@ public:
 	bool load_inpcfg(retro_input_descriptor *var);
 	bool loadinpconf(uint32_t checksum, bool save_f);
 	bool loadcontconfig(bool save_f);
-	
 
 	retro_keyboard_event_t inp_keys;
 
@@ -317,6 +323,7 @@ public:
 	float min_deltime;
 	std::vector<float> frames;
 	int subsystem_type;
+	bool usesubsys;
 };
 
 bool loadfile(CLibretro *instance, clibretro_startoptions *options);

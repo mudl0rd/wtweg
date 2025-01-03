@@ -67,8 +67,8 @@ bool CLibretro::core_saveram(const char *filename, bool save)
 {
   if (lr_isrunning)
   {
-    size_t size = retro.retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
-    uint8_t *Memory = (uint8_t *)retro.retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+    size_t size = retro.retro_get_memory_size((usesubsys) ? subsystem_type : RETRO_MEMORY_SAVE_RAM);
+    uint8_t *Memory = (uint8_t *)retro.retro_get_memory_data((usesubsys) ? subsystem_type : RETRO_MEMORY_SAVE_RAM);
     if (!size || !Memory)
       return false;
     if (save)
@@ -390,7 +390,7 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   reset();
   lr_isrunning = false;
 
-  rom_path = options->rom;
+  rom_path = options->rompaths[0];
   std::filesystem::path path_core(options->core);
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path = save_path_ /
@@ -443,43 +443,98 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   retro.retro_init();
   load_envsymb(retro.handle, false);
 
-  struct retro_game_info info = {options->rom.c_str(), 0};
   struct retro_system_info system = {0};
   retro.retro_get_system_info(&system);
   retro_system_av_info av = {0};
 
-  if (!contentless)
+  usesubsys = options->usesubsys;
+  if (!options->usesubsys)
   {
-    info.path = options->rom.c_str();
-    info.data = NULL;
-    info.size = 0;
-    info.meta = "";
-    if (!system.need_fullpath)
+    struct retro_game_info info = {options->rompaths[0].c_str(), 0};
+    if (!contentless)
     {
-      info.size = MudUtil::get_filesize(options->rom.c_str());
-      std::ifstream ifs(options->rom, ios::binary);
-      if (!ifs.good())
+      info.path = options->rompaths[0].c_str();
+      info.data = NULL;
+      info.size = 0;
+      info.meta = "";
+      if (!system.need_fullpath)
       {
-      fail:
-        printf("FAILED TO LOAD ROMz!!!!!!!!!!!!!!!!!!");
-        ifs.close();
-        core_unload();
-        return false;
-      }
-      info.data = malloc(info.size);
-      if (!info.data)
-        goto fail;
+        info.size = MudUtil::get_filesize(options->rompaths[0].c_str());
+        std::ifstream ifs(options->rompaths[0], ios::binary);
+        if (!ifs.good())
+        {
+        fail:
+          printf("FAILED TO LOAD ROMz!!!!!!!!!!!!!!!!!!");
+          ifs.close();
+          core_unload();
+          return false;
+        }
+        info.data = malloc(info.size);
+        if (!info.data)
+          goto fail;
 
-      ifs.read((char *)info.data, info.size);
-      ifs.close();
+        ifs.read((char *)info.data, info.size);
+        ifs.close();
+      }
+    }
+    if (!retro.retro_load_game(contentless ? NULL : &info))
+    {
+      printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
+      core_unload();
+      return false;
     }
   }
-
-  if (!retro.retro_load_game(contentless ? NULL : &info))
+  else
   {
-    printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
-    core_unload();
-    return false;
+    for (auto &core : cores)
+    {
+      size_t k = &core - &cores.front();
+      if (k == options->core_subsysselindx)
+      {
+        int info_size = options->rompaths.size();
+        std::vector<subsystems> subsystems;
+        retro_game_info *info = (retro_game_info *)malloc(sizeof(retro_game_info *) * info_size);
+
+        for (auto &romz : options->rompaths)
+        {
+          info->data = NULL;
+          info->size = 0;
+          info->meta = "";
+          size_t r = &romz - &options->rompaths.front();
+          if (core.subsystems[options->core_subsysindx].rominfo[r].need_fullpath)
+            info->path = romz.c_str();
+          else
+          {
+            info->size = MudUtil::get_filesize(romz.c_str());
+            std::ifstream ifs(romz, ios::binary);
+            if (!ifs.good())
+            {
+              printf("FAILED TO LOAD ROMz!!!!!!!!!!!!!!!!!!");
+              ifs.close();
+              core_unload();
+              return false;
+            }
+            info->data = malloc(info->size);
+            if (!info->data)
+            {
+              printf("FAILED TO LOAD ROMz!!!!!!!!!!!!!!!!!!");
+              ifs.close();
+              core_unload();
+              return false;
+            }
+            ifs.read((char *)info->data, info->size);
+            ifs.close();
+          }
+        }
+        if (!retro.retro_load_game_special(options->subsys_num, info, info_size))
+        {
+          printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
+          core_unload();
+          return false;
+        }
+        subsystem_type = options->subsys_num;
+      }
+    }
   }
 
   retro.retro_get_system_av_info(&av);

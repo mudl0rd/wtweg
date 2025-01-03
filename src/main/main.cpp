@@ -138,12 +138,12 @@ int main2(clibretro_startoptions *options)
   std::filesystem::path p(MudUtil::get_wtfwegname());
   std::filesystem::path path = p.parent_path() / "gamecontrollerdb.txt";
   std::filesystem::path path2 = p.parent_path() / "mudmaps.txt";
-  
+
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path).string().c_str());
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
 
   auto instance = CLibretro::get_classinstance(window);
-  rombrowse_setdir(p.parent_path().string(),instance);
+  rombrowse_setdir(p.parent_path().string(), instance);
 
   // Main loop
   bool done = false;
@@ -152,7 +152,7 @@ int main2(clibretro_startoptions *options)
 
   if (options)
   {
-    if (options->rom != "" && options->core != "")
+    if (!options->rompaths.size() && options->core != "")
       loadfile(instance, options);
   }
 
@@ -208,7 +208,7 @@ int main2(clibretro_startoptions *options)
 
       if (event.type == SDL_CONTROLLERDEVICEADDED)
       {
-         instance->init_inp(event.cdevice.which);
+        instance->init_inp(event.cdevice.which);
         SDL_GameControllerUpdate();
       }
 
@@ -216,7 +216,10 @@ int main2(clibretro_startoptions *options)
       {
         char *filez = (char *)event.drop.file;
         clibretro_startoptions options;
-        options.rom = event.drop.file;
+        options.rompaths.clear();
+        options.rompaths.resize(1);
+        options.rompaths.push_back(event.drop.file);
+        options.usesubsys = false;
         options.framelimit = true;
         options.game_specific_settings = false;
         options.savestate = "";
@@ -240,7 +243,7 @@ int main2(clibretro_startoptions *options)
   }
 
   instance->core_unload();
-   instance->close_inpt();
+  instance->close_inpt();
 
 #ifdef _WIN32
   timeEndPeriod(1);
@@ -293,14 +296,20 @@ int main(int argc, char *argv[])
     bool benchmark = a.exist("benchmark");
 
     clibretro_startoptions options;
-    options.rom = rom;
+    options.usesubsys = false;
     options.core = core;
     options.framelimit = benchmark;
     options.game_specific_settings = pergame;
     options.savestate = savestate;
 
     if (!rom.empty() && !core.empty())
+    {
+      options.rompaths.clear();
+      options.rompaths.resize(1);
+      options.rompaths.push_back(rom);
       return main2(&options);
+    }
+
     else
       printf("\nPress any key to continue....\n");
     return 0;
