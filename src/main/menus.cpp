@@ -856,6 +856,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           options.savestate = "";
           options.core = core.core_path;
           instance->core_load(false, &options);
+          subsys_box = false;
           return;
         }
       }
@@ -954,7 +955,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         options.game_specific_settings = pergame_;
         options.savestate = "";
         options.core = cores_info.at(listbox_item_current).core_path;
-
         instance->core_load(false, &options);
         coreselect = false;
       }
