@@ -556,9 +556,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           selected_fname = rsc.showName;
           rombrowser = false;
           clibretro_startoptions options;
-
           options.rompaths.clear();
-          options.rompaths.resize(1);
           options.rompaths.push_back(path2);
           options.usesubsys = false;
           options.framelimit = cap_fps;
@@ -756,11 +754,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
       filenamepath = filePathName;
       clibretro_startoptions options;
-
-      rompaths.clear();
-      rompaths.resize(1);
-      rompaths.push_back(filenamepath);
-      options.rompaths = rompaths;
+      options.rompaths.clear();
+      options.rompaths.push_back(filenamepath);
       options.usesubsys = false;
       options.framelimit = cap_fps;
       options.game_specific_settings = pergame_;
@@ -914,10 +909,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     if (hits == 1 && found)
     {
       clibretro_startoptions options;
-      rompaths.clear();
-      rompaths.resize(1);
-      rompaths.push_back(filenamepath);
-      options.rompaths = rompaths;
+      options.rompaths.clear();
+      options.rompaths.push_back(filenamepath);
       options.usesubsys = false;
       options.framelimit = cap_fps;
       options.game_specific_settings = pergame_;
@@ -948,7 +941,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       {
         clibretro_startoptions options;
         options.rompaths.clear();
-        options.rompaths.resize(1);
         options.rompaths.push_back(filenamepath);
         options.usesubsys = false;
         options.framelimit = cap_fps;
@@ -1024,7 +1016,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       {
         clibretro_startoptions options;
         options.rompaths.clear();
-        options.rompaths.resize(1);
         options.rompaths.push_back("");
         options.framelimit = cap_fps;
         options.game_specific_settings = pergame_;

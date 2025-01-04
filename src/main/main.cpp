@@ -152,7 +152,7 @@ int main2(clibretro_startoptions *options)
 
   if (options)
   {
-    if (!options->rompaths.size() && options->core != "")
+    if (options->rompaths.size() && options->core != "")
       loadfile(instance, options);
   }
 
@@ -217,7 +217,6 @@ int main2(clibretro_startoptions *options)
         char *filez = (char *)event.drop.file;
         clibretro_startoptions options;
         options.rompaths.clear();
-        options.rompaths.resize(1);
         options.rompaths.push_back(event.drop.file);
         options.usesubsys = false;
         options.framelimit = true;
@@ -305,7 +304,6 @@ int main(int argc, char *argv[])
     if (!rom.empty() && !core.empty())
     {
       options.rompaths.clear();
-      options.rompaths.resize(1);
       options.rompaths.push_back(rom);
       return main2(&options);
     }
