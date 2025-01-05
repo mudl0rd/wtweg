@@ -189,10 +189,8 @@ struct clibretro_startoptions
 	bool game_specific_settings;
 	bool framelimit;
 	bool usesubsys;
-	int subsys_num;
-	int core_subsysindx;
 	std::vector<std::string> rompaths;
-	core_info current_core;
+	subsystems current_subsystem;
 };
 
 struct key_map
@@ -303,9 +301,7 @@ public:
 	uint32_t config_crc;
 	uint32_t input_confcrc;
 	std::vector<core_info> cores;
-	core_info current_core;
 	std::string romsavesstatespath;
-
 	std::filesystem::path rom_path;
 	std::string coreexts;
 	std::string exe_path;
@@ -325,7 +321,7 @@ public:
 	float max_deltatime;
 	float min_deltime;
 	std::vector<float> frames;
-	int subsystem_type;
+	int subsystem_id;
 	bool usesubsys;
 };
 

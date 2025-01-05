@@ -215,7 +215,7 @@ int main2(clibretro_startoptions *options)
       if (event.type == SDL_DROPFILE)
       {
         char *filez = (char *)event.drop.file;
-        clibretro_startoptions options;
+        clibretro_startoptions options = {0};
         options.rompaths.clear();
         options.rompaths.push_back(event.drop.file);
         options.usesubsys = false;
@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
     bool pergame = a.exist("pergame");
     bool benchmark = a.exist("benchmark");
 
-    clibretro_startoptions options;
+    clibretro_startoptions options = {0};
     options.usesubsys = false;
     options.core = core;
     options.framelimit = benchmark;

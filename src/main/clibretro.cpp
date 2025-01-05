@@ -67,8 +67,8 @@ bool CLibretro::core_saveram(const char *filename, bool save)
 {
   if (lr_isrunning)
   {
-    size_t size = retro.retro_get_memory_size((usesubsys) ? subsystem_type : RETRO_MEMORY_SAVE_RAM);
-    uint8_t *Memory = (uint8_t *)retro.retro_get_memory_data((usesubsys) ? subsystem_type : RETRO_MEMORY_SAVE_RAM);
+    size_t size = retro.retro_get_memory_size((usesubsys) ? subsystem_id : RETRO_MEMORY_SAVE_RAM);
+    uint8_t *Memory = (uint8_t *)retro.retro_get_memory_data((usesubsys) ? subsystem_id : RETRO_MEMORY_SAVE_RAM);
     if (!size || !Memory)
       return false;
     if (save)
@@ -488,10 +488,11 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   {
     int info_size = options->rompaths.size();
     retro_game_info *info = (retro_game_info *)malloc(sizeof(retro_game_info *) * info_size);
+    subsystem_id = options->current_subsystem.subsystem_id;
     for (auto &romz : options->rompaths)
     {
       size_t r = &romz - &options->rompaths.front();
-      subsystem_rominfo rominfo = options->current_core.subsystems[options->core_subsysindx].rominfo[r];
+      subsystem_rominfo rominfo = options->current_subsystem.rominfo[r];
       info->data = NULL;
       info->size = 0;
       info->meta = "";
@@ -524,13 +525,13 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
         }
       }
     }
-    if (!retro.retro_load_game_special(options->subsys_num, info, info_size))
+    if (!retro.retro_load_game_special(subsystem_id, info, info_size))
     {
       printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
       core_unload();
       return false;
     }
-    subsystem_type = options->subsys_num;
+    
   }
   retro.retro_get_system_av_info(&av);
   fps = perfc * 1000 / uint64_t(1000.0 * std::abs(av.timing.fps));

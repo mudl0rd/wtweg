@@ -837,17 +837,14 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         size_t k = &core - &instance->cores.front();
         if (k == subsys_coreindex)
         {
-          clibretro_startoptions options;
+          clibretro_startoptions options = {0};
           options.rompaths = rompaths;
           options.usesubsys = true;
-          options.subsys_num = core.subsystems[sel_indx].subsystem_id;
+          options.current_subsystem = core.subsystems[sel_indx];
           options.framelimit = cap_fps;
           options.game_specific_settings = pergame_;
-          options.core_subsysindx = subsys_coreindex;
-          options.core_subsysselindx = sel_indx;
           options.savestate = "";
           options.core = core.core_path;
-          options.current_core = core;
           instance->core_load(false, &options);
           subsys_box = false;
           return;
@@ -933,7 +930,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        clibretro_startoptions options;
+        clibretro_startoptions options = {0};
         options.rompaths.clear();
         options.rompaths.push_back("");
         options.framelimit = cap_fps;
@@ -956,7 +953,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
   if(coreselect)
   {
-    clibretro_startoptions options;
+    clibretro_startoptions options = {0};
     options.rompaths.clear();
     options.rompaths.push_back(selected_path);
     options.usesubsys = false;
