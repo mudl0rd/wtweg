@@ -936,7 +936,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         options.framelimit = cap_fps;
         options.game_specific_settings = pergame_;
         options.savestate = "";
-        options.current_core = cores_info.at(listbox_item_current);
         options.core = cores_info.at(listbox_item_current).core_path;
         instance->core_load(false, &options);
         load_core = false;
@@ -989,7 +988,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     if (hits == 1 && found)
     {
       options.core = cores_info.at(0).core_path;
-      options.current_core = cores_info.at(0);
       instance->core_load(false, &options);
       coreselect = false;
       return;
@@ -1014,7 +1012,6 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       if (ImGui::Button("OK"))
       {
         options.core = cores_info.at(listbox_item_current).core_path;
-        options.current_core = cores_info.at(listbox_item_current);
         instance->core_load(false, &options);
         coreselect = false;
       }
