@@ -239,75 +239,7 @@ void loadfile(CLibretro *instance, clibretro_startoptions *options)
     instance->core_load(false, options);
   }
   else
-  {
-    options->usesubsys = false;
-    options->framelimit = cap_fps;
-    options->game_specific_settings = pergame_;
-    options->savestate = "";
-
-    coreselect = true;
-    int hits = 0;
-    std::vector<core_info> cores_info;
-    cores_info.clear();
-    bool found = false;
-
-    for (auto &core : instance->cores)
-    {
-
-      if (core.no_roms && core.core_extensions == "")
-        continue;
-
-      std::string core_ext = core.core_extensions;
-      std::string ext = options->rompaths[0];
-      ext = ext.substr(ext.find_last_of(".") + 1);
-      std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-      std::transform(core_ext.begin(), core_ext.end(), core_ext.begin(), ::tolower);
-      if (core_ext.find(ext) != std::string::npos)
-      {
-        hits++;
-        cores_info.push_back(core);
-        found = true;
-      }
-    }
-    if (hits == 1 && found)
-    {
-      options->core = cores_info.at(0).core_path;
-      instance->core_load(false, options);
-      coreselect = false;
-      return;
-    }
-    if (!found)
-    {
-      popup_widget(&coreselect, "Core Load Error", "There is no core to load this particular bit of content.");
-      coreselect = false;
-      return;
-    }
-    else
-      ImGui::OpenPopup("Select a core");
-
-    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
-                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-      static int listbox_item_current = 0;
-      ImGui::ListBox("Select a core",
-                     &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
-      if (ImGui::Button("OK"))
-      {
-        options->core = cores_info.at(listbox_item_current).core_path;
-        instance->core_load(false, options);
-        coreselect = false;
-      }
-      ImGui::Bullet();
-      ImGui::SameLine();
-      ImGui::TextWrapped("WTFweg couldn't determine the core to use.");
-      ImGui::Bullet();
-      ImGui::SameLine();
-      ImGui::TextWrapped("Choose the specific core to load the ROM/ISO.");
-      ImGui::EndPopup();
-    }
-  }
+  coreselect = true;
 }
 
 inline std::uint32_t GetDrivesBitMask()
@@ -823,6 +755,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       options.game_specific_settings = pergame_;
       options.savestate = "";
       options.core = "";
+      selected_fname = filePathName;
       loadfile(instance, &options);
     }
     else
@@ -1013,6 +946,81 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       ImGui::Bullet();
       ImGui::SameLine();
       ImGui::TextWrapped("These are ones that load their own assets.");
+      ImGui::EndPopup();
+    }
+  }
+
+  if(coreselect)
+  {
+    clibretro_startoptions options;
+    options.rompaths.clear();
+    options.rompaths.push_back(selected_fname);
+    options.usesubsys = false;
+    options.framelimit = cap_fps;
+    options.game_specific_settings = pergame_;
+    options.savestate = "";
+    options.core = "";
+
+    coreselect = true;
+    int hits = 0;
+    std::vector<core_info> cores_info;
+    cores_info.clear();
+    bool found = false;
+
+    for (auto &core : instance->cores)
+    {
+
+      if (core.no_roms && core.core_extensions == "")
+        continue;
+
+      std::string core_ext = core.core_extensions;
+      std::string ext = options.rompaths[0];
+      ext = ext.substr(ext.find_last_of(".") + 1);
+      std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+      std::transform(core_ext.begin(), core_ext.end(), core_ext.begin(), ::tolower);
+      if (core_ext.find(ext) != std::string::npos)
+      {
+        hits++;
+        cores_info.push_back(core);
+        found = true;
+      }
+    }
+    if (hits == 1 && found)
+    {
+      options.core = cores_info.at(0).core_path;
+      instance->core_load(false, &options);
+      coreselect = false;
+      return;
+    }
+    if (!found)
+    {
+      popup_widget(&coreselect, "Core Load Error", "There is no core to load this particular bit of content.");
+      coreselect = false;
+      return;
+    }
+    else
+      ImGui::OpenPopup("Select a core");
+
+    ImGui::SetNextWindowSizeConstraints(ImVec2(io.DisplaySize.x * 0.3f, io.DisplaySize.y * 0.3f),
+                                        ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f));
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    if (ImGui::BeginPopupModal("Select a core", &coreselect, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+      static int listbox_item_current = 0;
+      ImGui::ListBox("Select a core",
+                     &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
+      if (ImGui::Button("OK"))
+      {
+        options.core = cores_info.at(listbox_item_current).core_path;
+        instance->core_load(false, &options);
+        coreselect = false;
+      }
+      ImGui::Bullet();
+      ImGui::SameLine();
+      ImGui::TextWrapped("WTFweg couldn't determine the core to use.");
+      ImGui::Bullet();
+      ImGui::SameLine();
+      ImGui::TextWrapped("Choose the specific core to load the ROM/ISO.");
       ImGui::EndPopup();
     }
   }
