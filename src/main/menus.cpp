@@ -43,7 +43,7 @@ struct FileRecord
 };
 std::vector<FileRecord> fileRecords_;
 std::filesystem::path pwd_;
-std::string selected_fname;
+std::string selected_path;
 
 static auto vector_getter = [](void *data, int n, const char **out_text)
 {
@@ -435,6 +435,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
   auto rombrowse_browse = [=](int width, int height)
   {
+    static std::string selected_fname;
     bool updrecs = false;
     ImGuiIO &io = ImGui::GetIO();
 
@@ -550,10 +551,11 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         {
           std::string path2 = std::filesystem::path(std::filesystem::canonical(pwd_) / rsc.name).string();
           selected_fname = rsc.showName;
+          selected_path = path2;
           rombrowser = false;
           clibretro_startoptions options;
           options.rompaths.clear();
-          options.rompaths.push_back(path2);
+          options.rompaths.push_back(selected_fname);
           options.usesubsys = false;
           options.framelimit = cap_fps;
           options.game_specific_settings = pergame_;
@@ -755,7 +757,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       options.game_specific_settings = pergame_;
       options.savestate = "";
       options.core = "";
-      selected_fname = filePathName;
+      selected_path = filePathName;
       loadfile(instance, &options);
     }
     else
@@ -954,7 +956,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   {
     clibretro_startoptions options;
     options.rompaths.clear();
-    options.rompaths.push_back(selected_fname);
+    options.rompaths.push_back(selected_path);
     options.usesubsys = false;
     options.framelimit = cap_fps;
     options.game_specific_settings = pergame_;
