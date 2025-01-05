@@ -93,18 +93,7 @@ struct coreinput_bind
 	} config;
 };
 
-struct clibretro_startoptions
-{
-	std::string savestate;
-	std::string core;
-	bool game_specific_settings;
-	bool framelimit;
-	bool usesubsys;
-	int subsys_num;
-	std::vector<std::string> rompaths;
-	int core_subsysindx;
-	int core_subsysselindx;
-};
+
 
 enum libretro_binds
 {
@@ -191,6 +180,19 @@ struct core_info
 	float samplerate;
 	float fps;
 	bool no_roms;
+};
+
+struct clibretro_startoptions
+{
+	std::string savestate;
+	std::string core;
+	bool game_specific_settings;
+	bool framelimit;
+	bool usesubsys;
+	int subsys_num;
+	int core_subsysindx;
+	std::vector<std::string> rompaths;
+	core_info current_core;
 };
 
 struct key_map
@@ -301,6 +303,7 @@ public:
 	uint32_t config_crc;
 	uint32_t input_confcrc;
 	std::vector<core_info> cores;
+	core_info current_core;
 	std::string romsavesstatespath;
 
 	std::filesystem::path rom_path;

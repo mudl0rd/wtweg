@@ -486,22 +486,16 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   }
   else
   {
-    for (auto &core : cores)
-    {
-      size_t k = &core - &cores.front();
-      if (k == options->core_subsysselindx)
-      {
         int info_size = options->rompaths.size();
         std::vector<subsystems> subsystems;
         retro_game_info *info = (retro_game_info *)malloc(sizeof(retro_game_info *) * info_size);
-
         for (auto &romz : options->rompaths)
         {
           info->data = NULL;
           info->size = 0;
           info->meta = "";
           size_t r = &romz - &options->rompaths.front();
-          if (core.subsystems[options->core_subsysindx].rominfo[r].need_fullpath)
+          if (options->current_core.subsystems[options->core_subsysindx].rominfo[r].need_fullpath)
             info->path = romz.c_str();
           else
           {
@@ -534,9 +528,6 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
         }
         subsystem_type = options->subsys_num;
       }
-    }
-  }
-
   retro.retro_get_system_av_info(&av);
   fps = perfc * 1000 / uint64_t(1000.0 * std::abs(av.timing.fps));
   audio.init(av.timing.sample_rate);
