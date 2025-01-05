@@ -213,6 +213,9 @@ static void HelpMarker(const char *desc)
 
 bool loadfile(CLibretro *instance, clibretro_startoptions *options)
 {
+  pergame_ = options->game_specific_settings;
+  cap_fps = options->framelimit;
+  filenamepath = options->rompaths[0];
   if (options->core != "")
   {
 
@@ -221,8 +224,6 @@ bool loadfile(CLibretro *instance, clibretro_startoptions *options)
   }
   else
   {
-    pergame_ = options->game_specific_settings;
-    filenamepath = options->rompaths[0];
     coreselect = true;
     return true;
   }
