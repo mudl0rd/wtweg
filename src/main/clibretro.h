@@ -189,6 +189,7 @@ struct clibretro_startoptions
 	bool game_specific_settings;
 	bool framelimit;
 	bool usesubsys;
+	bool contentless;
 	std::vector<std::string> rompaths;
 	subsystems current_subsystem;
 };
@@ -259,7 +260,7 @@ public:
 	bool load_coresettings(bool save_f);
 	void core_changinpt(int dev, int port);
 	bool core_isrunning();
-	bool core_load(bool contentless, clibretro_startoptions *options);
+	bool core_load(clibretro_startoptions *options);
 	void core_unload();
 	bool core_environment(unsigned cmd, void *data);
 	void core_run();

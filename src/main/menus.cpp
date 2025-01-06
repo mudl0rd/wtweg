@@ -234,10 +234,7 @@ void loadfile(CLibretro *instance, clibretro_startoptions *options)
   pergame_ = options->game_specific_settings;
   cap_fps = options->framelimit;
   if (options->core != "")
-  {
-
-    instance->core_load(false, options);
-  }
+    instance->core_load(options);
   else
   coreselect = true;
 }
@@ -837,7 +834,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         size_t k = &core - &instance->cores.front();
         if (k == subsys_coreindex)
         {
-          clibretro_startoptions options = {0};
+          clibretro_startoptions options;
           options.rompaths = rompaths;
           options.usesubsys = true;
           options.current_subsystem = core.subsystems[sel_indx];
@@ -845,7 +842,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           options.game_specific_settings = pergame_;
           options.savestate = "";
           options.core = core.core_path;
-          instance->core_load(false, &options);
+          options.contentless = false;
+          instance->core_load(&options);
           subsys_box = false;
           return;
         }
@@ -930,14 +928,15 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
                      &listbox_item_current, vector_getter, static_cast<void *>(&cores_info), cores_info.size());
       if (ImGui::Button("OK"))
       {
-        clibretro_startoptions options = {0};
+        clibretro_startoptions options;
         options.rompaths.clear();
         options.rompaths.push_back("");
         options.framelimit = cap_fps;
         options.game_specific_settings = pergame_;
         options.savestate = "";
         options.core = cores_info.at(listbox_item_current).core_path;
-        instance->core_load(false, &options);
+        options.contentless = true;
+        instance->core_load(&options);
         load_core = false;
       }
       ImGui::Bullet();
@@ -952,7 +951,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
   if(coreselect)
   {
-    clibretro_startoptions options = {0};
+    clibretro_startoptions options;
     options.rompaths.clear();
     options.rompaths.push_back(selected_path);
     options.usesubsys = false;
@@ -960,6 +959,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     options.game_specific_settings = pergame_;
     options.savestate = "";
     options.core = "";
+    options.contentless = false;
 
     coreselect = true;
     int hits = 0;
@@ -988,7 +988,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     if (hits == 1 && found)
     {
       options.core = cores_info.at(0).core_path;
-      instance->core_load(false, &options);
+      instance->core_load(&options);
       coreselect = false;
       return;
     }
@@ -1012,7 +1012,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       if (ImGui::Button("OK"))
       {
         options.core = cores_info.at(listbox_item_current).core_path;
-        instance->core_load(false, &options);
+        instance->core_load(&options);
         coreselect = false;
       }
       ImGui::Bullet();

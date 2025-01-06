@@ -382,7 +382,7 @@ void CLibretro::core_changinpt(int dev, int port)
   }
 }
 
-bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
+bool CLibretro::core_load(clibretro_startoptions *options)
 {
   if (lr_isrunning)
     core_unload();
@@ -395,7 +395,7 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   std::filesystem::path save_path_ = std::filesystem::path(exe_path) / "saves";
   std::filesystem::path save_path = save_path_ /
                                     (std::filesystem::path(options->core).stem().string() + ".sram");
-  if (!contentless)
+  if (!options->contentless)
     save_path = save_path_ / (rom_path.stem().string() + ".sram");
 
   romsavesstatespath = std::filesystem::absolute(save_path).string();
@@ -451,7 +451,7 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
   if (!options->usesubsys)
   {
     struct retro_game_info info = {options->rompaths[0].c_str(), 0};
-    if (!contentless)
+    if (!options->contentless)
     {
       info.path = options->rompaths[0].c_str();
       info.data = NULL;
@@ -477,7 +477,7 @@ bool CLibretro::core_load(bool contentless, clibretro_startoptions *options)
         ifs.close();
       }
     }
-    if (!retro.retro_load_game(contentless ? NULL : &info))
+    if (!retro.retro_load_game(options->contentless ? NULL : &info))
     {
       printf("FAILED TO LOAD ROM!!!!!!!!!!!!!!!!!!");
       core_unload();

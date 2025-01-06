@@ -294,7 +294,8 @@ int main(int argc, char *argv[])
     bool pergame = a.exist("pergame");
     bool benchmark = a.exist("benchmark");
 
-    clibretro_startoptions options = {0};
+    clibretro_startoptions options;
+    options.contentless = false;
     options.usesubsys = false;
     options.core = core;
     options.framelimit = benchmark;
