@@ -239,6 +239,7 @@ void loadfile(CLibretro *instance, clibretro_startoptions *options)
   coreselect = true;
 }
 
+#ifdef _WIN32
 inline std::uint32_t GetDrivesBitMask()
 {
   const DWORD mask = GetLogicalDrives();
@@ -258,8 +259,8 @@ inline std::uint32_t GetDrivesBitMask()
   }
   return ret;
 }
-
 static uint32_t drives_ = GetDrivesBitMask();
+#endif
 
 template <class Functor>
 struct ScopeGuard
@@ -443,6 +444,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     const char currentDrive = static_cast<char>(pwd_.c_str()[0]);
     const char driveStr[] = {currentDrive, ':', '\0'};
 
+#ifdef _WIN32
     ImGui::PushItemWidth(4 * ImGui::GetFontSize());
     if (ImGui::BeginCombo("##select_drive", driveStr))
     {
@@ -469,6 +471,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       }
     }
     ImGui::PopItemWidth();
+
+    #endif
 
     int secIdx = 0, newDirLastSecIdx = -1;
     for (const auto &sec : pwd_)
