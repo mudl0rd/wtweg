@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
     a.add<std::string>("core_name", 'c', "core filename", true, "");
     a.add<std::string>("rom_name", 'r', "rom filename", true, "");
     a.add<std::string>("savestate", 's', "run from savestate", false, "");
-    a.add("benchmark", 'b', "benchmark + run core uncapped");
+    a.add("benchmark", 'b', "run core uncapped");
     a.add("pergame", 'g', "per-game configuration");
     a.parse_check(argc, argv);
     std::string rom = a.get<std::string>("rom_name");
@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
     options.contentless = false;
     options.usesubsys = false;
     options.core = core;
-    options.framelimit = benchmark;
+    options.framelimit = !benchmark;
     options.game_specific_settings = pergame;
     options.savestate = savestate;
 
