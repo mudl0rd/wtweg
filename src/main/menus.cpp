@@ -210,6 +210,18 @@ static void HelpMarker(const char *desc)
   }
 }
 
+static void ToolTip(const char *desc)
+{
+  if (ImGui::IsItemHovered())
+  {
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(desc);
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
+}
+
 void popup_widget(bool *flag, const char *title, const char *msg)
 {
   ImGui::OpenPopup(title);
@@ -236,7 +248,7 @@ void loadfile(CLibretro *instance, clibretro_startoptions *options)
   if (options->core != "")
     instance->core_load(options);
   else
-  coreselect = true;
+    coreselect = true;
 }
 
 #ifdef _WIN32
@@ -472,7 +484,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     }
     ImGui::PopItemWidth();
 
-    #endif
+#endif
 
     int secIdx = 0, newDirLastSecIdx = -1;
     for (const auto &sec : pwd_)
@@ -539,8 +551,17 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       if (!rsc.name.empty() && rsc.name.c_str()[0] == '$')
         continue;
       bool selected = rsc.showName == selected_fname;
+
       ImGui::Selectable(rsc.showName.c_str(), selected,
                         ImGuiSelectableFlags_DontClosePopups);
+      if (ImGui::IsItemHovered())
+      {
+        int w = ImGui::GetColumnWidth();
+        ImVec2 textsz = ImGui::CalcTextSize(rsc.showName.c_str());
+        if (textsz.x-1 > w)
+        ToolTip(rsc.showName.c_str());
+      }
+
       if (ImGui::IsItemClicked(0) && ImGui::IsMouseDoubleClicked(0))
       {
         if (rsc.isDir)
@@ -953,7 +974,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     }
   }
 
-  if(coreselect)
+  if (coreselect)
   {
     clibretro_startoptions options;
     options.rompaths.clear();
