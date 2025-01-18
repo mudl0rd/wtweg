@@ -448,10 +448,15 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     static std::string selected_fname;
     bool updrecs = false;
     ImGuiIO &io = ImGui::GetIO();
+    ImGuiStyle &style = ImGui::GetStyle();
 
-    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - height));
+    int header = (ImGui::CalcTextSize("TEST").y + style.FramePadding.y * 2.0f) * 2.5;
+    int browserh = header + height;
+
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, header));
     ImGui::SetNextWindowPos(ImVec2(0, height));
-    ImGui::Begin("ROM browse", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::Begin("ROM browse", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
     float reserveHeight = io.DisplaySize.y - height;
     const char currentDrive = static_cast<char>(pwd_.c_str()[0]);
     const char driveStr[] = {currentDrive, ':', '\0'};
@@ -536,14 +541,22 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       updrecs = true;
     }
 
+    ImGui::End();
+    ImGui::PopStyleVar();
+
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - browserh));
+    ImGui::SetNextWindowPos(ImVec2(0, browserh));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::Begin("columns", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
     float panelHeight = ImGui::GetContentRegionAvail().y;
-    float cellSize = ImGui::GetTextLineHeight();
+    float cellSize = ImGui::CalcTextSize("TEST").y;
     int items_sz = fileRecords_.size() * cellSize;
     int columns = (int)(items_sz / (int)panelHeight) + 1;
     if (columns <= 0)
       columns = 1;
     float items = 0;
     ImGui::Columns(columns, 0, false);
+    panelHeight = ImGui::GetContentRegionAvail().y;
 
     for (auto &rsc : fileRecords_)
     {
@@ -558,8 +571,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       {
         int w = ImGui::GetColumnWidth();
         ImVec2 textsz = ImGui::CalcTextSize(rsc.showName.c_str());
-        if (textsz.x-1 > w)
-        ToolTip(rsc.showName.c_str());
+        if (textsz.x - 1 > w)
+          ToolTip(rsc.showName.c_str());
       }
 
       if (ImGui::IsItemClicked(0) && ImGui::IsMouseDoubleClicked(0))
@@ -586,14 +599,15 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           loadfile(instance, &options);
         }
       }
-      items += cellSize;
-      if (items <= panelHeight)
+      items += ImGui::CalcTextSize(rsc.showName.c_str()).y;
+      if (items >= panelHeight)
       {
         items = 0;
         ImGui::NextColumn();
       }
     }
     ImGui::End();
+    ImGui::PopStyleVar();
 
     // Rendering
     if (updrecs)
