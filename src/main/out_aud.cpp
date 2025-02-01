@@ -220,12 +220,17 @@ void out_aud::mix(int16_t *samples, size_t size)
 
         while (written < out_bytes)
         {
-            size_t avail = fifo_write_avail(_fifo);
-            size_t write_amt = out_bytes - written > avail ? avail : out_bytes - written;
-            fifo_write(_fifo,
-                       (char *)output_float + written, write_amt, false);
 
-            written += write_amt;
+            size_t avail = fifo_write_avail(_fifo);
+            if (avail)
+            {
+                SDL_LockAudioDevice(dev);
+                size_t write_amt = out_bytes - written > avail ? avail : out_bytes - written;
+                fifo_write(_fifo,
+                           (char *)output_float + written, write_amt, false);
+                written += write_amt;
+                SDL_UnlockAudioDevice(dev);
+            }
         }
     }
 }

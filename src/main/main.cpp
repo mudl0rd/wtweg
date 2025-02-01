@@ -18,6 +18,10 @@
 #include "IconsForkAwesome.h"
 #ifdef _WIN32
 #include <windows.h>
+extern "C" {
+   __attribute__((dllexport)) DWORD NvOptimusEnablement = 0x00000001;
+   __attribute__((dllexport)) int AmdPowerXpressRequestHighPerformance = 1;
+}
 #endif
 
 #include <unistd.h>

@@ -139,7 +139,7 @@ namespace MudUtil
 #ifdef _WIN32
 #ifndef DEBUG
 
-		if (strcmp(get_filename_ext(path), "zip") == 0)
+	/*	if (strcmp(get_filename_ext(path), "zip") == 0)
 		{
 			struct zip_t *zip = zip_open(path, 0, 'r');
 			int i, n = zip_entries_total(zip);
@@ -169,7 +169,9 @@ namespace MudUtil
 			std::vector<uint8_t> dll_ptr = load_data(path);
 			PMEMORYMODULE handle = MemoryLoadLibrary(dll_ptr.data(), dll_ptr.size());
 			return handle;
-		}
+		}*/
+	void *handle = SDL_LoadObject(path);
+		return (!handle) ? NULL : handle;
 #else
 		void *handle = SDL_LoadObject(path);
 		return (!handle) ? NULL : handle;
@@ -184,7 +186,8 @@ namespace MudUtil
 	{
 #ifdef _WIN32
 #ifndef DEBUG
-		return (void *)MemoryGetProcAddress((PMEMORYMODULE)handle, funcname);
+return SDL_LoadFunction(handle, funcname);
+		//return (void *)MemoryGetProcAddress((PMEMORYMODULE)handle, funcname);
 #else
 		return SDL_LoadFunction(handle, funcname);
 #endif
@@ -196,7 +199,8 @@ namespace MudUtil
 	{
 #ifdef _WIN32
 #ifndef DEBUG
-		MemoryFreeLibrary((PMEMORYMODULE)handle);
+SDL_UnloadObject(handle);
+	//	MemoryFreeLibrary((PMEMORYMODULE)handle);
 #else
 		SDL_UnloadObject(handle);
 #endif
