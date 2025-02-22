@@ -450,7 +450,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
     ImGuiIO &io = ImGui::GetIO();
     ImGuiStyle &style = ImGui::GetStyle();
 
-    int header = (ImGui::CalcTextSize("TEST").y + style.FramePadding.y * 2.0f) * 2.5;
+    int header = (ImGui::CalcTextSize("TEST").y + style.FramePadding.y * 2.0f) * 2;
     int browserh = header + height;
 
     ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, header));
@@ -488,6 +488,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       }
     }
     ImGui::PopItemWidth();
+    ImGui::SameLine();
 
 #endif
 
