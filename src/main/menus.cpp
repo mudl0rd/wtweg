@@ -395,6 +395,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 
   auto loadromfile = [=](const char *filename)
   {
+    selected_path = filename;
     clibretro_startoptions options;
     options.rompaths.clear();
     options.rompaths.push_back(filename);
@@ -600,7 +601,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         {
           std::string path2 = std::filesystem::path(std::filesystem::canonical(pwd_) / rsc.name).string();
           selected_fname = rsc.showName;
-          selected_path = path2;
+          
           rombrowser = false;
           loadromfile(selected_fname.c_str());
         }
@@ -787,6 +788,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
       std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
       ImGuiFileDialog::Instance()->Close();
+      selected_path = filePathName;
       loadromfile(filePathName.c_str());
     }
     else
