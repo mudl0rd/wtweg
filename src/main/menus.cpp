@@ -30,10 +30,6 @@ const char *checkbox_allowablev1[] = {"enabled|disabled", "disabled|enabled", "T
 const char *checkbox_allowable[] = {"enabled", "disabled", "True", "False", "On", "Off"};
 const char *true_vals[] = {"enabled", "true", "on"};
 
-static bool coreselect = false;
-bool pergame_ = false;
-bool cap_fps = true;
-bool rombrowser = false;
 struct FileRecord
 {
   bool isDir = false;
@@ -41,9 +37,6 @@ struct FileRecord
   std::string showName;
   std::filesystem::path extension;
 };
-std::vector<FileRecord> fileRecords_;
-std::filesystem::path pwd_;
-std::string selected_path;
 
 static auto vector_getter = [](void *data, int n, const char **out_text)
 {
@@ -240,9 +233,11 @@ void popup_widget(bool *flag, const char *title, const char *msg)
   }
 }
 
+bool coreselect = false;
+bool pergame_ = false;
+bool cap_fps = true;
 void loadfile(CLibretro *instance, clibretro_startoptions *options)
 {
-  ImGuiIO &io = ImGui::GetIO();
   pergame_ = options->game_specific_settings;
   cap_fps = options->framelimit;
   if (options->core != "")
@@ -322,61 +317,6 @@ bool HyperLink(const char *label, bool underlineWhenHoveredOnly = false)
   return isClicked;
 }
 
-void rombrowse_setdir(std::string dir, CLibretro *instance)
-{
-  pwd_ = dir;
-  auto rombrowse_update = [=]()
-  {
-    fileRecords_ = {FileRecord{true, "..", ICON_FK_FOLDER " ..", ""}};
-
-    for (auto &p : std::filesystem::directory_iterator(pwd_))
-    {
-      FileRecord rcd = {FileRecord{false, "", "", ""}};
-
-      if (p.is_regular_file())
-      {
-        rcd.isDir = false;
-      }
-      else if (p.is_directory())
-      {
-        rcd.isDir = true;
-      }
-      else
-      {
-        continue;
-      }
-
-      rcd.name = p.path().filename();
-      if (rcd.name.empty())
-        continue;
-      std::string str;
-      if (!rcd.isDir)
-      {
-        rcd.extension = p.path().filename().extension();
-        if (rcd.extension.empty())
-          continue;
-        std::string str2 = rcd.extension.string();
-        str2.erase(str2.begin());
-        bool ismusicfile = (instance->coreexts.find(str2) != std::string::npos);
-        if (!ismusicfile)
-          continue;
-        else
-          str = ICON_FK_GAMEPAD " ";
-      }
-      else
-        str = ICON_FK_FOLDER " ";
-      rcd.showName = str + p.path().filename().string();
-      fileRecords_.push_back(rcd);
-    }
-    std::sort(fileRecords_.begin(), fileRecords_.end(),
-              [](const FileRecord &L, const FileRecord &R)
-              {
-                return (L.isDir ^ R.isDir) ? L.isDir : (L.name < R.name);
-              });
-  };
-  rombrowse_update();
-}
-
 void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 {
 
@@ -392,6 +332,67 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static std::vector<std::string> rompaths(10, std::string("None"));
   static std::string addonloader = "LoadAddon";
   static bool addonloader_pick = false;
+  static std::string selected_path;
+  static std::filesystem::path pwd_ = "";
+  static std::vector<FileRecord> fileRecords_;
+  static bool rombrowser = false;
+
+  
+
+  auto rombrowse_setdir = [=](std::string dir)
+  {
+    pwd_ = dir;
+    auto rombrowse_update = [=]()
+    {
+      fileRecords_ = {FileRecord{true, "..", ICON_FK_FOLDER " ..", ""}};
+
+      for (auto &p : std::filesystem::directory_iterator(pwd_))
+      {
+        FileRecord rcd = {FileRecord{false, "", "", ""}};
+
+        if (p.is_regular_file())
+        {
+          rcd.isDir = false;
+        }
+        else if (p.is_directory())
+        {
+          rcd.isDir = true;
+        }
+        else
+        {
+          continue;
+        }
+
+        rcd.name = p.path().filename();
+        if (rcd.name.empty())
+          continue;
+        std::string str;
+        if (!rcd.isDir)
+        {
+          rcd.extension = p.path().filename().extension();
+          if (rcd.extension.empty())
+            continue;
+          std::string str2 = rcd.extension.string();
+          str2.erase(str2.begin());
+          bool ismusicfile = (instance->coreexts.find(str2) != std::string::npos);
+          if (!ismusicfile)
+            continue;
+          else
+            str = ICON_FK_GAMEPAD " ";
+        }
+        else
+          str = ICON_FK_FOLDER " ";
+        rcd.showName = str + p.path().filename().string();
+        fileRecords_.push_back(rcd);
+      }
+      std::sort(fileRecords_.begin(), fileRecords_.end(),
+                [](const FileRecord &L, const FileRecord &R)
+                {
+                  return (L.isDir ^ R.isDir) ? L.isDir : (L.name < R.name);
+                });
+    };
+    rombrowse_update();
+  };
 
   auto loadromfile = [=](const char *filename)
   {
@@ -497,7 +498,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         {
           char newPwd[] = {driveCh, ':', '\\', '\0'};
           std::filesystem::path pah(newPwd);
-          rombrowse_setdir(pah.string(), instance);
+          rombrowse_setdir(pah.string());
         }
       }
     }
@@ -601,9 +602,8 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         {
           std::string path2 = std::filesystem::path(std::filesystem::canonical(pwd_) / rsc.name).string();
           selected_fname = rsc.showName;
-          
           rombrowser = false;
-          loadromfile(selected_fname.c_str());
+          loadromfile(path2.c_str());
         }
       }
       items += ImGui::CalcTextSize(rsc.showName.c_str()).y;
@@ -623,6 +623,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       updrecs = false;
     }
   };
+
+  if (pwd_ == "")
+  {
+    std::filesystem::path p(MudUtil::get_wtfwegname());
+    rombrowse_setdir(p.parent_path().string());
+  }
 
   ImGuiIO &io = ImGui::GetIO();
 

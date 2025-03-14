@@ -147,7 +147,6 @@ int main2(clibretro_startoptions *options)
   SDL_GameControllerAddMappingsFromFile(std::filesystem::absolute(path2).string().c_str());
 
   auto instance = CLibretro::get_classinstance(window);
-  rombrowse_setdir(p.parent_path().string(), instance);
 
   // Main loop
   bool done = false;
