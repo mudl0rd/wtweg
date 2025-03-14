@@ -246,29 +246,6 @@ void loadfile(CLibretro *instance, clibretro_startoptions *options)
     coreselect = true;
 }
 
-#ifdef _WIN32
-inline std::uint32_t GetDrivesBitMask()
-{
-  const DWORD mask = GetLogicalDrives();
-  std::uint32_t ret = 0;
-  for (int i = 0; i < 26; ++i)
-  {
-    if (!(mask & (1 << i)))
-    {
-      continue;
-    }
-    const char rootName[4] = {static_cast<char>('A' + i), ':', '\\', '\0'};
-    const UINT type = GetDriveTypeA(rootName);
-    if (type == DRIVE_REMOVABLE || type == DRIVE_FIXED || type == DRIVE_REMOTE)
-    {
-      ret |= (1 << i);
-    }
-  }
-  return ret;
-}
-static uint32_t drives_ = GetDrivesBitMask();
-#endif
-
 template <class Functor>
 struct ScopeGuard
 {
@@ -337,7 +314,28 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
   static std::vector<FileRecord> fileRecords_;
   static bool rombrowser = false;
 
-  
+#ifdef _WIN32
+  auto GetDrivesBitMask = []()
+  {
+    const DWORD mask = GetLogicalDrives();
+    std::uint32_t ret = 0;
+    for (int i = 0; i < 26; ++i)
+    {
+      if (!(mask & (1 << i)))
+      {
+        continue;
+      }
+      const char rootName[4] = {static_cast<char>('A' + i), ':', '\\', '\0'};
+      const UINT type = GetDriveTypeA(rootName);
+      if (type == DRIVE_REMOVABLE || type == DRIVE_FIXED || type == DRIVE_REMOTE)
+      {
+        ret |= (1 << i);
+      }
+    }
+    return ret;
+  };
+  static uint32_t drives_ = GetDrivesBitMask();
+#endif
 
   auto rombrowse_setdir = [=](std::string dir)
   {
