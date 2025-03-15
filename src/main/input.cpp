@@ -887,6 +887,8 @@ int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
         mousiez.abs_y -= widthheight.y;
         inside = (scaled_x >= -edge_detect) && (scaled_y >= -edge_detect) &&
                  (scaled_x <= edge_detect) && (scaled_y <= edge_detect);
+
+        if(index>0)return 0;
         switch (id)
         {
         case RETRO_DEVICE_ID_POINTER_X:
@@ -896,7 +898,7 @@ int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
         case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
             return scaled_y;
         case RETRO_DEVICE_ID_POINTER_PRESSED:
-            return (SDL_BUTTON(SDL_BUTTON_LEFT) & mousiez.l);
+            return mousiez.l;
         case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
             return !inside;
         case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:

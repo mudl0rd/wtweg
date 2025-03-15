@@ -296,7 +296,6 @@ bool HyperLink(const char *label, bool underlineWhenHoveredOnly = false)
 
 void sdlggerat_menu(CLibretro *instance, std::string *window_str)
 {
-
   static bool inputsettings = false;
   static bool coresettings = false;
   static bool aboutbox = false;

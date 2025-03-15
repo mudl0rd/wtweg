@@ -252,7 +252,7 @@ public:
 	void init_lr(SDL_Window *window);
 	static CLibretro *get_classinstance(SDL_Window *window = NULL)
 	{
-		static thread_local CLibretro instance;
+		static CLibretro instance;
 		if (window)
 			instance.init_lr(window);
 		return &instance;

@@ -34,6 +34,8 @@ Recommended cores:
 * craft_libretro.dll.zip (homebrew Minecraft-like) 
 * tic80_libretro.dll.zip (TIC-80 VM)
 * retro8_libretro.dll.zip (Pico-8 "console" emulator/VM)
+* wasm4_libretro.dll.zip (WASM4 emulator/VM)
+* uw8_libretro.dll.zip (MicroW8 emulator/VM)
 * vitaquake2_libretro.dll.zip (Quake 2 source port)
 * vitaquake2-rogue_libretro.dll.zip (Quake 2 expansion pack source port)
 * vitaquake2-xatrix_libretro.dll.zip (Quake 2 expansion pack source port)
@@ -180,5 +182,4 @@ vice_xcbm2_libretro.dll.zip
 vice_xcbm5x0_libretro.dll.zip
 vice_xplus4_libretro.dll.zip
 vice_xscpu64_libretro.dll.zip
-wasm4_libretro.dll.zip
 x1_libretro.dll.zip
