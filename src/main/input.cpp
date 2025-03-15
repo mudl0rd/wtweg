@@ -891,6 +891,7 @@ int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
         case RETRO_DEVICE_ID_POINTER_Y:
         case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
             return scaled_y;
+        //RETRO_DEVICE_ID_LIGHTGUN_TRIGGER as well
         case RETRO_DEVICE_ID_POINTER_PRESSED:
             if (index)
                 return 0;
