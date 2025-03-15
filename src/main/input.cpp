@@ -14,9 +14,6 @@
 #include "cJSON.h"
 #include "cJSON_Utils.h"
 
-
-
-
 const struct key_map key_map_[] = {
     {SDLK_BACKSPACE, RETROK_BACKSPACE},
     {SDLK_TAB, RETROK_TAB},
@@ -187,33 +184,32 @@ struct default_retro
     {joypad_analog_r3, -1},
 };
 
-static std::array <std::string,24>retro_descripts=
-{
-     "\"RetroPad\" B",
-    "\"RetroPad\" Y",
-    "\"RetroPad\" Select",
-    "\"RetroPad\" Start",
-    "\"RetroPad\" Up",
-    "\"RetroPad\" Down",
-    "\"RetroPad\" Left",
-    "\"RetroPad\" Right",
-    "\"RetroPad\" A",
-    "\"RetroPad\" X",
-    "\"RetroPad\" L",
-    "\"RetroPad\" R",
-    "\"RetroPad\" L2",
-    "\"RetroPad\" R2",
-    "\"RetroPad\" L3",
-    "\"RetroPad\" R3",
-    "\"RetroPad\" Left Stick X Axis",
-    "\"RetroPad\" Left Stick Y Axis",
-    "\"RetroPad\" Right Stick X Axis",
-    "\"RetroPad\" Right Stick Y Axis",
-    "\"RetroPad\" Analog L2",
-    "\"RetroPad\" Analog R2",
-    "\"RetroPad\" Analog L3",
-    "\"RetroPad\" Analog R3"
-};
+static std::array<std::string, 24> retro_descripts =
+    {
+        "\"RetroPad\" B",
+        "\"RetroPad\" Y",
+        "\"RetroPad\" Select",
+        "\"RetroPad\" Start",
+        "\"RetroPad\" Up",
+        "\"RetroPad\" Down",
+        "\"RetroPad\" Left",
+        "\"RetroPad\" Right",
+        "\"RetroPad\" A",
+        "\"RetroPad\" X",
+        "\"RetroPad\" L",
+        "\"RetroPad\" R",
+        "\"RetroPad\" L2",
+        "\"RetroPad\" R2",
+        "\"RetroPad\" L3",
+        "\"RetroPad\" R3",
+        "\"RetroPad\" Left Stick X Axis",
+        "\"RetroPad\" Left Stick Y Axis",
+        "\"RetroPad\" Right Stick X Axis",
+        "\"RetroPad\" Right Stick Y Axis",
+        "\"RetroPad\" Analog L2",
+        "\"RetroPad\" Analog R2",
+        "\"RetroPad\" Analog L3",
+        "\"RetroPad\" Analog R3"};
 
 void CLibretro::reset_retropad()
 {
@@ -253,7 +249,7 @@ void CLibretro::reset_retropad()
     }
 }
 
-int  CLibretro::axistocheck(int id, int index)
+int CLibretro::axistocheck(int id, int index)
 {
     switch (index)
     {
@@ -747,7 +743,6 @@ int CLibretro::key_pressed(int key)
     return false;
 }
 
-
 void CLibretro::keys()
 {
     lr_keymap = SDL_GetKeyboardState(NULL);
@@ -846,7 +841,7 @@ void CLibretro::poll_lr()
 }
 
 int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
-                    unsigned id)
+                               unsigned id)
 {
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_MOUSE)
     {
@@ -888,7 +883,6 @@ int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
         inside = (scaled_x >= -edge_detect) && (scaled_y >= -edge_detect) &&
                  (scaled_x <= edge_detect) && (scaled_y <= edge_detect);
 
-        if(index>0)return 0;
         switch (id)
         {
         case RETRO_DEVICE_ID_POINTER_X:
@@ -898,13 +892,17 @@ int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
         case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
             return scaled_y;
         case RETRO_DEVICE_ID_POINTER_PRESSED:
+            if (index)
+                return 0;
             return mousiez.l;
         case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
             return !inside;
-        case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:
+        case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
             return mousiez.b4;
-        case RETRO_DEVICE_ID_LIGHTGUN_START:
+        case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:
             return mousiez.b5;
+        case RETRO_DEVICE_ID_LIGHTGUN_START:
+            return mousiez.m;
         }
     }
 

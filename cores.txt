@@ -13,6 +13,7 @@ Recommended cores:
 * flycast_libretro.dll.zip (Dreamcast) 
 * snes9x_libretro.dll.zip (SNES) 
 * mupen64plus_next_libretro.dll.zip (N64) 
+* melondsds_libretro.dll.zip (NDS)
 * genesis_plus_gx_libretro.dll.zip (MD/Genesis/SMS)
 * mesen_libretro.dll.zip (NES) 
 * pokemini_libretro.dll.zip (Pokemon Mini)
@@ -95,6 +96,8 @@ Tested cores (known to load/play/save games, might not be problem-free)
 * picodrive_libretro.dll.zip (no known problems)
 * vice_x64_libretro.dll.zip (no known problems)
 * stella_libretro.dll.zip (no known problems)
+* desmume_libretro.dll.zip (no known problems)
+* desmume2015_libretro.dll.zip (no known problems)
 * parallel_n64_libretro.dll.zip (no Vulkan)
 * fceumm_libretro.dll.zip (incomplete controllers)
 * nestopia_libretro.dll.zip (incomplete controllers)
@@ -120,8 +123,6 @@ citra2018_libretro.dll.zip
 citra_libretro.dll.zip
 chailove_libretro.dll.zip
 crocods_libretro.dll.zip
-desmume2015_libretro.dll.zip
-desmume_libretro.dll.zip
 dolphin_libretro.dll.zip
 dosbox_core_libretro.dll.zip
 dosbox_svn_libretro.dll.zip
