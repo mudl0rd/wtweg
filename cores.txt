@@ -23,6 +23,7 @@ Recommended cores:
 * mednafen_vb_libretro.dll.zip (Virtual Boy) 
 * virtualjaguar_libretro.dll.zip (Jaguar) 
 * vecx_libretro.dll.zip (Vectrex) 
+* opera_libretro.dll.zip (3DO)
 * vice_x64sc_libretro.dll.zip (C64) 
 * vice_xpet_libretro.dll.zip (Commodore PET) 
 * vice_xvic_libretro.dll.zip (Commodore VIC-20) 
@@ -155,7 +156,6 @@ neocd_libretro.dll.zip
 np2kai_libretro.dll.zip
 o2em_libretro.dll.zip
 oberon_libretro.dll.zip
-opera_libretro.dll.zip
 play_libretro.dll.zip
 pocketcdg_libretro.dll.zip
 potator_libretro.dll.zip

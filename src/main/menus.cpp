@@ -1087,11 +1087,12 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
         if (bind.description == "")
           return;
         ImGui::TextWrapped("%s", bind.description.c_str());
-        std::string script = "##" + bind.description;
+        std::string script = "##" +std::to_string(i+0x1988) +
+        bind.description;
         char *button_str = (char *)bind.joykey_desc.c_str();
         ImVec2 sz = ImGui::GetWindowSize();
         ImGui::SameLine(sz.x * 0.78);
-        ImGui::SetNextItemWidth(sz.x * 0.2);
+        ImGui::SetNextItemWidth(sz.x * 0.2);   
         ImGui::InputText(script.c_str(), button_str, 0, 0, NULL);
         if (ImGui::IsItemActive())
         {

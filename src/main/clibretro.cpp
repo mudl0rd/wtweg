@@ -241,7 +241,10 @@ bool CLibretro::init_configvars_coreoptions(void *var, int version)
       retro_core_option_value *var1 = var3->values;
       loadedcore_configvars vars_struct;
       vars_struct.sel_idx = 0;
+      if(var3->default_value)
       vars_struct.var = var3->default_value;
+      else
+      vars_struct.var =var1->value;
       vars_struct.description = var3->desc;
       if (var3->info)
         vars_struct.tooltip = var3->info;
