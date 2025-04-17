@@ -869,19 +869,23 @@ int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
     if ((device & RETRO_DEVICE_MASK) == RETRO_DEVICE_POINTER || (device & RETRO_DEVICE_MASK) == RETRO_DEVICE_LIGHTGUN)
     {
         vp widthheight = video.resize_cb();
-
-        const int edge_detect = 32700;
         int scaled_x = -0x8000; /* OOB */
         int scaled_y = -0x8000; /* OOB */
         bool inside = false;
-        if (mousiez.abs_x >= 0 && mousiez.abs_x <= widthheight.width)
-            scaled_x = ((2 * mousiez.abs_x * 0x7fff) / widthheight.width) - 0x7fff;
-        if (mousiez.abs_y >= 0 && mousiez.abs_y <= widthheight.height)
-            scaled_y = ((2 * mousiez.abs_y * 0x7fff) / widthheight.height) - 0x7fff;
-        mousiez.abs_x -= widthheight.x;
-        mousiez.abs_y -= widthheight.y;
-        inside = (scaled_x >= -edge_detect) && (scaled_y >= -edge_detect) &&
-                 (scaled_x <= edge_detect) && (scaled_y <= edge_detect);
+        if (widthheight.width || widthheight.height)
+        {
+            const int edge_detect = 32700;
+
+          
+            if (mousiez.abs_x >= 0 && mousiez.abs_x <= widthheight.width)
+                scaled_x = ((2 * mousiez.abs_x * 0x7fff) / widthheight.width) - 0x7fff;
+            if (mousiez.abs_y >= 0 && mousiez.abs_y <= widthheight.height)
+                scaled_y = ((2 * mousiez.abs_y * 0x7fff) / widthheight.height) - 0x7fff;
+            mousiez.abs_x -= widthheight.x;
+            mousiez.abs_y -= widthheight.y;
+            inside = (scaled_x >= -edge_detect) && (scaled_y >= -edge_detect) &&
+                     (scaled_x <= edge_detect) && (scaled_y <= edge_detect);
+        }
 
         switch (id)
         {
@@ -891,7 +895,7 @@ int16_t CLibretro::input_state(unsigned port, unsigned device, unsigned index,
         case RETRO_DEVICE_ID_POINTER_Y:
         case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
             return scaled_y;
-        //RETRO_DEVICE_ID_LIGHTGUN_TRIGGER as well
+        // RETRO_DEVICE_ID_LIGHTGUN_TRIGGER as well
         case RETRO_DEVICE_ID_POINTER_PRESSED:
             if (index)
                 return 0;

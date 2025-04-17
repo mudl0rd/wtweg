@@ -745,7 +745,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
           for (auto &i : instance->core_inpbinds)
           {
             size_t k = &i - &instance->core_inpbinds.front();
-            if (i.controlinfo.size() >= 1)
+            if (i.controlinfo.size() > 1)
             {
               if (!k)
                 ImGui::Separator();
