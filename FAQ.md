@@ -24,7 +24,7 @@
 > * "saves" is where all saves are.
 > * "system" is where all BIOSes/system files go.
 > 
-> * "Emulation General" is a useful resource. Use it.
+> * "Emulation General" and "Myrient" are useful resources. Use them.
 
 ## With?
 
