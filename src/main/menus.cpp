@@ -1054,7 +1054,7 @@ void sdlggerat_menu(CLibretro *instance, std::string *window_str)
       }
       ImGui::Bullet();
       ImGui::SameLine();
-      ImGui::TextWrapped("WTFweg couldn't determine the core to use.");
+      ImGui::TextWrapped("WTweg couldn't determine the core to use.");
       ImGui::Bullet();
       ImGui::SameLine();
       ImGui::TextWrapped("Choose the specific core to load the ROM/ISO.");

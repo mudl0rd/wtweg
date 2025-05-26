@@ -72,6 +72,6 @@ endif
 
 dir_base = meson.current_source_dir()
 dir_install = join_paths(dir_base, 'compile_dir')
-executable('wtfweg',gui_app : true,c_args: [progdefs],cpp_args: [progdefs], install: true,install_dir: dir_install,include_directories : [inc],sources : [src],dependencies : [sdl2dep,dl_dep]
+executable('wtweg',gui_app : true,c_args: [progdefs],cpp_args: [progdefs], install: true,install_dir: dir_install,include_directories : [inc],sources : [src],dependencies : [sdl2dep,dl_dep]
 )
 

@@ -328,7 +328,7 @@ rest are purely digital except for sticks
 
 void CLibretro::reset()
 {
-  core_config = (std::filesystem::path(exe_path) / "wtfweg.json").string();
+  core_config = (std::filesystem::path(exe_path) / "wtweg.json").string();
   inp_keys = NULL;
   lr_isrunning = false;
   save_slot = 0;
