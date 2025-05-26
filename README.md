@@ -1,4 +1,4 @@
-# WTFweg
+# WTweg
 > [!IMPORTANT]
 > Contributions, issue/feature reports/requests will be ignored.
 

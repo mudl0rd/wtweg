@@ -113,11 +113,11 @@ struct ExampleAppLog
     CLibretro *core = CLibretro::get_classinstance();
 
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
-    ImGui::Text("WTFweg average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+    ImGui::Text("WTweg average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
     static float low = 0;
     if (1000.0f / io.Framerate > low)
       low = 1000.0f / io.Framerate;
-    ImGui::Text("WTFweg highest frametime %.3f ms/frame", low);
+    ImGui::Text("WTweg highest frametime %.3f ms/frame", low);
     ImGui::Text("Core samplerate (Hz): %.2f", core->core_samplerate);
     ImGui::Text("Core FPS limit: %.2f", core->core_fps);
     float avg = average(core->frames);
